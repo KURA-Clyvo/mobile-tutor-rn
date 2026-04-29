@@ -1,0 +1,432 @@
+/* ═════════════════════════════════════════════════════════════
+   KURA · DESIGN TOKENS
+   Lifted from kura-design-system.html — do not edit values.
+═════════════════════════════════════════════════════════════ */
+
+:root, [data-theme="light"] {
+  --sage:            #4A6944;
+  --sage-light:      #7B9E76;
+  --sage-pale:       #E0ECDB;
+  --amber:           #C8810D;
+  --amber-bright:    #E89C20;
+  --amber-pale:      #FBF0DB;
+  --clay:            #D9624A;
+  --clay-pale:       #F7E5DF;
+  --ocean:           #1A3A52;
+  --ocean-soft:      #2D5E7E;
+  --ocean-pale:      #D8E8F2;
+
+  --bg:              #F8F2E6;
+  --bg-elev:         #FFFCF7;
+  --bg-sunk:         #EDE3CD;
+  --surface:         #FFFCF7;
+  --surface-2:       #F2EBDB;
+
+  --border:          #EDE3CD;
+  --border-strong:   #D9CDB0;
+  --border-focus:    #4A6944;
+
+  --text:            #1B1006;
+  --text-soft:       #4A3418;
+  --text-mute:       #8A7458;
+  --text-on-sage:    #FFFCF7;
+  --text-on-amber:   #1B1006;
+  --text-on-ocean:   #FFFCF7;
+
+  --success:         #4A6944;
+  --success-bg:      #E0ECDB;
+  --warning:         #C8810D;
+  --warning-bg:      #FBF0DB;
+  --danger:          #B14A2F;
+  --danger-bg:       #F7E5DF;
+  --info:            #2D5E7E;
+  --info-bg:         #D8E8F2;
+
+  --shadow-sm:  0 1px 2px rgba(27,16,6,0.04), 0 1px 1px rgba(27,16,6,0.06);
+  --shadow-md:  0 4px 12px rgba(27,16,6,0.06), 0 2px 4px rgba(27,16,6,0.04);
+  --shadow-lg:  0 12px 32px rgba(27,16,6,0.08), 0 4px 8px rgba(27,16,6,0.04);
+  --shadow-sage: 0 8px 24px rgba(74,105,68,0.22);
+
+  --noise-opacity: 0.16;
+}
+
+[data-theme="dark"] {
+  --sage:            #8FB088;
+  --sage-light:      #A8C4A1;
+  --sage-pale:       #1F2A1B;
+  --amber:           #E89C20;
+  --amber-bright:    #FFB539;
+  --amber-pale:      #3A2810;
+
+  --clay:            #E07D62;
+  --clay-pale:       #3A1E16;
+
+  --ocean:           #6FA8C8;
+  --ocean-soft:      #4A8AAB;
+  --ocean-pale:      #1A2A38;
+
+  --bg:              #14110C;
+  --bg-elev:         #1F1A12;
+  --bg-sunk:         #0E0C08;
+  --surface:         #1F1A12;
+  --surface-2:       #2A2418;
+
+  --border:          #2A2418;
+  --border-strong:   #3D3424;
+  --border-focus:    #E89C20;
+
+  --text:            #F0E8D8;
+  --text-soft:       #C8BCA0;
+  --text-mute:       #8A7E62;
+  --text-on-sage:    #14110C;
+  --text-on-amber:   #14110C;
+  --text-on-ocean:   #14110C;
+
+  --success:         #8FB088;
+  --success-bg:      #1F2A1B;
+  --warning:         #E89C20;
+  --warning-bg:      #3A2810;
+  --danger:          #E07D62;
+  --danger-bg:       #3A1E16;
+  --info:            #6FA8C8;
+  --info-bg:         #1A2A38;
+
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.3), 0 1px 1px rgba(0,0,0,0.2);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  --shadow-lg:  0 12px 32px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.3);
+  --shadow-sage: 0 8px 24px rgba(143,176,136,0.28);
+
+  --noise-opacity: 0.06;
+}
+
+:root {
+  --font-display: 'Cormorant', Georgia, serif;
+  --font-body:    'Lexend', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --t-xs:     11px;
+  --t-sm:     13px;
+  --t-base:   15px;
+  --t-md:     17px;
+  --t-lg:     20px;
+  --t-xl:     26px;
+  --t-2xl:    34px;
+  --t-3xl:    44px;
+
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-8:  32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  14px;
+  --r-xl:  20px;
+  --r-2xl: 28px;
+  --r-full: 9999px;
+
+  --ease:        cubic-bezier(.2,.8,.2,1);
+  --d-fast:   140ms;
+  --d-base:   220ms;
+  --d-slow:   400ms;
+}
+
+/* ─── KURA SCREEN BASE ─────────────────────────── */
+
+/* The phone screen — a fixed 375x812 surface that hosts each app screen */
+.k-phone {
+  width: 375px;
+  height: 812px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--t-base);
+  line-height: 1.5;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'ss01','kern';
+  isolation: isolate;
+}
+
+.k-phone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: var(--noise-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* iOS-like status bar */
+.k-statusbar {
+  height: 44px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.k-statusbar .icons {
+  display: flex; gap: 5px; align-items: center;
+}
+
+/* Home indicator */
+.k-home-indicator {
+  height: 34px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.k-home-indicator::after {
+  content: '';
+  width: 134px; height: 5px;
+  background: var(--text);
+  border-radius: 999px;
+  opacity: 0.85;
+}
+
+/* Scroll body */
+.k-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+.k-body::-webkit-scrollbar { width: 0; }
+
+/* App header */
+.k-header {
+  padding: 16px 24px 8px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.k-header-back {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.k-header-title {
+  flex: 1;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1.1;
+}
+.k-header-title em { font-style: italic; color: var(--sage); font-weight: 400; }
+.k-header-action {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  background: var(--sage-pale);
+  padding: 8px 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(74,105,68,0.18);
+  cursor: pointer;
+}
+
+/* Bottom tab bar */
+.k-tabbar {
+  flex-shrink: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 8px 12px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.k-tab {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+}
+.k-tab.active { color: var(--sage); }
+.k-tab svg { width: 22px; height: 22px; }
+
+/* Common chip */
+.k-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.k-chip-sage   { background: var(--sage-pale);   color: var(--sage);   border-color: rgba(74,105,68,0.20); }
+.k-chip-amber  { background: var(--amber-pale);  color: var(--amber);  border-color: rgba(200,129,13,0.22); }
+.k-chip-clay   { background: var(--clay-pale);   color: var(--clay);   border-color: rgba(217,98,74,0.22); }
+.k-chip-ocean  { background: var(--ocean-pale);  color: var(--ocean);  border-color: rgba(26,58,82,0.20); }
+.k-chip-mute   { background: var(--surface-2);   color: var(--text-mute); border-color: var(--border); }
+[data-theme="dark"] .k-chip-sage   { color: var(--sage-light); }
+[data-theme="dark"] .k-chip-amber  { color: var(--amber-bright); }
+[data-theme="dark"] .k-chip-ocean  { color: var(--ocean); }
+
+/* Common button */
+.k-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 14px 22px;
+  min-height: 48px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--d-base) var(--ease);
+  white-space: nowrap;
+}
+.k-btn-primary { background: var(--sage); color: var(--text-on-sage); box-shadow: var(--shadow-sage); }
+.k-btn-amber   { background: var(--amber); color: var(--text-on-amber); box-shadow: 0 4px 16px rgba(200,129,13,0.20); }
+.k-btn-ocean   { background: var(--ocean); color: var(--text-on-ocean); }
+.k-btn-secondary {
+  background: transparent; color: var(--text);
+  border-color: var(--border-strong);
+}
+.k-btn-ghost {
+  background: var(--surface); color: var(--text);
+  border-color: var(--border);
+}
+.k-btn-block { width: 100%; }
+
+/* Input */
+.k-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.k-field-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+.k-input, .k-select, .k-textarea {
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  color: var(--text);
+  width: 100%;
+  outline: none;
+  transition: border-color var(--d-fast) var(--ease), box-shadow var(--d-fast) var(--ease);
+}
+.k-input:focus, .k-select:focus, .k-textarea:focus {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(74,105,68,0.15);
+}
+.k-input::placeholder { color: var(--text-mute); }
+[data-theme="dark"] .k-input:focus,
+[data-theme="dark"] .k-select:focus,
+[data-theme="dark"] .k-textarea:focus {
+  box-shadow: 0 0 0 3px rgba(143,176,136,0.20);
+}
+
+/* Card surface */
+.k-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+/* Pet avatar */
+.k-pet-avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+  position: relative;
+  background: var(--sage-pale);
+  background-size: cover; background-position: center;
+}
+.k-pet-avatar.tier-photo { border: 2px solid var(--sage); }
+.k-pet-avatar.tier-detected { border: 2px solid var(--sage); }
+.k-pet-avatar-badge {
+  position: absolute;
+  bottom: -3px; right: -3px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--amber);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  border: 2px solid var(--surface);
+  color: #fff;
+}
+
+/* Section kicker */
+.k-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.k-kicker::before {
+  content: ''; width: 18px; height: 1px; background: var(--text-mute);
+}
+
+/* Kura logo SVG sizes */
+.k-logo-sm { width: 28px; height: 28px; }
+.k-logo-lg { width: 64px; height: 64px; }
+.k-logo-xl { width: 96px; height: 96px; }
+
+/* Wordmark */
+.k-wordmark {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  color: var(--text);
+}
+.k-wordmark em { font-style: italic; color: var(--amber); }
+[data-theme="dark"] .k-wordmark em { color: var(--amber-bright); }
+
+/* Soft warm orb backgrounds */
+.k-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(40px);
+  opacity: 0.55;
+  z-index: 0;
+}
+
+/* Skeleton-like floating content protection */
+.k-content-z { position: relative; z-index: 1; }
