@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Kura · Design System v1.0 · Clyvo Vet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Lexend:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ═════════════════════════════════════════════════════════════
+   KURA · DESIGN SYSTEM v1.0
+   Sub-marca do app tutor da plataforma Clyvo Vet
+   Baseado em: Pelo (componentes/cores) + Lexend (body, CAPIO)
+   FIAP Challenge 2026 · Felipe Ferrete
+═════════════════════════════════════════════════════════════ */
+
+/* ─── 1. DESIGN TOKENS · LIGHT ───────────────────────────── */
+:root, [data-theme="light"] {
+  /* Brand */
+  --sage:            #4A6944;  /* PRIMÁRIA - natureza, saúde animal */
+  --sage-light:      #7B9E76;
+  --sage-pale:       #E0ECDB;
+  --amber:           #C8810D;  /* SECUNDÁRIA - energia, afeto */
+  --amber-bright:    #E89C20;
+  --amber-pale:      #FBF0DB;
+  --clay:            #D9624A;
+  --clay-pale:       #F7E5DF;
+  --ocean:           #1A3A52;
+  --ocean-soft:      #2D5E7E;
+  --ocean-pale:      #D8E8F2;
+
+  /* Surfaces (warm, never cold gray) */
+  --bg:              #F8F2E6;   /* areia */
+  --bg-elev:         #FFFCF7;   /* branco quente */
+  --bg-sunk:         #EDE3CD;   /* areia escura */
+  --surface:         #FFFCF7;
+  --surface-2:       #F2EBDB;
+
+  /* Borders & dividers */
+  --border:          #EDE3CD;
+  --border-strong:   #D9CDB0;
+  --border-focus:    #4A6944;  /* sage, não amber */
+
+  /* Text */
+  --text:            #1B1006;   /* casca */
+  --text-soft:       #4A3418;
+  --text-mute:       #8A7458;
+  --text-on-sage:    #FFFCF7;  /* nova var */
+  --text-on-amber:   #1B1006;  /* ajustado */
+  --text-on-ocean:   #FFFCF7;
+
+  /* Semantic */
+  --success:         #4A6944;
+  --success-bg:      #E0ECDB;
+  --warning:         #C8810D;
+  --warning-bg:      #FBF0DB;
+  --danger:          #B14A2F;
+  --danger-bg:       #F7E5DF;
+  --info:            #2D5E7E;
+  --info-bg:         #D8E8F2;
+
+  /* Shadows (warm, not gray) */
+  --shadow-sm:  0 1px 2px rgba(27,16,6,0.04), 0 1px 1px rgba(27,16,6,0.06);
+  --shadow-md:  0 4px 12px rgba(27,16,6,0.06), 0 2px 4px rgba(27,16,6,0.04);
+  --shadow-lg:  0 12px 32px rgba(27,16,6,0.08), 0 4px 8px rgba(27,16,6,0.04);
+  --shadow-sage: 0 8px 24px rgba(74,105,68,0.22);
+
+  /* Texture overlay */
+  --noise-opacity: 0.18;
+}
+
+/* ─── 2. DESIGN TOKENS · DARK ────────────────────────────── */
+[data-theme="dark"] {
+  /* Brand — same hues, adjusted luminance */
+  --sage:            #8FB088;  /* PRIMÁRIA dark */
+  --sage-light:      #A8C4A1;
+  --sage-pale:       #1F2A1B;
+  --amber:           #E89C20;
+  --amber-bright:    #FFB539;
+  --amber-pale:      #3A2810;
+
+  --clay:            #E07D62;
+  --clay-pale:       #3A1E16;
+
+  --ocean:           #6FA8C8;
+  --ocean-soft:      #4A8AAB;
+  --ocean-pale:      #1A2A38;
+
+  /* Surfaces — warm dark, never #000 */
+  --bg:              #14110C;   /* casca profunda */
+  --bg-elev:         #1F1A12;
+  --bg-sunk:         #0E0C08;
+  --surface:         #1F1A12;
+  --surface-2:       #2A2418;
+
+  /* Borders */
+  --border:          #2A2418;
+  --border-strong:   #3D3424;
+  --border-focus:    #E89C20;
+
+  /* Text */
+  --text:            #F0E8D8;
+  --text-soft:       #C8BCA0;
+  --text-mute:       #8A7E62;
+  --text-on-sage:    #14110C;  /* nova var dark */
+  --text-on-amber:   #14110C;
+  --text-on-ocean:   #14110C;
+
+  /* Semantic */
+  --success:         #8FB088;
+  --success-bg:      #1F2A1B;
+  --warning:         #E89C20;
+  --warning-bg:      #3A2810;
+  --danger:          #E07D62;
+  --danger-bg:       #3A1E16;
+  --info:            #6FA8C8;
+  --info-bg:         #1A2A38;
+
+  /* Shadows (deeper) */
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.3), 0 1px 1px rgba(0,0,0,0.2);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  --shadow-lg:  0 12px 32px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.3);
+  --shadow-sage: 0 8px 24px rgba(143,176,136,0.28);
+
+  --noise-opacity: 0.08;
+}
+
+/* ─── 3. SHARED TOKENS (theme-independent) ───────────────── */
+:root {
+  /* Typography */
+  --font-display: 'Cormorant', Georgia, serif;        /* Emoção, hero */
+  --font-body:    'Lexend', system-ui, sans-serif;    /* CAPIO escolha */
+  --font-mono:    'JetBrains Mono', monospace;        /* Dados, IDs */
+
+  /* Type scale (Major Third, 1.25) */
+  --t-xs:     11px;
+  --t-sm:     13px;
+  --t-base:   15px;
+  --t-md:     17px;
+  --t-lg:     20px;
+  --t-xl:     26px;
+  --t-2xl:    34px;
+  --t-3xl:    44px;
+  --t-4xl:    58px;
+  --t-display: clamp(48px, 8vw, 96px);
+
+  /* Spacing scale (4px base) */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-8:  32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-20: 80px;
+
+  /* Radius */
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  14px;
+  --r-xl:  20px;
+  --r-2xl: 28px;
+  --r-full: 9999px;
+
+  /* Motion */
+  --ease:        cubic-bezier(.2,.8,.2,1);
+  --ease-in:     cubic-bezier(.6,.0,.8,.2);
+  --ease-out:    cubic-bezier(.16,1,.3,1);
+  --d-fast:   140ms;
+  --d-base:   220ms;
+  --d-slow:   400ms;
+
+  /* Z-index */
+  --z-nav:    100;
+  --z-sticky: 200;
+  --z-modal:  900;
+  --z-toast:  1000;
+}
+
+/* ─── 4. RESET & BASE ────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--t-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'ss01','kern';
+  transition: background var(--d-base) var(--ease), color var(--d-base) var(--ease);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Warm noise texture (subtle, both modes) */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: var(--noise-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+::selection { background: var(--sage); color: var(--text-on-sage); }
+
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--s-12); position: relative; z-index: 2; }
+@media (max-width: 720px) { .wrap { padding: 0 var(--s-5); } }
+
+/* ─── 5. THEME TOGGLE ────────────────────────────────────── */
+.theme-toggle {
+  position: fixed;
+  top: var(--s-5);
+  right: var(--s-5);
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--d-base) var(--ease);
+}
+.theme-toggle:hover {
+  border-color: var(--sage);
+  color: var(--sage);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.theme-toggle .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--sage);
+  transition: background var(--d-base) var(--ease);
+}
+[data-theme="dark"] .theme-toggle .dot { background: var(--sage-light); }
+
+/* ─── 6. NAV ─────────────────────────────────────────────── */
+nav.top {
+  position: sticky; top: 0; z-index: var(--z-nav);
+  background: rgba(248, 242, 230, 0.85);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  transition: background var(--d-base) var(--ease);
+}
+[data-theme="dark"] nav.top { background: rgba(20, 17, 12, 0.85); }
+
+.nav-inner {
+  max-width: 1200px; margin: 0 auto; padding: 0 var(--s-12);
+  height: 64px; display: flex; align-items: center; justify-content: space-between;
+}
+@media (max-width: 720px) { .nav-inner { padding: 0 var(--s-5); } }
+
+.nav-brand { display: flex; align-items: center; gap: var(--s-3); }
+.nav-brand-mark svg { display: block; }
+.nav-brand-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-lg);
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.nav-brand-name em { font-style: italic; color: var(--amber); }
+
+.nav-links { display: flex; gap: var(--s-8); list-style: none; }
+@media (max-width: 720px) { .nav-links { display: none; } }
+.nav-links a {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  text-decoration: none;
+  transition: color var(--d-fast) var(--ease);
+}
+.nav-links a:hover { color: var(--sage); }
+
+/* ─── 7. SECTION SHELL ───────────────────────────────────── */
+section {
+  padding: var(--s-20) 0;
+  border-top: 1px solid var(--border);
+  position: relative;
+}
+section:first-of-type { border-top: 0; }
+
+.section-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: var(--s-4);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.section-kicker::before {
+  content: ''; width: 32px; height: 1px; background: var(--sage);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: var(--s-5);
+  max-width: 720px;
+}
+.section-title em {
+  font-style: italic; font-weight: 300; color: var(--sage);
+}
+
+.section-lead {
+  font-size: var(--t-md);
+  line-height: 1.7;
+  color: var(--text-soft);
+  max-width: 640px;
+  margin-bottom: var(--s-12);
+}
+
+/* ─── 8. HERO ────────────────────────────────────────────── */
+.hero {
+  min-height: 92vh;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: var(--s-16) 0 var(--s-12);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute;
+  top: -10%; right: -15%;
+  width: 60vw; height: 60vw;
+  background: radial-gradient(ellipse at center, rgba(200,129,13,0.10) 0%, transparent 65%);
+  border-radius: 40% 60% 55% 45% / 45% 50% 50% 55%;
+  pointer-events: none; z-index: 0;
+}
+[data-theme="dark"] .hero::before { background: radial-gradient(ellipse at center, rgba(232,156,32,0.10) 0%, transparent 65%); }
+
+.hero::after {
+  content: ''; position: absolute;
+  bottom: -20%; left: -10%;
+  width: 50vw; height: 50vw;
+  background: radial-gradient(ellipse at center, rgba(74,105,68,0.08) 0%, transparent 65%);
+  border-radius: 55% 45% 40% 60% / 50% 55% 45% 50%;
+  pointer-events: none; z-index: 0;
+}
+
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sage);
+  position: relative; z-index: 2;
+}
+
+.hero-pill {
+  display: inline-flex; align-items: center; gap: var(--s-3);
+  background: var(--sage-pale);
+  border: 1px solid rgba(74,105,68,0.25);
+  border-radius: var(--r-full);
+  padding: 6px 16px 6px 8px;
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: var(--s-10);
+  width: fit-content;
+}
+.hero-pill .blink {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--sage);
+  animation: pulse 2.4s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--t-display);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: var(--s-8);
+  position: relative; z-index: 2;
+}
+.hero-title em { font-style: italic; color: var(--sage); }
+
+.hero-sub {
+  font-size: var(--t-md);
+  line-height: 1.7;
+  color: var(--text-soft);
+  max-width: 540px;
+  position: relative; z-index: 2;
+}
+
+.hero-meta {
+  display: flex; gap: var(--s-8); flex-wrap: wrap;
+  padding-top: var(--s-12);
+  border-top: 1px solid var(--border);
+  position: relative; z-index: 2;
+  margin-top: var(--s-16);
+}
+.hero-meta-item { display: flex; flex-direction: column; gap: 4px; }
+.hero-meta-k {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+.hero-meta-v {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ─── 9. LOGO SHOWCASE ───────────────────────────────────── */
+.logo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-4);
+}
+@media (max-width: 720px) { .logo-grid { grid-template-columns: 1fr; } }
+
+.logo-panel {
+  padding: var(--s-12);
+  border-radius: var(--r-xl);
+  display: flex; flex-direction: column; gap: var(--s-8);
+  min-height: 280px;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+.logo-panel.light { background: var(--bg-elev); border: 1px solid var(--border); }
+.logo-panel.dark  { background: var(--text); }
+.logo-panel.amber { background: var(--amber); }
+.logo-panel.sage  { background: var(--sage); }
+
+.logo-panel-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.logo-panel.light .logo-panel-label { color: var(--text-mute); }
+.logo-panel.dark .logo-panel-label  { color: rgba(248,242,230,0.5); }
+.logo-panel.amber .logo-panel-label { color: rgba(255,255,255,0.7); }
+.logo-panel.sage .logo-panel-label  { color: rgba(255,255,255,0.7); }
+
+.logo-mark { display: flex; align-items: center; gap: var(--s-5); }
+
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 56px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.wordmark em { font-style: italic; font-weight: 300; }
+.logo-panel.light .wordmark { color: var(--text); }
+.logo-panel.light .wordmark em { color: var(--sage); }
+.logo-panel.dark .wordmark  { color: var(--bg); }
+.logo-panel.dark .wordmark em { color: var(--sage-light); }
+.logo-panel.amber .wordmark { color: #FFFCF7; }
+.logo-panel.amber .wordmark em { color: rgba(255,255,255,0.7); }
+.logo-panel.sage .wordmark  { color: #FFFCF7; }
+.logo-panel.sage .wordmark em { color: rgba(255,255,255,0.7); }
+
+/* ─── 10. PALETTE ────────────────────────────────────────── */
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-3);
+}
+.swatch {
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  transition: transform var(--d-base) var(--ease), box-shadow var(--d-base) var(--ease);
+}
+.swatch:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.swatch-color { aspect-ratio: 16/9; padding: var(--s-4); display: flex; align-items: flex-end; }
+.swatch-color .hex {
+  font-family: var(--font-mono); font-size: var(--t-xs);
+  letter-spacing: 0.08em;
+  background: rgba(0,0,0,0.18); padding: 4px 8px; border-radius: var(--r-sm);
+  color: rgba(255,255,255,0.95);
+}
+.swatch-color.light .hex { background: rgba(27,16,6,0.12); color: var(--text); }
+.swatch-meta {
+  background: var(--surface);
+  padding: var(--s-3) var(--s-4);
+}
+.swatch-name {
+  font-family: var(--font-display);
+  font-size: var(--t-md); font-weight: 500;
+  color: var(--text); margin-bottom: 2px;
+}
+.swatch-role {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-mute);
+}
+
+/* ─── 11. TYPOGRAPHY SAMPLES ─────────────────────────────── */
+.type-stack { display: grid; gap: var(--s-4); }
+.type-card {
+  padding: var(--s-8);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+}
+.type-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: var(--s-5);
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.type-label .right { color: var(--amber); }
+
+.type-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: var(--s-3);
+}
+.type-display em { font-style: italic; color: var(--sage); }
+
+.type-body {
+  font-family: var(--font-body);
+  font-size: var(--t-md);
+  line-height: 1.7;
+  color: var(--text-soft);
+  max-width: 560px;
+}
+.type-body strong { color: var(--text); font-weight: 600; }
+
+.type-mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+}
+
+/* ─── 12. BUTTONS ────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  font-family: var(--font-body);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 12px 20px;
+  border-radius: var(--r-full);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--d-base) var(--ease);
+  white-space: nowrap;
+}
+.btn:focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; }
+.btn-sm { padding: 8px 14px; font-size: var(--t-xs); }
+.btn-lg { padding: 16px 28px; font-size: var(--t-md); }
+
+.btn-primary { background: var(--sage); color: var(--text-on-sage); box-shadow: var(--shadow-sage); }
+.btn-primary:hover { background: var(--sage-light); transform: translateY(-1px); }
+
+.btn-amber { background: var(--amber); color: var(--text-on-amber); box-shadow: 0 4px 16px rgba(200,129,13,0.20); }
+.btn-amber:hover { background: var(--amber-bright); transform: translateY(-1px); }
+
+.btn-ocean { background: var(--ocean); color: var(--text-on-ocean); }
+.btn-ocean:hover { background: var(--ocean-soft); transform: translateY(-1px); }
+
+.btn-secondary {
+  background: transparent; color: var(--text);
+  border-color: var(--border-strong);
+}
+.btn-secondary:hover { background: var(--surface-2); border-color: var(--text-soft); }
+
+.btn-ghost {
+  background: transparent; color: var(--sage);
+  padding-left: var(--s-2); padding-right: var(--s-2);
+}
+.btn-ghost:hover { color: var(--sage-light); }
+.btn-ghost::after { content: ' →'; transition: transform var(--d-base) var(--ease); }
+.btn-ghost:hover::after { transform: translateX(3px); }
+
+.btn-danger { background: var(--danger); color: #FFFCF7; }
+
+/* ─── 13. CHIPS / TAGS ───────────────────────────────────── */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-body);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.chip-sage   { background: var(--sage-pale);   color: var(--sage);   border-color: rgba(74,105,68,0.20); }
+.chip-amber  { background: var(--amber-pale);  color: var(--amber);  border-color: rgba(200,129,13,0.20); }
+.chip-clay   { background: var(--clay-pale);   color: var(--clay);   border-color: rgba(217,98,74,0.20); }
+.chip-ocean  { background: var(--ocean-pale);  color: var(--ocean);  border-color: rgba(26,58,82,0.20); }
+.chip-mute   { background: var(--surface-2);   color: var(--text-mute); border-color: var(--border); }
+
+[data-theme="dark"] .chip-sage   { color: var(--sage-light); }
+[data-theme="dark"] .chip-amber  { color: var(--amber-bright); }
+[data-theme="dark"] .chip-ocean  { color: var(--ocean); }
+
+/* ─── 14. PET CARD (3 TIERS) ─────────────────────────────── */
+.pet-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--s-5);
+}
+
+.pet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: var(--s-6);
+  display: flex; flex-direction: column; gap: var(--s-5);
+  transition: all var(--d-base) var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+.pet-card:hover {
+  border-color: var(--sage);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.pet-card-header { display: flex; align-items: center; gap: var(--s-4); }
+
+.pet-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  flex-shrink: 0;
+  position: relative;
+  border: 2px solid transparent;
+}
+.pet-avatar.tier-emoji  { background: var(--sage-pale); }
+.pet-avatar.tier-photo  {
+  background-size: cover; background-position: center;
+  border-color: var(--sage);
+}
+.pet-avatar.tier-detected { background: var(--sage-pale); border-color: var(--sage); }
+
+.pet-avatar-badge {
+  position: absolute;
+  bottom: -2px; right: -2px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--sage);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  border: 2px solid var(--surface);
+  color: #FFFCF7;
+}
+
+.pet-info { flex: 1; min-width: 0; }
+.pet-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-xl);
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.pet-meta {
+  font-family: var(--font-body);
+  font-size: var(--t-sm);
+  color: var(--text-mute);
+}
+
+.pet-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-3);
+  padding: var(--s-4) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.pet-stat-k {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 4px;
+}
+.pet-stat-v {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+.pet-stat-v.alert { color: var(--clay); }
+
+.pet-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.pet-actions { display: flex; gap: var(--s-2); }
+
+/* ─── 15. INPUTS ─────────────────────────────────────────── */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-family: var(--font-body);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  color: var(--text-soft);
+  letter-spacing: 0.04em;
+}
+.field-input, .field-select, .field-textarea {
+  font-family: var(--font-body);
+  font-size: var(--t-base);
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--text);
+  transition: all var(--d-fast) var(--ease);
+}
+.field-input:focus, .field-select:focus, .field-textarea:focus {
+  outline: none;
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(74,105,68,0.15);
+}
+.field-input::placeholder { color: var(--text-mute); }
+.field-help {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--text-mute);
+}
+
+/* Upload */
+.upload-zone {
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  padding: var(--s-8);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--d-base) var(--ease);
+  background: var(--surface);
+}
+.upload-zone:hover { border-color: var(--sage); background: var(--sage-pale); }
+.upload-zone-icon { font-size: 28px; margin-bottom: var(--s-2); }
+.upload-zone-title {
+  font-family: var(--font-body);
+  font-size: var(--t-sm); font-weight: 500;
+  color: var(--text); margin-bottom: 2px;
+}
+.upload-zone-help {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--text-mute); letter-spacing: 0.04em;
+}
+
+/* ─── 16. ALERTS / TOASTS ────────────────────────────────── */
+.alert {
+  display: flex; gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-lg);
+  border-left: 3px solid;
+}
+.alert-icon { font-size: 18px; flex-shrink: 0; }
+.alert-content { flex: 1; }
+.alert-title {
+  font-family: var(--font-body);
+  font-size: var(--t-sm); font-weight: 600;
+  margin-bottom: 2px;
+}
+.alert-msg { font-size: var(--t-sm); color: var(--text-soft); }
+
+.alert-info     { background: var(--info-bg);    border-color: var(--info);    color: var(--info); }
+.alert-success  { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+.alert-warning  { background: var(--warning-bg); border-color: var(--warning); color: var(--warning); }
+.alert-danger   { background: var(--danger-bg);  border-color: var(--danger);  color: var(--danger); }
+
+/* ─── 17. MODAL ──────────────────────────────────────────── */
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-2xl);
+  padding: var(--s-10);
+  max-width: 480px;
+  box-shadow: var(--shadow-lg);
+}
+.modal-header { margin-bottom: var(--s-5); }
+.modal-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-2xl);
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: var(--s-2);
+}
+.modal-title em { font-style: italic; color: var(--sage); }
+.modal-sub { font-size: var(--t-sm); color: var(--text-mute); }
+.modal-body { display: flex; flex-direction: column; gap: var(--s-4); margin-bottom: var(--s-6); }
+.modal-actions { display: flex; gap: var(--s-3); justify-content: flex-end; }
+
+/* ─── 18. TABS / NAV BOTTOM (mobile) ─────────────────────── */
+.tabbar {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  padding: 4px;
+  gap: 2px;
+  width: fit-content;
+}
+.tab {
+  font-family: var(--font-body);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--r-full);
+  color: var(--text-mute);
+  cursor: pointer;
+  transition: all var(--d-fast) var(--ease);
+  border: 0; background: transparent;
+}
+.tab.active { background: var(--sage); color: var(--text-on-sage); }
+.tab:not(.active):hover { color: var(--text); background: var(--surface-2); }
+
+/* ─── 19. APP MOCKUP (phone frame) ───────────────────────── */
+.phone-frame {
+  width: 320px;
+  background: var(--bg);
+  border: 8px solid var(--text);
+  border-radius: 36px;
+  padding: var(--s-5);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--t-sm);
+}
+
+/* ─── 20. CODE BLOCK (tokens) ────────────────────────────── */
+.code-block {
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  line-height: 1.7;
+  padding: var(--s-8);
+  border-radius: var(--r-xl);
+  overflow-x: auto;
+}
+.code-block .c-cmt  { color: rgba(248,242,230,0.4); }
+.code-block .c-var  { color: var(--amber-bright); }
+.code-block .c-val  { color: var(--sage-light); }
+
+/* ─── 21. MOTION (reveal) ────────────────────────────────── */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity var(--d-slow) var(--ease-out),
+              transform var(--d-slow) var(--ease-out);
+}
+.reveal.in { opacity: 1; transform: translateY(0); }
+
+/* ─── 22. DON'TS GRID ────────────────────────────────────── */
+.donts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--s-4);
+}
+.dont {
+  background: var(--danger-bg);
+  border: 1px solid rgba(177,74,47,0.18);
+  border-left: 3px solid var(--danger);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+}
+.dont-num {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--danger);
+  margin-bottom: var(--s-2);
+}
+.dont-title {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: 500;
+  color: var(--text); margin-bottom: 6px;
+}
+.dont-desc { font-size: var(--t-sm); color: var(--text-soft); line-height: 1.6; }
+
+/* ─── 23. FOOTER ─────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: var(--s-12) 0;
+  margin-top: var(--s-16);
+}
+.foot-inner {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--font-mono); font-size: var(--t-xs);
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-mute);
+  flex-wrap: wrap; gap: var(--s-4);
+}
+
+/* ─── 24. UTILITY ────────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-5); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-5); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-5); }
+@media (max-width: 720px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+.flex-row { display: flex; gap: var(--s-3); flex-wrap: wrap; align-items: center; }
+.flex-col { display: flex; flex-direction: column; gap: var(--s-3); }
+.divider { height: 1px; background: var(--border); margin: var(--s-8) 0; }
+.spacer-sm { height: var(--s-4); }
+.spacer-md { height: var(--s-8); }
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ THEME TOGGLE ═══════════════════ -->
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Alternar tema">
+  <span class="dot"></span>
+  <span id="theme-label">Light</span>
+</button>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav class="top">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <span class="nav-brand-mark">
+        <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+          <!-- Coração base estilizado -->
+          <path d="M24 40C24 40 8 30 8 18C8 12 12 8 16 8C19 8 21.5 10 24 13C26.5 10 29 8 32 8C36 8 40 12 40 18C40 30 24 40 24 40Z" 
+                stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" 
+                style="color:var(--sage);"/>
+          <!-- Pegadas (patas) integradas -->
+          <circle cx="20" cy="20" r="2.5" fill="currentColor" style="color:var(--sage);" opacity="0.85"/>
+          <circle cx="28" cy="20" r="2.5" fill="currentColor" style="color:var(--sage);" opacity="0.85"/>
+          <circle cx="24" cy="26" r="3" fill="currentColor" style="color:var(--sage);"/>
+        </svg>
+      </span>
+      <span class="nav-brand-name">Kura<em>.</em></span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#brand">Brand</a></li>
+      <li><a href="#logo">Logo</a></li>
+      <li><a href="#cores">Cores</a></li>
+      <li><a href="#tipo">Tipografia</a></li>
+      <li><a href="#comp">Componentes</a></li>
+      <li><a href="#tokens">Tokens</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section id="brand" class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow reveal">Design System v1.0 · Abril 2026</div>
+
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+      <div class="hero-pill reveal"><span class="blink"></span>Sub-marca · Plataforma Clyvo Vet</div>
+
+      <h1 class="hero-title reveal">Kura.<br>O cuidado<br><em>registrado.</em></h1>
+
+      <p class="hero-sub reveal">
+        Sistema de design completo para o app tutor da plataforma Clyvo Vet. Construído sobre os princípios da identidade <em style="font-style:italic;color:var(--sage);">Pelo</em> — vínculo emocional antes de gestão clínica — com a legibilidade da fonte <strong style="font-weight:600;">Lexend</strong> calibrada para profissionais que leem prontuários o dia inteiro. Verde sage como cor primária: natureza, saúde animal, bem-estar.
+      </p>
+    </div>
+
+    <div class="hero-meta reveal">
+      <div class="hero-meta-item">
+        <span class="hero-meta-k">Sub-marca de</span>
+        <span class="hero-meta-v">Clyvo Vet</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-k">Aplicação</span>
+        <span class="hero-meta-v">App Tutor (B2C)</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-k">Stack</span>
+        <span class="hero-meta-v">React Native · Web</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-k">Modos</span>
+        <span class="hero-meta-v">Light · Dark</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ LOGO ═══════════════════ -->
+<section id="logo">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="section-kicker">01 · Logomark</div>
+      <h2 class="section-title">A marca em <em>quatro</em><br>ambientes.</h2>
+      <p class="section-lead">
+        O wordmark usa <strong>Cormorant 400</strong> com itálico no ponto final — um detalhe que sinaliza fim de pensamento, encerramento de consulta, registro completo. O símbolo é um <strong>coração estilizado com pegadas integradas</strong>: representa o vínculo afetivo (coração) com marcas reais do cuidado animal (patas). Cada pegada simboliza uma consulta, uma vacina, um momento registrado.
+      </p>
+    </div>
+
+    <div class="logo-grid reveal">
+
+      <div class="logo-panel light">
+        <div class="logo-panel-label">Fundo claro · uso padrão</div>
+        <div class="logo-mark">
+          <svg width="64" height="64" viewBox="0 0 48 48" fill="none">
+            <path d="M24 40C24 40 8 30 8 18C8 12 12 8 16 8C19 8 21.5 10 24 13C26.5 10 29 8 32 8C36 8 40 12 40 18C40 30 24 40 24 40Z" 
+                  stroke="#4A6944" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="20" cy="20" r="2.5" fill="#4A6944" opacity="0.85"/>
+            <circle cx="28" cy="20" r="2.5" fill="#4A6944" opacity="0.85"/>
+            <circle cx="24" cy="26" r="3" fill="#4A6944"/>
+          </svg>
+          <span class="wordmark">Kura<em>.</em></span>
+        </div>
+      </div>
+
+      <div class="logo-panel dark">
+        <div class="logo-panel-label">Fundo escuro · alto contraste</div>
+        <div class="logo-mark">
+          <svg width="64" height="64" viewBox="0 0 48 48" fill="none">
+            <path d="M24 40C24 40 8 30 8 18C8 12 12 8 16 8C19 8 21.5 10 24 13C26.5 10 29 8 32 8C36 8 40 12 40 18C40 30 24 40 24 40Z" 
+                  stroke="#8FB088" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="20" cy="20" r="2.5" fill="#8FB088" opacity="0.85"/>
+            <circle cx="28" cy="20" r="2.5" fill="#8FB088" opacity="0.85"/>
+            <circle cx="24" cy="26" r="3" fill="#8FB088"/>
+          </svg>
+          <span class="wordmark">Kura<em>.</em></span>
+        </div>
+      </div>
+
+      <div class="logo-panel amber">
+        <div class="logo-panel-label">Fundo âmbar · CTA / hero</div>
+        <div class="logo-mark">
+          <svg width="64" height="64" viewBox="0 0 48 48" fill="none">
+            <path d="M24 40C24 40 8 30 8 18C8 12 12 8 16 8C19 8 21.5 10 24 13C26.5 10 29 8 32 8C36 8 40 12 40 18C40 30 24 40 24 40Z" 
+                  stroke="rgba(255,255,255,0.85)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="20" cy="20" r="2.5" fill="white" opacity="0.9"/>
+            <circle cx="28" cy="20" r="2.5" fill="white" opacity="0.9"/>
+            <circle cx="24" cy="26" r="3" fill="white"/>
+          </svg>
+          <span class="wordmark">Kura<em>.</em></span>
+        </div>
+      </div>
+
+      <div class="logo-panel sage">
+        <div class="logo-panel-label">Fundo salva · saúde / natureza</div>
+        <div class="logo-mark">
+          <svg width="64" height="64" viewBox="0 0 48 48" fill="none">
+            <path d="M24 40C24 40 8 30 8 18C8 12 12 8 16 8C19 8 21.5 10 24 13C26.5 10 29 8 32 8C36 8 40 12 40 18C40 30 24 40 24 40Z" 
+                  stroke="rgba(255,255,255,0.85)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="20" cy="20" r="2.5" fill="white" opacity="0.9"/>
+            <circle cx="28" cy="20" r="2.5" fill="white" opacity="0.9"/>
+            <circle cx="24" cy="26" r="3" fill="white"/>
+          </svg>
+          <span class="wordmark">Kura<em>.</em></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer-md"></div>
+
+    <div class="reveal">
+      <div class="section-kicker" style="margin-top: var(--s-12);">— O que não fazer</div>
+      <div class="donts" style="margin-top: var(--s-5);">
+        <div class="dont">
+          <div class="dont-num">Erro 01</div>
+          <div class="dont-title">Não distorcer proporções</div>
+          <div class="dont-desc">Nunca alterar a proporção do símbolo ou do wordmark independentemente. Sempre usar o arquivo SVG original.</div>
+        </div>
+        <div class="dont">
+          <div class="dont-num">Erro 02</div>
+          <div class="dont-title">Não usar sobre fotos sem overlay</div>
+          <div class="dont-desc">Aplicar overlay escuro (casca, 60%) ou claro (areia, 80%) antes de posicionar o logo sobre fotos de pets.</div>
+        </div>
+        <div class="dont">
+          <div class="dont-num">Erro 03</div>
+          <div class="dont-title">Não usar cores fora da paleta</div>
+          <div class="dont-desc">O logo existe em âmbar, branco quente e areia. Nunca em azul "saúde" genérico ou verde médico.</div>
+        </div>
+        <div class="dont">
+          <div class="dont-num">Erro 04</div>
+          <div class="dont-title">Não remover o ponto final em itálico</div>
+          <div class="dont-desc">O ponto é parte do wordmark, não decoração. Ele significa "registrado" — encerramento do cuidado.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CORES ═══════════════════ -->
+<section id="cores">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="section-kicker">02 · Paleta de Cores</div>
+      <h2 class="section-title">Cada cor nasceu de uma <em>cena</em><br>com um pet — não de um manual healthtech.</h2>
+      <p class="section-lead">
+        Hierarquia: 4 cores brand (significado emocional), 5 neutros warm (estrutura), 4 semânticas (estado). Toda a paleta funciona em light e dark — apenas a luminância muda.
+      </p>
+    </div>
+
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Brand</h3>
+    <div class="palette-grid reveal">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#C8810D;"><span class="hex">#C8810D</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Âmbar</div>
+          <div class="swatch-role">Primária · Ação · CTA</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#D9624A;"><span class="hex">#D9624A</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Argila</div>
+          <div class="swatch-role">Emoção · Alerta afetivo</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1A3A52;"><span class="hex">#1A3A52</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Índigo</div>
+          <div class="swatch-role">Confiança · Prontuário</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#4A6944;"><span class="hex">#4A6944</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Salva</div>
+          <div class="swatch-role">Saúde · Natureza · OK</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer-md"></div>
+
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Surfaces (warm neutrals)</h3>
+    <div class="palette-grid reveal">
+      <div class="swatch">
+        <div class="swatch-color light" style="background:#F8F2E6;"><span class="hex">#F8F2E6</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Areia</div>
+          <div class="swatch-role">BG principal · Light</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color light" style="background:#FFFCF7;"><span class="hex">#FFFCF7</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Branco quente</div>
+          <div class="swatch-role">Cards · Modais</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color light" style="background:#EDE3CD;"><span class="hex">#EDE3CD</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Areia escura</div>
+          <div class="swatch-role">Bordas · Divisores</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1B1006;"><span class="hex">#1B1006</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Casca</div>
+          <div class="swatch-role">Texto principal</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#14110C;"><span class="hex">#14110C</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Casca profunda</div>
+          <div class="swatch-role">BG · Dark mode</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer-md"></div>
+
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Semânticas</h3>
+    <div class="palette-grid reveal">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#4A6944;"><span class="hex">#4A6944</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Sucesso</div>
+          <div class="swatch-role">Vacinado · OK · Confirmado</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#C8810D;"><span class="hex">#C8810D</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Aviso</div>
+          <div class="swatch-role">Pendente · Atenção</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#B14A2F;"><span class="hex">#B14A2F</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Crítico</div>
+          <div class="swatch-role">Atrasado · Erro · Urgente</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#2D5E7E;"><span class="hex">#2D5E7E</span></div>
+        <div class="swatch-meta">
+          <div class="swatch-name">Info</div>
+          <div class="swatch-role">Documento · Telemedicina</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ TIPOGRAFIA ═══════════════════ -->
+<section id="tipo">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="section-kicker">03 · Tipografia</div>
+      <h2 class="section-title"><em>Três</em> vozes,<br>uma alma.</h2>
+      <p class="section-lead">
+        <strong>Lexend</strong> (sua escolha CAPIO) é a fonte base — desenhada para reduzir carga cognitiva em prontuários longos. <strong>Cormorant</strong> aparece nos momentos emocionais (nome do pet, hero, fim de consulta). <strong>JetBrains Mono</strong> em dados técnicos.
+      </p>
+    </div>
+
+    <div class="type-stack">
+
+      <div class="type-card reveal">
+        <div class="type-label">
+          <span>01 · Display — Cormorant</span>
+          <span class="right">Emoção · Hero · Nome do pet</span>
+        </div>
+        <div class="type-display">O pet é <em>família.</em></div>
+        <div class="type-mono">font-family: 'Cormorant', Georgia, serif · pesos 300/400/500 · itálico nos destaques</div>
+      </div>
+
+      <div class="type-card reveal">
+        <div class="type-label">
+          <span>02 · Body — Lexend</span>
+          <span class="right">Padrão · UI · Prontuário</span>
+        </div>
+        <p class="type-body" style="margin-bottom:var(--s-3);">
+          Lexend foi projetada por <strong>Bonnie Shaver-Troup</strong> para reduzir fadiga visual em leitura prolongada. Em healthtech, isso importa: o veterinário lê 30+ prontuários por dia. A diferença entre Lexend e uma sans genérica como Inter é mensurável em redução de erro de leitura clínica.
+        </p>
+        <div class="type-mono">font-family: 'Lexend', system-ui · pesos 300–700 · spacing default · line-height 1.6</div>
+      </div>
+
+      <div class="type-card reveal">
+        <div class="type-label">
+          <span>03 · Mono — JetBrains Mono</span>
+          <span class="right">Dados · IDs · Timestamps</span>
+        </div>
+        <div class="type-mono" style="font-size: var(--t-md); color: var(--text);">
+          PET_ID: 0x4A2F · CONS_009 · 2026-04-27 14:32<br>
+          CRMV-SP 12345 · LGPD: cifrado em repouso (AES-256)
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer-md"></div>
+
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Escala</h3>
+    <div class="grid-2 reveal">
+      <div style="display:flex; flex-direction:column; gap:var(--s-3); padding:var(--s-6); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl);">
+        <div style="display:flex; align-items:baseline; justify-content:space-between;"><span style="font-family:var(--font-display); font-size:var(--t-4xl); line-height:1;">Aa</span><span class="type-mono" style="color:var(--text-mute);">--t-4xl · 58px</span></div>
+        <div style="display:flex; align-items:baseline; justify-content:space-between;"><span style="font-family:var(--font-display); font-size:var(--t-3xl); line-height:1;">Aa</span><span class="type-mono" style="color:var(--text-mute);">--t-3xl · 44px</span></div>
+        <div style="display:flex; align-items:baseline; justify-content:space-between;"><span style="font-family:var(--font-display); font-size:var(--t-2xl); line-height:1;">Aa</span><span class="type-mono" style="color:var(--text-mute);">--t-2xl · 34px</span></div>
+        <div style="display:flex; align-items:baseline; justify-content:space-between;"><span style="font-family:var(--font-display); font-size:var(--t-xl); line-height:1;">Aa</span><span class="type-mono" style="color:var(--text-mute);">--t-xl · 26px</span></div>
+        <div style="display:flex; align-items:baseline; justify-content:space-between;"><span style="font-family:var(--font-body); font-size:var(--t-lg); line-height:1;">Aa</span><span class="type-mono" style="color:var(--text-mute);">--t-lg · 20px</span></div>
+        <div style="display:flex; align-items:baseline; justify-content:space-between;"><span style="font-family:var(--font-body); font-size:var(--t-md); line-height:1;">Aa</span><span class="type-mono" style="color:var(--text-mute);">--t-md · 17px</span></div>
+        <div style="display:flex; align-items:baseline; justify-content:space-between;"><span style="font-family:var(--font-body); font-size:var(--t-base); line-height:1;">Aa</span><span class="type-mono" style="color:var(--text-mute);">--t-base · 15px</span></div>
+        <div style="display:flex; align-items:baseline; justify-content:space-between;"><span style="font-family:var(--font-body); font-size:var(--t-sm); line-height:1;">Aa</span><span class="type-mono" style="color:var(--text-mute);">--t-sm · 13px</span></div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:var(--s-3); padding:var(--s-6); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl);">
+        <div class="type-mono" style="color:var(--text-mute); margin-bottom:var(--s-2);">Quando usar cada tamanho</div>
+        <div style="display:flex; gap:var(--s-3); align-items:flex-start;"><span class="chip chip-amber" style="min-width:78px; justify-content:center;">4xl</span><span style="font-size:var(--t-sm); color:var(--text-soft);">Hero do app · landing</span></div>
+        <div style="display:flex; gap:var(--s-3); align-items:flex-start;"><span class="chip chip-amber" style="min-width:78px; justify-content:center;">3xl</span><span style="font-size:var(--t-sm); color:var(--text-soft);">Título de tela principal</span></div>
+        <div style="display:flex; gap:var(--s-3); align-items:flex-start;"><span class="chip chip-amber" style="min-width:78px; justify-content:center;">2xl</span><span style="font-size:var(--t-sm); color:var(--text-soft);">Modal title · seção</span></div>
+        <div style="display:flex; gap:var(--s-3); align-items:flex-start;"><span class="chip chip-amber" style="min-width:78px; justify-content:center;">xl</span><span style="font-size:var(--t-sm); color:var(--text-soft);">Card title · pet name</span></div>
+        <div style="display:flex; gap:var(--s-3); align-items:flex-start;"><span class="chip chip-amber" style="min-width:78px; justify-content:center;">lg</span><span style="font-size:var(--t-sm); color:var(--text-soft);">Subtítulo · stat value</span></div>
+        <div style="display:flex; gap:var(--s-3); align-items:flex-start;"><span class="chip chip-amber" style="min-width:78px; justify-content:center;">md</span><span style="font-size:var(--t-sm); color:var(--text-soft);">Body destacado · lead</span></div>
+        <div style="display:flex; gap:var(--s-3); align-items:flex-start;"><span class="chip chip-amber" style="min-width:78px; justify-content:center;">base</span><span style="font-size:var(--t-sm); color:var(--text-soft);">Body padrão</span></div>
+        <div style="display:flex; gap:var(--s-3); align-items:flex-start;"><span class="chip chip-amber" style="min-width:78px; justify-content:center;">sm</span><span style="font-size:var(--t-sm); color:var(--text-soft);">Caption · meta · chip</span></div>
+        <div style="display:flex; gap:var(--s-3); align-items:flex-start;"><span class="chip chip-amber" style="min-width:78px; justify-content:center;">xs</span><span style="font-size:var(--t-sm); color:var(--text-soft);">Label · kicker · uppercase</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ COMPONENTES ═══════════════════ -->
+<section id="comp">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="section-kicker">04 · Componentes UI</div>
+      <h2 class="section-title">Cada toque<br>tem <em>intenção.</em></h2>
+      <p class="section-lead">
+        Componentes herdados do sistema Pelo, adaptados para o nome Kura, com tokens semânticos para light + dark.
+      </p>
+    </div>
+
+    <!-- BUTTONS -->
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Botões</h3>
+    <div class="reveal" style="padding:var(--s-8); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl); margin-bottom:var(--s-8);">
+      <div class="flex-row" style="margin-bottom:var(--s-5);">
+        <button class="btn btn-primary">Agendar consulta</button>
+        <button class="btn btn-ocean">Ver prontuário</button>
+        <button class="btn btn-secondary">Cancelar</button>
+        <button class="btn btn-ghost">Ver mais</button>
+        <button class="btn btn-danger">Excluir</button>
+      </div>
+      <div class="flex-row" style="margin-bottom:var(--s-5);">
+        <button class="btn btn-primary btn-sm">Vacinar</button>
+        <button class="btn btn-ocean btn-sm">PDF</button>
+        <button class="btn btn-secondary btn-sm">Editar</button>
+      </div>
+      <div class="flex-row">
+        <button class="btn btn-primary btn-lg">Adicionar Pet</button>
+        <button class="btn btn-secondary btn-lg">Saiba mais</button>
+      </div>
+    </div>
+
+    <!-- CHIPS -->
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Chips · Tags · Badges</h3>
+    <div class="reveal" style="padding:var(--s-8); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl); margin-bottom:var(--s-8);">
+      <div class="flex-row">
+        <span class="chip chip-amber">🐶 Cão</span>
+        <span class="chip chip-amber">🐱 Gato</span>
+        <span class="chip chip-amber">🐰 Coelho</span>
+        <span class="chip chip-amber">🦜 Ave</span>
+        <span class="chip chip-amber">Labrador</span>
+        <span class="chip chip-sage">✓ Vacinado</span>
+        <span class="chip chip-sage">Saudável</span>
+        <span class="chip chip-ocean">Prontuário</span>
+        <span class="chip chip-ocean">Telemedicina</span>
+        <span class="chip chip-clay">⚠ Retorno 7d</span>
+        <span class="chip chip-clay">Atrasado</span>
+        <span class="chip chip-mute">Rascunho</span>
+      </div>
+    </div>
+
+    <!-- PET CARDS — 3 TIERS -->
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Pet Card · 3 estados</h3>
+    <p class="reveal" style="font-size:var(--t-sm); color:var(--text-soft); max-width:640px; margin-bottom:var(--s-5);">
+      Emoji por raça específica não existe no Unicode (não há emoji para Bulldog Francês ou Maine Coon). O sistema resolve em 3 tiers: foto upload &gt; emoji da espécie + chip de raça &gt; emoji genérico. A Luna (módulo IoT) adiciona um 4º estado quando a câmera detecta automaticamente.
+    </p>
+
+    <div class="pet-card-grid reveal">
+
+      <!-- Tier 1 · Photo upload -->
+      <div class="pet-card">
+        <div class="pet-card-header">
+          <div class="pet-avatar tier-photo" style="background-image: linear-gradient(135deg, #C8810D 0%, #E89C20 100%);">
+            <span style="font-size:24px;">📸</span>
+          </div>
+          <div class="pet-info">
+            <div class="pet-name">Bóbi</div>
+            <div class="pet-meta">Labrador · 3 anos · M</div>
+          </div>
+        </div>
+        <div class="pet-stats">
+          <div><div class="pet-stat-k">Última cons.</div><div class="pet-stat-v">22/04</div></div>
+          <div><div class="pet-stat-k">Próx. vacina</div><div class="pet-stat-v alert">15d</div></div>
+          <div><div class="pet-stat-k">Total</div><div class="pet-stat-v">8</div></div>
+        </div>
+        <div class="pet-tags">
+          <span class="chip chip-sage">✓ Vacinado</span>
+          <span class="chip chip-amber">Ativo</span>
+        </div>
+        <div class="pet-actions">
+          <button class="btn btn-primary btn-sm" style="flex:1;">Ver histórico</button>
+          <button class="btn btn-secondary btn-sm">Agendar</button>
+        </div>
+        <div style="position:absolute; top:var(--s-3); right:var(--s-3);">
+          <span class="chip chip-mute" style="font-size:10px;">📷 Foto</span>
+        </div>
+      </div>
+
+      <!-- Tier 2 · Species emoji + race chip -->
+      <div class="pet-card">
+        <div class="pet-card-header">
+          <div class="pet-avatar tier-emoji">🐱</div>
+          <div class="pet-info">
+            <div class="pet-name">Luna</div>
+            <div class="pet-meta">Siamês · 5 anos · F</div>
+          </div>
+        </div>
+        <div class="pet-stats">
+          <div><div class="pet-stat-k">Última cons.</div><div class="pet-stat-v">03/03</div></div>
+          <div><div class="pet-stat-k">Retorno</div><div class="pet-stat-v alert">Hoje</div></div>
+          <div><div class="pet-stat-k">Total</div><div class="pet-stat-v">14</div></div>
+        </div>
+        <div class="pet-tags">
+          <span class="chip chip-clay">⚠ Retorno hoje</span>
+          <span class="chip chip-amber">Siamês</span>
+        </div>
+        <div class="pet-actions">
+          <button class="btn btn-ocean btn-sm" style="flex:1;">Agendar retorno</button>
+          <button class="btn btn-secondary btn-sm">Histórico</button>
+        </div>
+      </div>
+
+      <!-- Tier 3 · IoT detected -->
+      <div class="pet-card">
+        <div class="pet-card-header">
+          <div class="pet-avatar tier-detected">
+            🐶
+            <div class="pet-avatar-badge">✨</div>
+          </div>
+          <div class="pet-info">
+            <div class="pet-name">Thor</div>
+            <div class="pet-meta">Detectado · ~ 4 anos · ?</div>
+          </div>
+        </div>
+        <div class="pet-stats">
+          <div><div class="pet-stat-k">Detecção</div><div class="pet-stat-v">94%</div></div>
+          <div><div class="pet-stat-k">Raça</div><div class="pet-stat-v" style="font-size:var(--t-base);">Husky</div></div>
+          <div><div class="pet-stat-k">Sinais</div><div class="pet-stat-v" style="font-size:var(--t-base); color:var(--clay);">2</div></div>
+        </div>
+        <div class="pet-tags">
+          <span class="chip chip-sage">✨ Câmera</span>
+          <span class="chip chip-clay">Coceira detectada</span>
+        </div>
+        <div class="pet-actions">
+          <button class="btn btn-primary btn-sm" style="flex:1;">Confirmar dados</button>
+          <button class="btn btn-secondary btn-sm">Ignorar</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="spacer-md"></div>
+
+    <!-- INPUTS / FIELDS -->
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Inputs · Upload</h3>
+    <div class="grid-2 reveal" style="margin-bottom:var(--s-8);">
+      <div style="padding:var(--s-6); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl); display:flex; flex-direction:column; gap:var(--s-4);">
+        <div class="field">
+          <label class="field-label">Nome do pet</label>
+          <input class="field-input" type="text" placeholder="Ex: Bóbi" />
+          <span class="field-help">Como você chama no dia-a-dia</span>
+        </div>
+        <div class="field">
+          <label class="field-label">Espécie</label>
+          <select class="field-select">
+            <option>🐶 Cão</option>
+            <option>🐱 Gato</option>
+            <option>🐰 Coelho</option>
+            <option>🦜 Ave</option>
+            <option>🐢 Réptil</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Sintomas observados</label>
+          <textarea class="field-textarea" rows="3" placeholder="Descreva o que você percebeu..."></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:var(--s-4);">
+        <div class="upload-zone">
+          <div class="upload-zone-icon">📸</div>
+          <div class="upload-zone-title">Adicionar foto do pet</div>
+          <div class="upload-zone-help">JPG, PNG até 5MB · ou tire uma foto agora</div>
+        </div>
+        <div class="alert alert-info">
+          <span class="alert-icon">ℹ️</span>
+          <div class="alert-content">
+            <div class="alert-title">Reconhecimento por câmera</div>
+            <div class="alert-msg">Se você não souber a raça, a câmera detecta automaticamente. (Powered by Luna IoT)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Alertas · Toasts</h3>
+    <div class="flex-col reveal" style="margin-bottom:var(--s-8);">
+      <div class="alert alert-info">
+        <span class="alert-icon">ℹ️</span>
+        <div class="alert-content">
+          <div class="alert-title">Telemedicina disponível</div>
+          <div class="alert-msg">Sua clínica oferece teleorientação. Conforme CFMV 1.465/2022.</div>
+        </div>
+      </div>
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        <div class="alert-content">
+          <div class="alert-title">Vacina registrada</div>
+          <div class="alert-msg">V10 aplicada em 22/04. Próximo reforço em 12 meses.</div>
+        </div>
+      </div>
+      <div class="alert alert-warning">
+        <span class="alert-icon">⚠</span>
+        <div class="alert-content">
+          <div class="alert-title">Retorno em 3 dias</div>
+          <div class="alert-msg">Luna precisa do retorno para checar a evolução do tratamento.</div>
+        </div>
+      </div>
+      <div class="alert alert-danger">
+        <span class="alert-icon">⚠</span>
+        <div class="alert-content">
+          <div class="alert-title">Vacina atrasada há 23 dias</div>
+          <div class="alert-msg">Procure a clínica o quanto antes. Risco aumentado para Bóbi.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL -->
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Modal</h3>
+    <div class="reveal" style="display:flex; justify-content:center; padding:var(--s-12) var(--s-4); background:var(--bg-sunk); border-radius:var(--r-xl); margin-bottom:var(--s-8);">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Confirmar <em>consulta</em></div>
+          <div class="modal-sub">Você está agendando para Bóbi com Dr. Marina · 15/05 às 14h</div>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info" style="border-left-width:3px;">
+            <span class="alert-icon">⏱</span>
+            <div class="alert-content">
+              <div class="alert-msg" style="color:var(--text-soft);">Telemedicina · 30 min · você receberá o link 10 min antes</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary">Cancelar</button>
+          <button class="btn btn-primary">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <h3 class="reveal" style="font-family:var(--font-display); font-size:var(--t-xl); font-weight:500; color:var(--text); margin-bottom:var(--s-4);">Tabs</h3>
+    <div class="reveal flex-row" style="padding:var(--s-6); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl);">
+      <div class="tabbar">
+        <button class="tab active">Meus Pets</button>
+        <button class="tab">Consultas</button>
+        <button class="tab">Vacinas</button>
+        <button class="tab">Documentos</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════ TOKENS ═══════════════════ -->
+<section id="tokens">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="section-kicker">05 · Design Tokens</div>
+      <h2 class="section-title">Pronto para<br><em>implementar.</em></h2>
+      <p class="section-lead">
+        Copie no <code style="font-family:var(--font-mono);background:var(--surface-2);padding:2px 6px;border-radius:4px;">:root</code> do CSS principal. Os tokens são <strong>semânticos</strong> — trocar de tema não quebra os componentes.
+      </p>
+    </div>
+
+    <div class="code-block reveal"><span class="c-cmt">/* ═══════════════════════════════════════════════════
+   KURA · Design Tokens v1.0
+   Sub-marca do app tutor · Plataforma Clyvo Vet
+═══════════════════════════════════════════════════ */</span>
+
+<span class="c-cmt">/* ─── LIGHT (default) ─── */</span>
+:root, [data-theme=<span class="c-val">"light"</span>] {
+  <span class="c-cmt">/* Brand */</span>
+  <span class="c-var">--sage</span>:         <span class="c-val">#4A6944</span>; <span class="c-cmt">/* Primária */</span>
+  <span class="c-var">--sage-light</span>:   <span class="c-val">#7B9E76</span>;
+  <span class="c-var">--amber</span>:        <span class="c-val">#C8810D</span>; <span class="c-cmt">/* Secundária */</span>
+  <span class="c-var">--amber-bright</span>: <span class="c-val">#E89C20</span>;
+  <span class="c-var">--clay</span>:         <span class="c-val">#D9624A</span>;
+  <span class="c-var">--ocean</span>:        <span class="c-val">#1A3A52</span>;
+
+  <span class="c-cmt">/* Surfaces */</span>
+  <span class="c-var">--bg</span>:           <span class="c-val">#F8F2E6</span>;
+  <span class="c-var">--surface</span>:      <span class="c-val">#FFFCF7</span>;
+  <span class="c-var">--text</span>:         <span class="c-val">#1B1006</span>;
+  <span class="c-var">--text-soft</span>:    <span class="c-val">#4A3418</span>;
+  <span class="c-var">--text-mute</span>:    <span class="c-val">#8A7458</span>;
+  <span class="c-var">--border</span>:       <span class="c-val">#EDE3CD</span>;
+}
+
+<span class="c-cmt">/* ─── DARK ─── */</span>
+[data-theme=<span class="c-val">"dark"</span>] {
+  <span class="c-var">--sage</span>:         <span class="c-val">#8FB088</span>;
+  <span class="c-var">--sage-light</span>:   <span class="c-val">#A8C4A1</span>;
+  <span class="c-var">--amber</span>:        <span class="c-val">#E89C20</span>;
+  <span class="c-var">--amber-bright</span>: <span class="c-val">#FFB539</span>;
+  <span class="c-var">--clay</span>:         <span class="c-val">#E07D62</span>;
+  <span class="c-var">--ocean</span>:        <span class="c-val">#6FA8C8</span>;
+
+  <span class="c-var">--bg</span>:           <span class="c-val">#14110C</span>;
+  <span class="c-var">--surface</span>:      <span class="c-val">#1F1A12</span>;
+  <span class="c-var">--text</span>:         <span class="c-val">#F0E8D8</span>;
+  <span class="c-var">--text-soft</span>:    <span class="c-val">#C8BCA0</span>;
+  <span class="c-var">--text-mute</span>:    <span class="c-val">#8A7E62</span>;
+  <span class="c-var">--border</span>:       <span class="c-val">#2A2418</span>;
+}
+
+<span class="c-cmt">/* ─── Tipografia ─── */</span>
+:root {
+  <span class="c-var">--font-display</span>: <span class="c-val">'Cormorant'</span>, Georgia, serif;
+  <span class="c-var">--font-body</span>:    <span class="c-val">'Lexend'</span>, system-ui, sans-serif;
+  <span class="c-var">--font-mono</span>:    <span class="c-val">'JetBrains Mono'</span>, monospace;
+
+  <span class="c-cmt">/* Scale */</span>
+  <span class="c-var">--t-xs</span>: <span class="c-val">11px</span>;  <span class="c-var">--t-sm</span>: <span class="c-val">13px</span>;  <span class="c-var">--t-base</span>: <span class="c-val">15px</span>;
+  <span class="c-var">--t-md</span>: <span class="c-val">17px</span>;  <span class="c-var">--t-lg</span>: <span class="c-val">20px</span>;  <span class="c-var">--t-xl</span>: <span class="c-val">26px</span>;
+  <span class="c-var">--t-2xl</span>: <span class="c-val">34px</span>; <span class="c-var">--t-3xl</span>: <span class="c-val">44px</span>; <span class="c-var">--t-4xl</span>: <span class="c-val">58px</span>;
+
+  <span class="c-cmt">/* Spacing (4px base) */</span>
+  <span class="c-var">--s-1</span>: <span class="c-val">4px</span>;   <span class="c-var">--s-2</span>: <span class="c-val">8px</span>;   <span class="c-var">--s-3</span>: <span class="c-val">12px</span>;
+  <span class="c-var">--s-4</span>: <span class="c-val">16px</span>;  <span class="c-var">--s-5</span>: <span class="c-val">20px</span>;  <span class="c-var">--s-6</span>: <span class="c-val">24px</span>;
+  <span class="c-var">--s-8</span>: <span class="c-val">32px</span>;  <span class="c-var">--s-10</span>: <span class="c-val">40px</span>; <span class="c-var">--s-12</span>: <span class="c-val">48px</span>;
+  <span class="c-var">--s-16</span>: <span class="c-val">64px</span>; <span class="c-var">--s-20</span>: <span class="c-val">80px</span>;
+
+  <span class="c-cmt">/* Radius */</span>
+  <span class="c-var">--r-sm</span>: <span class="c-val">6px</span>;  <span class="c-var">--r-md</span>: <span class="c-val">10px</span>; <span class="c-var">--r-lg</span>: <span class="c-val">14px</span>;
+  <span class="c-var">--r-xl</span>: <span class="c-val">20px</span>; <span class="c-var">--r-2xl</span>: <span class="c-val">28px</span>; <span class="c-var">--r-full</span>: <span class="c-val">9999px</span>;
+
+  <span class="c-cmt">/* Motion */</span>
+  <span class="c-var">--ease</span>:    <span class="c-val">cubic-bezier(.2,.8,.2,1)</span>;
+  <span class="c-var">--d-fast</span>: <span class="c-val">140ms</span>;
+  <span class="c-var">--d-base</span>: <span class="c-val">220ms</span>;
+  <span class="c-var">--d-slow</span>: <span class="c-val">400ms</span>;
+}</div>
+  </div>
+</section>
+
+<!-- ═══════════════════ A11Y / RULES ═══════════════════ -->
+<section>
+  <div class="wrap">
+    <div class="reveal">
+      <div class="section-kicker">06 · Acessibilidade · LGPD</div>
+      <h2 class="section-title">Healthtech<br>não é <em>opcional.</em></h2>
+      <p class="section-lead">
+        O sistema atende WCAG 2.1 AA em todos os pares de cor. Texto sobre âmbar, ocean, sage e clay foi calibrado para contraste mínimo 4.5:1 (texto pequeno) e 3:1 (texto grande &gt; 18px bold).
+      </p>
+    </div>
+
+    <div class="grid-2 reveal">
+
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        <div class="alert-content">
+          <div class="alert-title">Contraste WCAG AA</div>
+          <div class="alert-msg">Todos os pares foreground/background validados. Texto secundário usa <code style="font-family:var(--font-mono); font-size:11px;">--text-soft</code>, nunca opacity em texto.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        <div class="alert-content">
+          <div class="alert-title">Touch targets ≥ 44×44px</div>
+          <div class="alert-msg">Todos os botões, chips clicáveis e tabs respeitam o mínimo do iOS HIG e Material Design.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
+        <div class="alert-content">
+          <div class="alert-title">Focus rings visíveis</div>
+          <div class="alert-msg">Outline âmbar 2px com offset 3px em todos os interativos. Nunca <code style="font-family:var(--font-mono); font-size:11px;">outline:none</code> sem substituto.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-warning">
+        <span class="alert-icon">⚠</span>
+        <div class="alert-content">
+          <div class="alert-title">LGPD · Dados sensíveis</div>
+          <div class="alert-msg">Prontuário do pet contém dados do tutor (CPF). Sempre cifrar em repouso (AES-256), em trânsito (TLS 1.3), e marcar visualmente quem está logado em telas com info clínica.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-inner">
+      <span>Kura · Design System v1.0 · Abril 2026</span>
+      <span>FIAP Challenge · Clyvo Vet · Felipe Ferrete</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Theme toggle
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme') || 'light';
+  const next = current === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  document.getElementById('theme-label').textContent = next === 'light' ? 'Light' : 'Dark';
+  try { localStorage.setItem('kura-theme', next); } catch(e) {}
+}
+
+// Restore theme preference
+try {
+  const saved = localStorage.getItem('kura-theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+    const lbl = document.getElementById('theme-label');
+    if (lbl) lbl.textContent = saved === 'light' ? 'Light' : 'Dark';
+  }
+} catch(e) {}
+
+// Reveal on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
