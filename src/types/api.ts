@@ -30,7 +30,7 @@ export interface TimelineTutorEventDetailResponse {
   dtEvento: string; nrDuracaoMin?: number; sgTipoAtendimento?: 'pres' | 'tele';
   nmVeterinario?: string; nrCRMV?: string; dsEspecialidade?: string; nmClinica: string;
   nrPesoKg?: number; nrTemperaturaC?: number; nrFreqCardiacaBpm?: number;
-  dsDiagnostico?: string; dsCID10Vet?: string; dsPlano?: string;
+  dsResumoPublico?: string; dsDiagnostico?: string; dsCID10Vet?: string; dsPlano?: string;
   prescricoes?: Array<{ nmMedicamento: string; dsPosologia: string; nrDuracaoDias?: number }>;
   dtRetornoAgendado?: string; dsRetornoInstrucao?: string;
 }

@@ -3,6 +3,6 @@ export interface PetDomain {
   id: number; nome: string; especie: string; raca: string; nascimento: Date;
   sexo: 'M' | 'F'; porte: 'P' | 'M' | 'G' | 'GG'; nmClinica: string;
   statusGeral: 'OK' | 'ALERTA' | 'URGENTE'; alertasAtivos: number;
-  idadeAnos: number;
+  idadeAnos: number; nrConsultas?: number;
   chips: Array<{ tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }>;
 }
