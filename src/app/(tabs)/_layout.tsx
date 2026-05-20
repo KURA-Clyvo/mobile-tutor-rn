@@ -1,10 +1,12 @@
 import { Tabs } from 'expo-router';
 import { KTabBar } from '../../components/layout/KTabBar';
+import { useAgendamentoBadgeCount } from '../../hooks/useAgendamentos';
 
 export default function TabsLayout() {
+  const badgeCount = useAgendamentoBadgeCount();
   return (
     <Tabs
-      tabBar={(props) => <KTabBar {...props} />}
+      tabBar={(props) => <KTabBar {...props} agendaBadgeCount={badgeCount} />}
       screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="pets"   options={{ title: 'Pets'   }} />
