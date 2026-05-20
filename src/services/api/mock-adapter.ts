@@ -15,7 +15,13 @@ const ROUTES: Array<[RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>
   [/\/tutor\/pets\/\d+$/,                   (c) => petsMock.byId(c)],
   [/\/tutor\/pets$/,                        () => petsMock.list()],
   [/\/tutor\/agendamentos$/,                () => agendaMock.list()],
-  [/\/tutor\/consentimentos$/,              () => consentMock.list()],
+  [/\/tutor\/consentimentos\/\d+$/,          () => Promise.resolve({ id: 1, sgStatus: 'REVOGADO', dtRevogacao: new Date().toISOString() })],
+  [/\/tutor\/consentimentos$/,              (c) => {
+    if (c.method === 'post') {
+      return Promise.resolve({ id: Math.floor(Math.random() * 9000 + 1000), sgStatus: 'ATIVO', dtConsentimento: new Date().toISOString(), dsIdempotencyKey: 'mock-key' });
+    }
+    return consentMock.list();
+  }],
   [/\/tutor\/notificacoes\/\d+\/lida/,      () => Promise.resolve({ id: 1, flLida: true })],
   [/\/tutor\/notificacoes\/lidas/,          () => Promise.resolve({ count: 3 })],
   [/\/tutor\/notificacoes$/,                () => notifMock.list()],
