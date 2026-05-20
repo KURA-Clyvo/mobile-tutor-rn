@@ -3,6 +3,20 @@ import { Platform } from 'react-native';
 import { apiClient } from './api/client';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Router } from 'expo-router';
+import type { NotificacaoTutorResponse, MarcarLidaResponse } from '../types/api';
+
+// ─── In-app notification history ─────────────────────────────────────────────
+
+export const getNotificacoes = () =>
+  apiClient.get<NotificacaoTutorResponse[]>('/api/v1/tutor/notificacoes').then(r => r.data);
+
+export const marcarLida = (id: number) =>
+  apiClient.patch<MarcarLidaResponse>(`/api/v1/tutor/notificacoes/${id}/lida`).then(r => r.data);
+
+export const marcarTodasLidas = () =>
+  apiClient.patch<{ count: number }>('/api/v1/tutor/notificacoes/lidas').then(r => r.data);
+
+// ─── Push notifications ───────────────────────────────────────────────────────
 
 export async function requestPermission(): Promise<boolean> {
   const { status } = await Notifications.requestPermissionsAsync();
@@ -25,7 +39,6 @@ export async function registerDeviceToken(token: string): Promise<void> {
       dsPlatform: Platform.OS as 'ios' | 'android',
     });
   } catch {
-    // Pending — mock succeeds silently (pendency #6 in PLAN-B.md)
     console.warn('[Push] push-token endpoint not yet available — mocked silently');
   }
 }

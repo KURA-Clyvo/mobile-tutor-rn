@@ -16,6 +16,8 @@ const ROUTES: Array<[RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>
   [/\/tutor\/pets$/,                        () => petsMock.list()],
   [/\/tutor\/agendamentos$/,                () => agendaMock.list()],
   [/\/tutor\/consentimentos$/,              () => consentMock.list()],
+  [/\/tutor\/notificacoes\/\d+\/lida/,      () => Promise.resolve({ id: 1, flLida: true })],
+  [/\/tutor\/notificacoes\/lidas/,          () => Promise.resolve({ count: 3 })],
   [/\/tutor\/notificacoes$/,                () => notifMock.list()],
 ];
 

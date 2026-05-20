@@ -7,9 +7,10 @@ import { KBadge }       from '@components/primitives/KBadge';
 import { KButton }      from '@components/primitives/KButton';
 import { PetListCard }  from '../../../components/domain/PetListCard';
 import { AlertaBanner } from '../../../components/domain/AlertaBanner';
-import { usePets }      from '../../../hooks/usePets';
-import { useAuthStore } from '../../../store/authStore';
-import { greetingPT }   from '../../../utils/date';
+import { usePets }           from '../../../hooks/usePets';
+import { useNotifications }  from '../../../hooks/useNotifications';
+import { useAuthStore }      from '../../../store/authStore';
+import { greetingPT }        from '../../../utils/date';
 import type { PetDomain } from '../../../types/domain';
 
 export default function MeusPetsScreen() {
@@ -18,6 +19,8 @@ export default function MeusPetsScreen() {
   const tutor   = useAuthStore(s => s.tutor);
   const { data: pets = [], isLoading, refetch } = usePets();
 
+  const { data: notifs = [] } = useNotifications();
+  const naoLidas        = notifs.filter(n => !n.flLida).length;
   const urgentes        = pets.filter(p => p.statusGeral === 'URGENTE');
   const nAlertas        = pets.reduce((acc, p) => acc + p.alertasAtivos, 0);
   const primeiroNome    = tutor?.nmTutor.split(' ')[0] ?? 'Tutor';
@@ -40,9 +43,9 @@ export default function MeusPetsScreen() {
           accessibilityRole="button"
         >
           <KIcon name="bell" size={18} color={colors.text} />
-          {nAlertas > 0 && (
+          {naoLidas > 0 && (
             <View style={styles.bellBadge}>
-              <KBadge dot />
+              <KBadge count={naoLidas} />
             </View>
           )}
         </Pressable>
