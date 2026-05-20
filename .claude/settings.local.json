@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp -r node_modules/hermes-parser/. node_modules/@react-native/babel-preset/node_modules/hermes-parser/)",
+      "Bash(cp -r node_modules/babel-plugin-syntax-hermes-parser/. node_modules/@react-native/babel-preset/node_modules/babel-plugin-syntax-hermes-parser/)",
+      "Bash(npx jest *)",
+      "Bash(npx tsc *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}
