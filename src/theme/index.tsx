@@ -1,16 +1,23 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 import { useColorScheme } from 'react-native';
 import { lightColors, darkColors, spacing, radius, fontSize, fonts, type Theme } from './tokens';
+import { useAuthStore } from '../store/authStore';
 
 const ThemeContext = createContext<{ theme: Theme; toggleTheme: () => void } | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const system = useColorScheme();
-  const [override, setOverride] = useState<'light' | 'dark' | null>(null);
-  const isDark = (override ?? system) === 'dark';
+  const themeOverride    = useAuthStore(s => s.themeOverride);
+  const setThemeOverride = useAuthStore(s => s.setThemeOverride);
+
+  const isDark = (themeOverride ?? system) === 'dark';
   const theme: Theme = { colors: isDark ? darkColors : lightColors, spacing, radius, fontSize, fonts, isDark };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme: () => setOverride(isDark ? 'light' : 'dark') }}>
+    <ThemeContext.Provider value={{
+      theme,
+      toggleTheme: () => setThemeOverride(isDark ? 'light' : 'dark'),
+    }}>
       {children}
     </ThemeContext.Provider>
   );

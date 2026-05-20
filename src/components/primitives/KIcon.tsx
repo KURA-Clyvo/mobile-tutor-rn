@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { useTheme } from '@theme/index';
 
@@ -14,9 +15,10 @@ interface KIconProps {
   size?:        number;
   strokeWidth?: number;
   color?:       string;
+  style?:       import('react-native').StyleProp<import('react-native').ViewStyle>;
 }
 
-export function KIcon({ name, size = 18, strokeWidth = 1.7, color }: KIconProps) {
+export function KIcon({ name, size = 18, strokeWidth = 1.7, color, style }: KIconProps) {
   const theme = useTheme();
   const c = color ?? theme.colors.text;
   const s = { stroke: c, strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
@@ -106,5 +108,6 @@ export function KIcon({ name, size = 18, strokeWidth = 1.7, color }: KIconProps)
     ),
   };
 
+  if (style) return <View style={style}>{icons[name]}</View>;
   return <>{icons[name]}</>;
 }
