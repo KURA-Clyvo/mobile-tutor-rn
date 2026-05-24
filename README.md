@@ -2,6 +2,10 @@
 
 App mobile para tutores de pets — FIAP Challenge 2026 · Clyvo Vet.
 
+## Link Vídeo Youtube
+ https://youtu.be/F62_LPbJORQ
+
+
 ## Setup
 1. `nvm use` (Node 20)
 2. `npm install`
