@@ -53,6 +53,10 @@ export interface AgendamentoTutorResponse {
   sgTipoConsulta: 'RETORNO' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
   pet: { id: number; nmPet: string; nmEspecie: string; nmRaca: string };
   nmClinica: string; dsMotivo: string; nmVeterinario?: string; dsMensagemClinica?: string;
+  // Sala de teleconsulta (Daily.co), preenchida pelo backend-clinica-dotnet — null até o
+  // veterinário iniciar a chamada (ver TASK-10/TASK-11). Só relevante quando
+  // sgTipoConsulta === 'TELEORIENTACAO'.
+  dsSalaUrl?: string | null;
 }
 export interface SolicitarAgendamentoRequest {
   idPet: number; sgTipoConsulta: 'RETORNO' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
