@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Linking, StyleSheet } from 'react-native';
 import { useTheme } from '@theme/index';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
 import { KChip } from '@components/primitives/KChip';
+import { KButton } from '@components/primitives/KButton';
 import type { AgendamentoTutorResponse } from '../../types/api';
 import { formatDateBR, formatTimeBR } from '../../utils/date';
 
@@ -30,6 +31,10 @@ export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
   const { colors, fonts, fontSize, radius } = useTheme();
   const chip      = STATUS_CHIP[item.sgStatus];
   const canCancel = item.sgStatus === 'SOLICITADO' || item.sgStatus === 'AGENDADO';
+  const podeEntrarNaTeleconsulta =
+    item.sgTipoConsulta === 'TELEORIENTACAO' &&
+    item.sgStatus !== 'CANCELADO' &&
+    !!item.dsSalaUrl;
 
   return (
     <Pressable
@@ -57,6 +62,17 @@ export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
             {item.dsMensagemClinica}
           </Text>
         )}
+        {podeEntrarNaTeleconsulta && (
+          <KButton
+            variant="primary"
+            size="sm"
+            style={styles.teleBtn}
+            onPress={() => Linking.openURL(item.dsSalaUrl!)}
+            accessibilityLabel="Entrar na teleconsulta"
+          >
+            Entrar na teleconsulta
+          </KButton>
+        )}
       </View>
       <KChip tone={chip.tone}>{chip.label}</KChip>
     </Pressable>
@@ -66,4 +82,5 @@ export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
 const styles = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', padding: 14, borderWidth: 1, marginBottom: 10, gap: 14 },
   info: { flex: 1, gap: 2 },
+  teleBtn: { alignSelf: 'flex-start', marginTop: 6 },
 });

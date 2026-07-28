@@ -2,6 +2,10 @@
 
 App mobile para tutores de pets — FIAP Challenge 2026 · Clyvo Vet.
 
+## Link Vídeo Youtube
+ https://youtu.be/F62_LPbJORQ
+
+
 ## Setup
 1. `nvm use` (Node 20)
 2. `npm install`
@@ -34,3 +38,12 @@ Sem drawer — drawer é exclusivo do app clínica (Parte A).
 3. Auth scheme da Luna a confirmar — JWT ou API key (Felipe #3)
 4. GET /tutor/notificacoes pode não estar exposto ainda (Felipe #7)
 5. Push notifications requerem EAS Build em iOS (não funciona no Expo Go desde SDK 53)
+6. Teleconsulta (TASK-11): o botão "Entrar na teleconsulta" (exibido quando
+   `sgTipoConsulta === 'TELEORIENTACAO'` e `dsSalaUrl` já foi criada pela clínica) abre a sala
+   do Daily.co no navegador do aparelho (`Linking.openURL`), não em SDK nativo embutido — mesma
+   decisão do app clínica (ver `mobile-clinica-rn/README.md#teleconsulta`): o SDK
+   `@daily-co/react-native-daily-js` exige dev-build, e `Linking` funciona no Expo Go sem
+   dependências novas. `dsSalaUrl` chega pela própria BFF do tutor
+   (`GET /api/v1/tutor/agendamentos`) — o app tutor nunca chama o .NET diretamente (arquitetura
+   do projeto não permite HTTP direto entre as duas APIs); o Java só lê a coluna que o .NET
+   escreve na tabela `AGENDAMENTO` compartilhada.
