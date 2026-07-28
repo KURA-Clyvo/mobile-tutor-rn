@@ -5,3 +5,7 @@ export { KBadge }                     from './KBadge';
 export { KPetPortrait, racaToPalette } from './KPetPortrait';
 export { KIcon }                      from './KIcon';
 export { KCard }                      from './KCard';
+export { KConditionChip }             from './KConditionChip';
+export type { CondicaoDomain }        from './KConditionChip';
+export { KNextActionCard }            from './KNextActionCard';
+export type { NextActionDomain }      from './KNextActionCard';

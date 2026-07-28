@@ -5,19 +5,24 @@ export const PETS: PetTutorResponse[] = [
     id: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador', dtNascimento: '2021-03-10',
     sgSexo: 'M', sgPorte: 'G', nmClinica: 'Clínica KURA Pinheiros', dsStatusGeral: 'URGENTE',
     nrAlertasAtivos: 1, nrConsultas: 8, dtUltimaConsulta: new Date(Date.now() - 6 * 86400_000).toISOString(),
+    dtProximoAgendamento: new Date(Date.now() + 2 * 86400_000).toISOString(),
     chips: [{ tone: 'clay', label: '⚠ Retorno 2d' }, { tone: 'sage', label: 'Vacinado' }],
+    condicoes: [{ label: 'Displasia de quadril', tone: 'clay', desde: '2023-05-01', observacao: 'Acompanhamento contínuo, evitar esforço nas patas traseiras.' }],
   },
   {
     id: 2, nmPet: 'Luna', nmEspecie: 'Gato', nmRaca: 'Siamesa', dtNascimento: '2019-07-22',
     sgSexo: 'F', sgPorte: 'P', nmClinica: 'Clínica KURA Pinheiros', dsStatusGeral: 'OK',
     nrAlertasAtivos: 0, nrConsultas: 12,
+    dtProximoAgendamento: new Date(Date.now() + 20 * 86400_000).toISOString(),
     chips: [{ tone: 'sage', label: 'Vacinado' }, { tone: 'mute', label: 'Siamesa' }],
   },
   {
     id: 3, nmPet: 'Thor', nmEspecie: 'Cão', nmRaca: 'SRD', dtNascimento: '2023-01-15',
     sgSexo: 'M', sgPorte: 'M', nmClinica: 'Clínica KURA Pinheiros', dsStatusGeral: 'ALERTA',
     nrAlertasAtivos: 1, nrConsultas: 2,
+    dtProximoAgendamento: new Date(Date.now() + 5 * 86400_000).toISOString(),
     chips: [{ tone: 'amber', label: '✨ Câmera Luna' }, { tone: 'mute', label: 'Em adaptação' }],
+    condicoes: [{ label: 'Alergia alimentar', tone: 'amber', desde: '2024-02-10', observacao: 'Evitar ração com frango. Substituído por dieta hipoalergênica.' }],
   },
 ];
 

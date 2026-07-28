@@ -5,4 +5,6 @@ export interface PetDomain {
   statusGeral: 'OK' | 'ALERTA' | 'URGENTE'; alertasAtivos: number;
   idadeAnos: number; nrConsultas?: number;
   chips: Array<{ tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }>;
+  condicoes?: Array<{ label: string; tone: 'amber' | 'clay'; desde?: string; observacao?: string }>;
+  dtProximoAgendamento?: Date; dtUltimaConsulta?: Date;
 }

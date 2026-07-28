@@ -5,6 +5,8 @@ import { useTheme } from '@theme/index';
 import { KChip }        from '@components/primitives/KChip';
 import { KIcon }        from '@components/primitives/KIcon';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
+import { KConditionChip } from '@components/primitives/KConditionChip';
+import { KNextActionCard } from '@components/primitives/KNextActionCard';
 import { ConsultasTab } from './consultas';
 import { VacinasTab }   from './vacinas';
 import { usePetDetail } from '../../../../hooks/usePetDetail';
@@ -74,6 +76,24 @@ export default function PetDetailScreen() {
           </View>
         </View>
 
+        {/* Próxima ação + condições — resumo acionável antes das abas */}
+        {(pet?.dtProximoAgendamento || (pet?.condicoes && pet.condicoes.length > 0)) && (
+          <View style={styles.summaryArea}>
+            {pet?.dtProximoAgendamento && (
+              <KNextActionCard
+                action={{
+                  label: 'PRÓXIMA AÇÃO',
+                  description: `Consulta em ${formatDateBR(pet.dtProximoAgendamento)}`,
+                  icon: 'calendar',
+                }}
+              />
+            )}
+            {pet?.condicoes?.map((c, i) => (
+              <KConditionChip key={i} condicao={c} />
+            ))}
+          </View>
+        )}
+
         {/* Pill tabs */}
         <ScrollView
           horizontal
@@ -134,22 +154,10 @@ function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
 
   return (
     <View style={{ gap: 20 }}>
-      <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
-        01 · SINAIS VITAIS
-      </Text>
-      <View style={styles.vitaisRow}>
-        {vitais.map(v => (
-          <View key={v.l} style={[styles.vitalBox, { backgroundColor: colors.surface2, borderRadius: 10 }]}>
-            <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>{v.l}</Text>
-            <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 22 }}>{v.v}</Text>
-          </View>
-        ))}
-      </View>
-
       {(pet?.dtProximoAgendamento || pet?.dtUltimaConsulta) && (
         <>
           <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
-            02 · AGENDAMENTOS
+            01 · PRÓXIMA AÇÃO
           </Text>
           <View style={[styles.apptCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 12 }]}>
             {pet?.dtProximoAgendamento && (
@@ -178,10 +186,47 @@ function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
         </>
       )}
 
+      {pet?.condicoes && pet.condicoes.length > 0 && (
+        <>
+          <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
+            02 · CONDIÇÕES ESPECIAIS
+          </Text>
+          <View style={{ gap: 10 }}>
+            {pet.condicoes.map((c, i) => (
+              <View key={i} style={[styles.obsCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 12, gap: 8 }]}>
+                <KConditionChip condicao={c} />
+                {c.desde && (
+                  <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>
+                    DESDE {formatDateBR(c.desde)}
+                  </Text>
+                )}
+                {c.observacao && (
+                  <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, lineHeight: 20 }}>
+                    {c.observacao}
+                  </Text>
+                )}
+              </View>
+            ))}
+          </View>
+        </>
+      )}
+
+      <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
+        03 · SINAIS VITAIS
+      </Text>
+      <View style={styles.vitaisRow}>
+        {vitais.map(v => (
+          <View key={v.l} style={[styles.vitalBox, { backgroundColor: colors.surface2, borderRadius: 10 }]}>
+            <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>{v.l}</Text>
+            <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 22 }}>{v.v}</Text>
+          </View>
+        ))}
+      </View>
+
       {pet?.dsObservacoes && (
         <>
           <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
-            03 · OBSERVAÇÕES
+            04 · OBSERVAÇÕES
           </Text>
           <View style={[styles.obsCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 12 }]}>
             <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, lineHeight: 20 }}>
@@ -210,6 +255,7 @@ const styles = StyleSheet.create({
   backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingBottom: 120 },
   hero:        { flexDirection: 'row', alignItems: 'flex-start', padding: 20, gap: 16 },
+  summaryArea: { paddingHorizontal: 20, paddingBottom: 16, gap: 10 },
   heroInfo:    { flex: 1, gap: 6 },
   chipsRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   tabsScroll:  { paddingHorizontal: 20, gap: 0, borderBottomWidth: 1 },

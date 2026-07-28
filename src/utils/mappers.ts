@@ -11,6 +11,8 @@ export function mapPetDto(dto: PetTutorResponse): PetDomain {
     nascimento: new Date(dto.dtNascimento), sexo: dto.sgSexo, porte: dto.sgPorte,
     nmClinica: dto.nmClinica, statusGeral: dto.dsStatusGeral,
     alertasAtivos: dto.nrAlertasAtivos, idadeAnos: calcIdade(dto.dtNascimento),
-    nrConsultas: dto.nrConsultas, chips: dto.chips,
+    nrConsultas: dto.nrConsultas, chips: dto.chips, condicoes: dto.condicoes,
+    dtProximoAgendamento: dto.dtProximoAgendamento ? new Date(dto.dtProximoAgendamento) : undefined,
+    dtUltimaConsulta: dto.dtUltimaConsulta ? new Date(dto.dtUltimaConsulta) : undefined,
   };
 }

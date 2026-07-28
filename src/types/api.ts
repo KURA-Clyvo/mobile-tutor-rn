@@ -12,6 +12,7 @@ export interface PetTutorResponse {
   dsStatusGeral: 'OK' | 'ALERTA' | 'URGENTE'; nrAlertasAtivos: number; nrConsultas: number;
   dtUltimaConsulta?: string; dtProximoAgendamento?: string;
   chips: Array<{ tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }>;
+  condicoes?: Array<{ label: string; tone: 'amber' | 'clay'; desde?: string; observacao?: string }>;
 }
 export interface PetTutorDetailResponse extends PetTutorResponse {
   dsObservacoes?: string; dsFotoUrl?: string; nrPesoKg?: number; nrTemperaturaC?: number; nrFreqCardiacaBpm?: number;

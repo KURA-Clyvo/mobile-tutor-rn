@@ -3,7 +3,9 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTheme } from '@theme/index';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
 import { KChip } from '@components/primitives/KChip';
+import { KConditionChip } from '@components/primitives/KConditionChip';
 import { KIcon } from '@components/primitives/KIcon';
+import { formatDateShortBR } from '../../utils/date';
 import type { PetDomain } from '../../types/domain';
 
 interface StatCell { label: string; value: string; alert?: boolean }
@@ -20,11 +22,13 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
   const hasLunaChip = pet.chips.some(c => c.label.includes('✨'));
   const tier = hasLunaChip ? 'detected' : 'emoji';
   const lunaEmoji = hasLunaChip ? '✨' : undefined;
+  const condicaoPrincipal = pet.condicoes?.[0];
+
+  const statusLabel = { OK: 'Tudo certo', ALERTA: 'Atenção', URGENTE: 'Urgente' }[pet.statusGeral];
 
   const stats: StatCell[] = [
-    { label: 'CONSULTAS', value: String(pet.nrConsultas ?? 0) },
-    { label: 'ALERTAS',   value: String(pet.alertasAtivos), alert: pet.alertasAtivos > 0 },
-    { label: 'STATUS',    value: pet.statusGeral },
+    { label: 'PRÓXIMO', value: pet.dtProximoAgendamento ? formatDateShortBR(pet.dtProximoAgendamento) : '—' },
+    { label: 'STATUS',  value: statusLabel, alert: pet.statusGeral !== 'OK' },
   ];
 
   return (
@@ -47,16 +51,12 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
           <Text style={[styles.meta, { fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }]}>
             {pet.raca} · {pet.idadeAnos}a · {pet.sexo === 'M' ? 'Macho' : 'Fêmea'}
           </Text>
-          <View style={styles.chips}>
-            {pet.chips.map((c, i) => (
-              <KChip key={i} tone={c.tone}>{c.label}</KChip>
-            ))}
-          </View>
+          {condicaoPrincipal && <KConditionChip condicao={condicaoPrincipal} />}
         </View>
         <KIcon name="chevR" size={16} color={colors.textMute} />
       </View>
 
-      {/* Stats grid — 3 cols with separators, portado de kura-screens-1.jsx */}
+      {/* Stats grid — 2 cols, ambas acionáveis */}
       <View style={[styles.statsGrid, { borderTopColor: colors.border }]}>
         {stats.map((s, i) => (
           <View
@@ -85,7 +85,6 @@ const styles = StyleSheet.create({
   info:      { flex: 1, gap: 5 },
   nome:      { fontWeight: '500', lineHeight: 28 },
   meta:      {},
-  chips:     { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   statsGrid: { flexDirection: 'row', borderTopWidth: 1 },
   statCell:  { flex: 1, alignItems: 'center', paddingVertical: 10, gap: 3 },
   statLabel: { letterSpacing: 0.8 },
