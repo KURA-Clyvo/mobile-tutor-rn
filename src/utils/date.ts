@@ -9,8 +9,8 @@ export function formatDateBR(iso: string): string {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-export function formatDateShortBR(date: Date): string {
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+export function formatDateShortBR(date: Date | string): string {
+  return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
 }
 
 export function formatTimeBR(iso: string): string {
