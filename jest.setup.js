@@ -1,3 +1,8 @@
+jest.mock('react-native-safe-area-context', () => {
+  const mod = require('react-native-safe-area-context/jest/mock');
+  return mod.default ?? mod;
+});
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem:      jest.fn(() => Promise.resolve(null)),
   setItem:      jest.fn(() => Promise.resolve()),

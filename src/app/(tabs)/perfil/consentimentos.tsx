@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Switch, Pressable, ScrollView, Modal, Alert, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KIcon }   from '@components/primitives/KIcon';
@@ -20,6 +21,7 @@ const TIPOS: TipoConsentimento[] = ['COMUNICACAO_WHATSAPP', 'DADOS_CLINICOS_IA',
 export default function ConsentimentosScreen() {
   const { colors, fonts, fontSize } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { data: lista = [] }                          = useConsentimentos();
   const { mutateAsync: assinar,  isPending: assinando } = useAssinar();
   const { mutateAsync: revogar,  isPending: revogando } = useRevogar();
@@ -75,9 +77,9 @@ export default function ConsentimentosScreen() {
 
   return (
     <>
-      <ScrollView style={[styles.flex, { backgroundColor: colors.bg }]} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.flex, { backgroundColor: colors.bg }]} contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} accessibilityRole="button" accessibilityLabel="Voltar">
+          <Pressable onPress={() => router.back()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
             <KIcon name="back" size={18} color={colors.text} />
           </Pressable>
         </View>
@@ -115,8 +117,13 @@ export default function ConsentimentosScreen() {
                   />
                 </View>
               </View>
-              <Pressable onPress={() => setModalTipo(tipo)} accessibilityRole="button">
-                <Text style={{ fontFamily: fonts.mono, color: colors.primary, fontSize: fontSize.xs, letterSpacing: 0.8, marginTop: 10 }}>
+              <Pressable
+                onPress={() => setModalTipo(tipo)}
+                hitSlop={8}
+                style={{ minHeight: 44, justifyContent: 'center', marginTop: 6 }}
+                accessibilityRole="button"
+              >
+                <Text style={{ fontFamily: fonts.mono, color: colors.primary, fontSize: fontSize.xs, letterSpacing: 0.8 }}>
                   VER TEXTO COMPLETO →
                 </Text>
               </Pressable>

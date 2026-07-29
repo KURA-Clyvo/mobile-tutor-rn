@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, Image, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, Image, Linking, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useQueryClient } from '@tanstack/react-query';
@@ -20,6 +21,7 @@ const ESPECIES: { key: Especie; emoji: string }[] = [
 export default function AddPetScreen() {
   const { colors, fonts, fontSize, radius } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const qc     = useQueryClient();
 
   const [fotoUri,   setFotoUri]   = useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function AddPetScreen() {
         text: 'Câmera',
         onPress: async () => {
           const perm = await ImagePicker.requestCameraPermissionsAsync();
-          if (!perm.granted) { Alert.alert('Permissão negada', '', [{ text: 'Abrir configurações', onPress: () => ImagePicker.requestCameraPermissionsAsync() }]); return; }
+          if (!perm.granted) { Alert.alert('Permissão negada', '', [{ text: 'Abrir configurações', onPress: () => Linking.openSettings() }]); return; }
           const res = await ImagePicker.launchCameraAsync({ quality: 0.7, allowsEditing: true, aspect: [1, 1] });
           if (!res.canceled) setFotoUri(res.assets[0]?.uri ?? null);
         },
@@ -76,12 +78,12 @@ export default function AddPetScreen() {
 
   return (
     <KeyboardAvoidingView style={[styles.flex, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View style={[styles.headerRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <Pressable onPress={() => router.back()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} accessibilityRole="button" accessibilityLabel="Voltar">
+      <View style={[styles.headerRow, { paddingTop: insets.top + 12, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Pressable onPress={() => router.back()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
         <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1.2 }}>NOVO · 1 DE 2</Text>
-        <Pressable onPress={() => router.back()} accessibilityRole="button">
+        <Pressable onPress={() => router.back()} hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }} accessibilityRole="button">
           <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, color: colors.primary, letterSpacing: 1 }}>CANCELAR</Text>
         </Pressable>
       </View>

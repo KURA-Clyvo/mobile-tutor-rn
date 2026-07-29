@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KChip }        from '@components/primitives/KChip';
@@ -32,6 +33,7 @@ export default function PetDetailScreen() {
   const petId  = parseInt(id ?? '0', 10);
   const { colors, fonts, fontSize, radius } = useTheme();
   const router  = useRouter();
+  const insets  = useSafeAreaInsets();
   const { data: pet } = usePetDetail(petId);
   const [tab, setTab] = useState<Tab>('visao');
 
@@ -40,8 +42,8 @@ export default function PetDetailScreen() {
   return (
     <View style={[styles.flex, { backgroundColor: colors.bg }]}>
       {/* Header bar */}
-      <View style={[styles.hdr, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Voltar">
+      <View style={[styles.hdr, { paddingTop: insets.top + 14, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{pet?.nmPet ?? '…'}</Text>
@@ -107,6 +109,8 @@ export default function PetDetailScreen() {
                 key={t.key}
                 onPress={() => setTab(t.key)}
                 style={[styles.tabPill, active && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
               >
                 <Text style={[styles.tabLabel, {
                   fontFamily: active ? fonts.bodyMedium : fonts.body,

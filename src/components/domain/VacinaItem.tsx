@@ -54,7 +54,9 @@ export function VacinaItem({ vacina, compact, onAgendar }: VacinaItemProps) {
           <Pressable
             onPress={onAgendar}
             style={[styles.agendarBtn, { backgroundColor: colors.primarySoft, borderColor: colors.primary }]}
+            hitSlop={12}
             accessibilityRole="button"
+            accessibilityLabel={`Agendar ${vacina.nmVacina}`}
           >
             <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.primary, letterSpacing: 0.8 }}>
               AGENDAR

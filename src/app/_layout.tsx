@@ -4,6 +4,7 @@ import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
 import { SplashScreen, Stack, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, DeviceEventEmitter } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, withRepeat, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 import * as Linking from 'expo-linking';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
@@ -97,18 +98,22 @@ export default function RootLayout() {
 
   if (!appReady) {
     return (
-      <ThemeProvider>
-        <SplashContent />
-      </ThemeProvider>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <SplashContent />
+        </ThemeProvider>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
-      <ThemeProvider>
-        <RootLayoutInner />
-      </ThemeProvider>
-    </PersistQueryClientProvider>
+    <SafeAreaProvider>
+      <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
+        <ThemeProvider>
+          <RootLayoutInner />
+        </ThemeProvider>
+      </PersistQueryClientProvider>
+    </SafeAreaProvider>
   );
 }
 

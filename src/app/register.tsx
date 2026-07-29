@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Alert, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +15,7 @@ import { registerSchema, type RegisterFormData } from '../utils/validators';
 export default function RegisterScreen() {
   const theme    = useTheme();
   const router   = useRouter();
+  const insets   = useSafeAreaInsets();
   const setSession = useAuthStore(s => s.setSession);
   const [loading, setLoading] = useState(false);
 
@@ -73,10 +75,11 @@ export default function RegisterScreen() {
       style={[styles.flex, { backgroundColor: c.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={[styles.headerRow, { borderBottomColor: c.border, backgroundColor: c.surface }]}>
+      <View style={[styles.headerRow, { paddingTop: insets.top + 12, borderBottomColor: c.border, backgroundColor: c.surface }]}>
         <Pressable
           onPress={() => router.back()}
           style={[styles.circleBtn, { backgroundColor: c.surface, borderColor: c.border }]}
+          hitSlop={8}
           accessibilityLabel="Voltar"
           accessibilityRole="button"
         >
@@ -87,7 +90,12 @@ export default function RegisterScreen() {
           NOVO · 1 DE 2
         </Text>
 
-        <Pressable onPress={() => router.replace('/login')} accessibilityRole="button">
+        <Pressable
+          onPress={() => router.replace('/login')}
+          hitSlop={8}
+          style={{ minHeight: 44, justifyContent: 'center' }}
+          accessibilityRole="button"
+        >
           <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: c.primary, letterSpacing: 1 }}>
             CANCELAR
           </Text>

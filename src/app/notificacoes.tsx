@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, FlatList, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KIcon } from '@components/primitives/KIcon';
@@ -21,6 +22,7 @@ const TIPO_CHIP: Record<NotificacaoTutorResponse['dsTipo'], { tone: Tone; label:
 export default function NotificacoesScreen() {
   const { colors, fonts, fontSize, radius } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { data: notifs = [], isLoading }          = useNotifications();
   const { mutate: marcarLida }                    = useMarcarLida();
   const { mutate: marcarTodas, isPending: markingAll } = useMarcarTodasLidas();
@@ -36,10 +38,11 @@ export default function NotificacoesScreen() {
 
   return (
     <View style={[styles.flex, { backgroundColor: colors.bg }]}>
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 12, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <Pressable
           onPress={() => router.back()}
           style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel="Voltar"
         >
@@ -51,6 +54,8 @@ export default function NotificacoesScreen() {
         <Pressable
           onPress={() => marcarTodas()}
           disabled={markingAll || naoLidas === 0}
+          hitSlop={8}
+          style={{ minHeight: 44, justifyContent: 'center' }}
           accessibilityRole="button"
           accessibilityLabel="Marcar todas como lidas"
         >
@@ -75,6 +80,7 @@ export default function NotificacoesScreen() {
                 pressed && { opacity: 0.8 },
               ]}
               accessibilityRole="button"
+              accessibilityLabel={`${n.flLida ? 'Lida' : 'Não lida'}: ${n.dsTitulo}. ${n.dsMensagem}`}
             >
               {!n.flLida && <View style={[styles.unreadDot, { backgroundColor: colors.clay }]} />}
               <View style={styles.itemContent}>

@@ -57,6 +57,8 @@ export function ConsultasTab({ petId }: { petId: number }) {
                 backgroundColor: active ? colors.primary : colors.surface,
                 borderColor: active ? colors.primary : colors.border,
               }]}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
             >
               <Text style={[styles.filterLabel, { fontFamily: fonts.bodyMedium, fontSize: fontSize.xs, color: active ? colors.textOnPrimary : colors.textSoft }]}>
                 {f.label}
@@ -197,7 +199,7 @@ function ConsultaDetail({ petId, idEvento, onBack }: { petId: number; idEvento: 
 
 const styles = StyleSheet.create({
   filterRow:   { flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
-  filterPill:  { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 9999, borderWidth: 1 },
+  filterPill:  { paddingHorizontal: 14, minHeight: 44, justifyContent: 'center', borderRadius: 9999, borderWidth: 1 },
   filterLabel: {},
   timelineRow: { flexDirection: 'row', gap: 12, marginBottom: 0 },
   connector:   { position: 'absolute', left: 7, top: 32, bottom: -12, width: 1 },

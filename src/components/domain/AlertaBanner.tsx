@@ -31,7 +31,13 @@ export function AlertaBanner({ title, subtitle, onPress }: AlertaBannerProps) {
         </Text>
       </View>
       {onPress && (
-        <Pressable onPress={onPress} accessibilityRole="button">
+        <Pressable
+          onPress={onPress}
+          hitSlop={8}
+          style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}
+          accessibilityRole="button"
+          accessibilityLabel="Ver detalhes"
+        >
           <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, color: colors.clay, letterSpacing: 0.8 }}>
             VER →
           </Text>

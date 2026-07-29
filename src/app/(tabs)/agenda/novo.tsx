@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KButton }    from '@components/primitives/KButton';
@@ -19,6 +20,7 @@ const INDISPONIVEIS = new Set(['10:00','11:30','14:00','16:30']);
 export default function NovoAgendamentoScreen() {
   const { colors, fonts, fontSize, radius } = useTheme();
   const router  = useRouter();
+  const insets  = useSafeAreaInsets();
   const { idPet: idPetParam, tipo: tipoParam } = useLocalSearchParams<{ idPet?: string; tipo?: string }>();
 
   const { data: pets = [] } = usePets();
@@ -75,8 +77,8 @@ export default function NovoAgendamentoScreen() {
   return (
     <KeyboardAvoidingView style={[styles.flex, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       {/* Header */}
-      <View style={[styles.headerRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <Pressable onPress={() => router.back()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} accessibilityRole="button">
+      <View style={[styles.headerRow, { paddingTop: insets.top + 12, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Pressable onPress={() => router.back()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Fechar">
           <KIcon name="close" size={18} color={colors.text} />
         </Pressable>
         <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1.2 }}>
@@ -252,7 +254,7 @@ const styles = StyleSheet.create({
   calRow:      { gap: 8, paddingVertical: 4 },
   dayCell:     { width: 56, height: 78, alignItems: 'center', justifyContent: 'center', gap: 2 },
   slotsGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  slotCell:    { width: '22%', paddingVertical: 10, alignItems: 'center', borderWidth: 1 },
+  slotCell:    { width: '22%', minHeight: 44, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
   motivoInput: { padding: 14, borderWidth: 1, minHeight: 90, marginBottom: 8 },
   resumoCard:  { padding: 16, borderWidth: 1, marginTop: 8 },
   resumoRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },

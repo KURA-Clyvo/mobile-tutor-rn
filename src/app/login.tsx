@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, Alert, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +15,7 @@ import { loginSchema, type LoginFormData } from '../utils/validators';
 export default function LoginScreen() {
   const theme   = useTheme();
   const router  = useRouter();
+  const insets  = useSafeAreaInsets();
   const setSession = useAuthStore(s => s.setSession);
   const [loading, setLoading] = useState(false);
 
@@ -48,7 +50,7 @@ export default function LoginScreen() {
       <View style={[styles.orbTR, { backgroundColor: c.amber, opacity: 0.15 }]} />
       <View style={[styles.orbBL, { backgroundColor: c.primary, opacity: 0.12 }]} />
 
-      <View style={styles.inner}>
+      <View style={[styles.inner, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 32 }]}>
         <View style={styles.header}>
           <Text style={[styles.logo, { fontFamily: theme.fonts.display, color: c.primary }]}>Kura.</Text>
           <Text style={[styles.kicker, { fontFamily: theme.fonts.bodyMedium, color: c.primary, fontSize: theme.fontSize.sm }]}>
@@ -97,7 +99,16 @@ export default function LoginScreen() {
             )}
           />
 
-          <Pressable accessibilityRole="link" style={{ alignSelf: 'flex-end', marginBottom: 20 }}>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Esqueci minha senha"
+            hitSlop={8}
+            style={{ alignSelf: 'flex-end', marginBottom: 20, minHeight: 44, justifyContent: 'center' }}
+            onPress={() => Alert.alert(
+              'Recuperar senha',
+              'Entre em contato com a clínica para redefinir sua senha de acesso.',
+            )}
+          >
             <Text style={{ fontFamily: theme.fonts.body, fontSize: theme.fontSize.sm, color: c.primary }}>
               Esqueci minha senha
             </Text>
