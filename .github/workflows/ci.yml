@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Jest & visual checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # --watchAll=false: o script "test" deste app roda "jest --watchAll" por
+      # padrão, que ficaria pendurado indefinidamente no CI sem este override.
+      - name: Test
+        run: npm test -- --watchAll=false
+
+      # Enforce a paleta do app tutor (--sage) — nenhuma cor hex hardcoded fora
+      # dos tokens de design, e nenhum token --ocean (contexto clínica) pode
+      # vazar para a experiência do tutor.
+      - name: Check hardcoded colors
+        run: npm run check:colors
+
+      - name: Check no ocean tokens in tutor app
+        run: npm run check:no-ocean
