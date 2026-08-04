@@ -41,7 +41,7 @@ export default function ConsentimentosScreen() {
         LGPD_CONSENTIMENTOS[tipo].resumo,
         [
           { text: 'Cancelar', style: 'cancel' },
-          { text: 'Revogar', style: 'destructive', onPress: () => revogar(c.id) },
+          { text: 'Revogar', style: 'destructive', onPress: () => revogar({ tipo, key: generateUUID() }) },
         ]
       );
     } else {

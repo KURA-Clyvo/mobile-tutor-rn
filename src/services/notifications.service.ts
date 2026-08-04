@@ -3,18 +3,26 @@ import { Platform } from 'react-native';
 import { apiClient } from './api/client';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Router } from 'expo-router';
-import type { NotificacaoTutorResponse, MarcarLidaResponse } from '../types/api';
+import type { PageRaw, NotificacaoRaw, MarcarLidaResponse } from '../types/api';
+import { mapNotificacaoDto } from '../utils/mappers';
 
 // ─── In-app notification history ─────────────────────────────────────────────
 
+// TASK-31: GET agora é real (era ausente, sem NotificacaoController). NOTIFICACAO
+// é .NET owned — leitura via Page, mapeada para o shape esperado pela tela.
 export const getNotificacoes = () =>
-  apiClient.get<NotificacaoTutorResponse[]>('/api/v1/tutor/notificacoes').then(r => r.data);
+  apiClient.get<PageRaw<NotificacaoRaw>>('/api/v1/tutor/notificacoes')
+    .then(r => r.data.content.map(mapNotificacaoDto));
 
-export const marcarLida = (id: number) =>
-  apiClient.patch<MarcarLidaResponse>(`/api/v1/tutor/notificacoes/${id}/lida`).then(r => r.data);
+// TASK-31: decisão travada — sem PATCH marcar-lida no backend (NOTIFICACAO é
+// .NET owned; Java nunca escreve nela). "Lida" vira estado local, só na sessão
+// do app (o hook já faz update otimista da cache do react-query) — nenhuma
+// chamada de rede é feita aqui de propósito.
+export const marcarLida = async (id: number): Promise<MarcarLidaResponse> =>
+  Promise.resolve({ id, flLida: true });
 
-export const marcarTodasLidas = () =>
-  apiClient.patch<{ count: number }>('/api/v1/tutor/notificacoes/lidas').then(r => r.data);
+export const marcarTodasLidas = async (): Promise<{ count: number }> =>
+  Promise.resolve({ count: 0 });
 
 // ─── Push notifications ───────────────────────────────────────────────────────
 

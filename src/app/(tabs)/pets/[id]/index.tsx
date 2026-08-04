@@ -68,7 +68,7 @@ export default function PetDetailScreen() {
             </Text>
             <View style={styles.chipsRow}>
               <KChip tone={statusCfg.tone}>{statusCfg.label}</KChip>
-              {pet?.chips.slice(0, 2).map((c, i) => (
+              {pet?.chips?.slice(0, 2).map((c, i) => (
                 <KChip key={i} tone={c.tone}>{c.label}</KChip>
               ))}
             </View>

@@ -21,13 +21,16 @@ export interface PetTutorDetailResponse extends PetTutorResponse {
 // ─── Timeline (read-only) ─────────────────────────────────────
 export interface TimelineTutorEventResponse {
   idEventoClinico: number;
-  nmTipo: 'CONSULTA' | 'VACINA' | 'PRESCRICAO' | 'EXAME' | 'TELEORIENTACAO';
+  nmTipo: 'CONSULTA' | 'VACINA' | 'PRESCRICAO' | 'EXAME' | 'PROCEDIMENTO' | 'TELEORIENTACAO';
   dtEvento: string; nmVeterinario?: string; nrCRMV?: string; nmClinica: string;
-  sgTipoAtendimento?: 'pres' | 'tele'; dsResumoPublico: string;
+  // dsResumoPublico é opcional (TASK-31): o backend real (VW_TIMELINE_PET, derivada
+  // de AGENDAMENTO) não tem um resumo clínico estruturado — só existe quando/se um
+  // dia a timeline passar a agregar EVENTO_CLINICO/SOAP confirmado.
+  sgTipoAtendimento?: 'pres' | 'tele'; dsResumoPublico?: string;
 }
 export interface TimelineTutorEventDetailResponse {
   idEventoClinico: number;
-  nmTipo: 'CONSULTA' | 'VACINA' | 'PRESCRICAO' | 'EXAME' | 'TELEORIENTACAO';
+  nmTipo: 'CONSULTA' | 'VACINA' | 'PRESCRICAO' | 'EXAME' | 'PROCEDIMENTO' | 'TELEORIENTACAO';
   dtEvento: string; nrDuracaoMin?: number; sgTipoAtendimento?: 'pres' | 'tele';
   nmVeterinario?: string; nrCRMV?: string; dsEspecialidade?: string; nmClinica: string;
   nrPesoKg?: number; nrTemperaturaC?: number; nrFreqCardiacaBpm?: number;
@@ -80,6 +83,12 @@ export interface AssinarConsentimentoResponse {
   id: number; sgStatus: 'ATIVO'; dtConsentimento: string; dsIdempotencyKey: string;
 }
 export interface RevogarConsentimentoResponse { id: number; sgStatus: 'REVOGADO'; dtRevogacao: string; }
+// TASK-31: revogação é insert-only — POST com dsAceite: 'NAO' (nunca DELETE).
+// Mesmo payload shape de AssinarConsentimentoRequest, só muda o valor de dsAceite.
+export interface RevogarConsentimentoRequest {
+  dsTipoConsentimento: 'COMUNICACAO_WHATSAPP' | 'DADOS_CLINICOS_IA' | 'COMPARTILHAMENTO_LABORATORIO';
+  dsAceite: 'NAO';
+}
 
 // ─── Notificações ─────────────────────────────────────────────
 export interface NotificacaoTutorResponse {
@@ -93,3 +102,37 @@ export interface RegisterPushTokenRequest { dsPushToken: string; dsPlatform: 'io
 
 // ─── Erros ───────────────────────────────────────────────────
 export interface ApiError { status: number; code: string; message: string; details?: Record<string, string[]>; }
+
+// ─── Wire types reais do backend-tutor-java (TASK-31) ─────────────────────────
+// Os tipos acima (PetTutorDetailResponse, TimelineTutorEventResponse, etc.) são o
+// contrato *consumido pela UI* — nem sempre 1:1 com o JSON que o Java retorna hoje.
+// Os tipos abaixo espelham fielmente os DTOs Java (bff/api/*, timeline/api/dto/*,
+// notificacao/api/dto/*); `utils/mappers.ts` converte Raw → UI, preenchendo como
+// ausente (undefined/[]) qualquer campo que a UI espera mas o backend não tem hoje
+// (nunca inventa dado clínico). Ver docs/INT-01-contract-map.md.
+export interface PageRaw<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+export interface PetDetalheRaw {
+  idPet: number; nmPet: string; nmEspecie: string; nmRaca: string;
+  sgSexo: 'M' | 'F'; dtNascimento: string; sgPorte: 'P' | 'M' | 'G';
+  nmClinica: string; nmVeterinarioResponsavel: string | null; nrConsultas: number;
+}
+export interface TimelineEventoRaw {
+  idEvento: number; idPet: number; nmPet: string; dtEvento: string;
+  dsTipoEvento: string; stStatus: string; idClinica: number; nmClinica: string;
+}
+export interface VacinaVencendoRaw {
+  idPet: number; nmVacina: string; dtProximaDose: string; idClinica: number; nmClinica: string;
+}
+export interface VacinaStatusRaw {
+  idPet: number; qtdPendentes: number; dtProximaDose: string | null;
+  dsStatusGeral: 'EM_DIA' | 'ALERTA';
+}
+export interface NotificacaoRaw {
+  idNotificacao: number; dsTitulo: string; dsMensagem: string; dtCriacao: string; flLida: boolean;
+}
