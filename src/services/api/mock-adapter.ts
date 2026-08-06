@@ -8,7 +8,7 @@ import * as notifMock from '../../mocks/notifications.mock';
 
 const ROUTES: [RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>][] = [
   [/\/auth\/login$/,                        () => authMock.login()],
-  [/\/auth\/register$/,                     () => authMock.registerTutor()],
+  [/\/auth\/register-invite$/,              () => authMock.registerTutor()],
   [/\/tutor\/pets\/\d+\/timeline/,          () => petsMock.timeline()],
   [/\/tutor\/pets\/\d+\/vacinas\/status/,   () => vacinasMock.status()],
   [/\/tutor\/pets\/\d+\/vacinas/,           () => vacinasMock.list()],
