@@ -3,6 +3,8 @@ import { render, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '../theme/index';
 
+import SaudeScreen from '../app/(tabs)/saude/index';
+
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn() }) }));
 jest.mock('../hooks/usePets', () => ({
   usePets: () => ({
@@ -23,8 +25,6 @@ jest.mock('@tanstack/react-query', () => ({
     { data: [], isLoading: false, refetch: jest.fn() },
   ],
 }));
-
-import SaudeScreen from '../app/(tabs)/saude/index';
 
 const W = ({ children }: any) => {
   const qc = new QueryClient();

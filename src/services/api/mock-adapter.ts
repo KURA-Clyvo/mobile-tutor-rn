@@ -6,7 +6,7 @@ import * as agendaMock from '../../mocks/agendamentos.mock';
 import * as consentMock from '../../mocks/consentimentos.mock';
 import * as notifMock from '../../mocks/notifications.mock';
 
-const ROUTES: Array<[RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>]> = [
+const ROUTES: [RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>][] = [
   [/\/auth\/login$/,                        () => authMock.login()],
   [/\/auth\/register$/,                     () => authMock.registerTutor()],
   [/\/tutor\/pets\/\d+\/timeline/,          () => petsMock.timeline()],

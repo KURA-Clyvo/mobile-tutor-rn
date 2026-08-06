@@ -2,6 +2,9 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 
+import LoginScreen from '../app/login';
+import { login } from '../services/auth.service';
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: jest.fn(), push: jest.fn() }),
   Redirect:  (_props: any) => null,
@@ -18,9 +21,6 @@ jest.mock('../store/authStore', () => ({
     setThemeOverride: jest.fn(),
   }),
 }));
-
-import LoginScreen from '../app/login';
-import { login } from '../services/auth.service';
 
 const W = ({ children }: any) => <ThemeProvider>{children}</ThemeProvider>;
 

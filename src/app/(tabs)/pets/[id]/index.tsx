@@ -31,7 +31,7 @@ const TABS: { key: Tab; label: string }[] = [
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const petId  = parseInt(id ?? '0', 10);
-  const { colors, fonts, fontSize, radius } = useTheme();
+  const { colors, fonts, fontSize } = useTheme();
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
   const { data: pet } = usePetDetail(petId);

@@ -11,8 +11,8 @@ export interface PetTutorResponse {
   sgSexo: 'M' | 'F'; sgPorte: 'P' | 'M' | 'G' | 'GG'; nmClinica: string;
   dsStatusGeral: 'OK' | 'ALERTA' | 'URGENTE'; nrAlertasAtivos: number; nrConsultas: number;
   dtUltimaConsulta?: string; dtProximoAgendamento?: string;
-  chips: Array<{ tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }>;
-  condicoes?: Array<{ label: string; tone: 'amber' | 'clay'; desde?: string; observacao?: string }>;
+  chips: { tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }[];
+  condicoes?: { label: string; tone: 'amber' | 'clay'; desde?: string; observacao?: string }[];
 }
 export interface PetTutorDetailResponse extends PetTutorResponse {
   dsObservacoes?: string; dsFotoUrl?: string; nrPesoKg?: number; nrTemperaturaC?: number; nrFreqCardiacaBpm?: number;
@@ -35,7 +35,7 @@ export interface TimelineTutorEventDetailResponse {
   nmVeterinario?: string; nrCRMV?: string; dsEspecialidade?: string; nmClinica: string;
   nrPesoKg?: number; nrTemperaturaC?: number; nrFreqCardiacaBpm?: number;
   dsResumoPublico?: string; dsDiagnostico?: string; dsCID10Vet?: string; dsPlano?: string;
-  prescricoes?: Array<{ nmMedicamento: string; dsPosologia: string; nrDuracaoDias?: number }>;
+  prescricoes?: { nmMedicamento: string; dsPosologia: string; nrDuracaoDias?: number }[];
   dtRetornoAgendado?: string; dsRetornoInstrucao?: string;
 }
 

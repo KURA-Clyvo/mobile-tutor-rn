@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTheme } from '@theme/index';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
-import { KChip } from '@components/primitives/KChip';
 import { KConditionChip } from '@components/primitives/KConditionChip';
 import { KIcon } from '@components/primitives/KIcon';
 import { formatDateShortBR } from '../../utils/date';

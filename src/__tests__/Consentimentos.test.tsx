@@ -3,6 +3,8 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '../theme/index';
 
+import ConsentimentosScreen from '../app/(tabs)/perfil/consentimentos';
+
 jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn() }) }));
 jest.mock('../hooks/useConsentimentos', () => ({
   useConsentimentos: () => ({
@@ -14,8 +16,6 @@ jest.mock('../hooks/useConsentimentos', () => ({
   useAssinar:  () => ({ mutateAsync: jest.fn(), isPending: false }),
   useRevogar:  () => ({ mutateAsync: jest.fn(), isPending: false }),
 }));
-
-import ConsentimentosScreen from '../app/(tabs)/perfil/consentimentos';
 
 const W = ({ children }: any) => {
   const qc = new QueryClient();

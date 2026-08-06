@@ -26,7 +26,7 @@ export default function NovoAgendamentoScreen() {
   const { data: pets = [] } = usePets();
   const { mutateAsync: solicitar, isPending } = useSolicitarAgendamento();
 
-  const [selectedPetId, setSelectedPetId] = useState<number>(idPetParam ? parseInt(idPetParam, 10) : (pets[0]?.id ?? 0));
+  const [selectedPetId] = useState<number>(idPetParam ? parseInt(idPetParam, 10) : (pets[0]?.id ?? 0));
   const [tipo,          setTipo]          = useState<TipoConsulta>((tipoParam as TipoConsulta) ?? 'ROTINA');
   const [selectedDay,   setSelectedDay]   = useState(0);
   const [selectedSlot,  setSelectedSlot]  = useState<string | null>(null);

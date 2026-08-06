@@ -11,7 +11,7 @@ import { useAuthStore } from '../../../store/authStore';
 import { queryClient  } from '../../../services/queryClient';
 
 export default function PerfilScreen() {
-  const { colors, fonts, fontSize, radius } = useTheme();
+  const { colors, fonts, fontSize } = useTheme();
   const toggleTheme  = useToggleTheme();
   const isDark       = useTheme().isDark;
   const router       = useRouter();

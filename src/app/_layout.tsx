@@ -22,7 +22,7 @@ function SplashContent() {
 
   useEffect(() => {
     opacity.value = withRepeat(withTiming(0.9, { duration: 700 }), -1, true);
-  }, []);
+  }, [opacity]);
 
   const dotStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
@@ -61,7 +61,7 @@ function RootLayoutInner() {
     Linking.getInitialURL().then(url => { if (url) handleUrl(url); });
     const sub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
     return () => sub.remove();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener('auth:logout', () => {
@@ -74,7 +74,7 @@ function RootLayoutInner() {
   useEffect(() => {
     const cleanup = setupHandlers(queryClient, router as any);
     return cleanup;
-  }, []);
+  }, [router]);
 
   void isAuthenticated;
 

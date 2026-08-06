@@ -2,6 +2,8 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 
+import AgendaScreen from '../app/(tabs)/agenda/index';
+
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn() }) }));
 jest.mock('../hooks/useAgendamentos', () => ({
   useAgendamentos:          () => ({ data: [
@@ -10,8 +12,6 @@ jest.mock('../hooks/useAgendamentos', () => ({
   useCancelarAgendamento:   () => ({ mutate: jest.fn(), isPending: false }),
   useAgendamentoBadgeCount: () => 1,
 }));
-
-import AgendaScreen from '../app/(tabs)/agenda/index';
 
 const W = ({ children }: any) => <ThemeProvider>{children}</ThemeProvider>;
 

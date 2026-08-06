@@ -2,6 +2,8 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
+import { useAgendamentos, useAgendamentoBadgeCount } from '../hooks/useAgendamentos';
+
 jest.mock('../services/agendamentos.service', () => ({
   listAgendamentos: jest.fn(() => Promise.resolve([
     { id: 1, dtInicio: new Date(Date.now() + 86400_000).toISOString(), nrDuracaoMinutos: 30, sgStatus: 'SOLICITADO', sgTipoConsulta: 'RETORNO', pet: { id: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador' }, nmClinica: 'KURA', dsMotivo: 'Retorno' },
@@ -15,8 +17,6 @@ const wrapper = ({ children }: any) => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return React.createElement(QueryClientProvider, { client: qc }, children);
 };
-
-import { useAgendamentos, useAgendamentoBadgeCount } from '../hooks/useAgendamentos';
 
 describe('useAgendamentos', () => {
   it('returns list', async () => {

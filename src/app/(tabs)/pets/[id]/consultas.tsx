@@ -12,7 +12,7 @@ import type { TimelineTutorEventResponse } from '../../../../types/api';
 type Filter = 'all' | 'pres' | 'tele';
 
 export function ConsultasTab({ petId }: { petId: number }) {
-  const { colors, fonts, fontSize, radius } = useTheme();
+  const { colors, fonts, fontSize } = useTheme();
   const { data: eventos = [] } = usePetTimeline(petId);
   const [filter, setFilter]       = useState<Filter>('all');
   const [selectedId, setSelectedId] = useState<number | null>(null);

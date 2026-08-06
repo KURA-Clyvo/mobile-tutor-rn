@@ -3,6 +3,8 @@ import { render, waitFor } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import MeusPetsScreen from '../app/(tabs)/pets/index';
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
   Redirect: (_props: any) => null,
@@ -37,8 +39,6 @@ jest.mock('../hooks/usePets', () => ({
     refetch: jest.fn(),
   }),
 }));
-
-import MeusPetsScreen from '../app/(tabs)/pets/index';
 
 const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 const W = ({ children }: any) => (

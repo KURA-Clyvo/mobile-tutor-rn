@@ -4,7 +4,7 @@ export interface PetDomain {
   sexo: 'M' | 'F'; porte: 'P' | 'M' | 'G' | 'GG'; nmClinica: string;
   statusGeral: 'OK' | 'ALERTA' | 'URGENTE'; alertasAtivos: number;
   idadeAnos: number; nrConsultas?: number;
-  chips: Array<{ tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }>;
-  condicoes?: Array<{ label: string; tone: 'amber' | 'clay'; desde?: string; observacao?: string }>;
+  chips: { tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }[];
+  condicoes?: { label: string; tone: 'amber' | 'clay'; desde?: string; observacao?: string }[];
   dtProximoAgendamento?: Date; dtUltimaConsulta?: Date;
 }

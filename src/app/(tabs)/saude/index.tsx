@@ -34,7 +34,7 @@ export default function SaudeScreen() {
 
   const alertas = pets.filter(p => p.alertasAtivos > 0);
 
-  const vacinaAlerts: Array<{ pet: typeof pets[0]; vacina: VacinaTutorResponse }> = [];
+  const vacinaAlerts: { pet: typeof pets[0]; vacina: VacinaTutorResponse }[] = [];
   pets.forEach((pet, idx) => {
     const list = vacinasResults[idx]?.data ?? [];
     list

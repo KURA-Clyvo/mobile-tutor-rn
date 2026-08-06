@@ -3,6 +3,8 @@ import { render, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '../theme/index';
 
+import NotificacoesScreen from '../app/notificacoes';
+
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn() }) }));
 jest.mock('../hooks/useNotifications', () => ({
   useNotifications: () => ({
@@ -15,8 +17,6 @@ jest.mock('../hooks/useNotifications', () => ({
   useMarcarLida:       () => ({ mutate: jest.fn() }),
   useMarcarTodasLidas: () => ({ mutate: jest.fn(), isPending: false }),
 }));
-
-import NotificacoesScreen from '../app/notificacoes';
 
 const W = ({ children }: any) => {
   const qc = new QueryClient();
