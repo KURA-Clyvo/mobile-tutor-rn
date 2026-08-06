@@ -28,6 +28,12 @@ jobs:
       - name: Test
         run: npm test -- --watchAll=false
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run type-check
+
       # Enforce a paleta do app tutor (--sage) — nenhuma cor hex hardcoded fora
       # dos tokens de design, e nenhum token --ocean (contexto clínica) pode
       # vazar para a experiência do tutor.
