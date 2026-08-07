@@ -24,7 +24,11 @@ export default function RegisterScreen() {
 
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { nmTutor: '', dsEmail: '', dsSenha: '', dsSenhaConfirm: '', dsTelefone: '' },
+    defaultValues: {
+      nmTutor: '', dsEmail: '', dsSenha: '', dsSenhaConfirm: '', dsTelefone: '',
+      // TASK-61: LGPD exige opt-in explícito — nunca pré-marcado, mesmo o obrigatório.
+      aceiteLembretes: false, aceiteTeleorientacao: false,
+    },
   });
 
   const maskPhone = (v: string) => {
@@ -43,10 +47,12 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       const res = await register({
-        inviteToken: inviteToken!,
-        nmTutor:     data.nmTutor,
-        dsSenha:     data.dsSenha,
-        dsTelefone:  data.dsTelefone,
+        inviteToken:          inviteToken!,
+        nmTutor:              data.nmTutor,
+        dsSenha:              data.dsSenha,
+        dsTelefone:           data.dsTelefone,
+        aceiteLembretes:      data.aceiteLembretes,
+        aceiteTeleorientacao: data.aceiteTeleorientacao,
       });
       setSession(res.accessToken, res.expiresAt, {
         id:         res.idTutor,
@@ -157,6 +163,55 @@ export default function RegisterScreen() {
           />
         </View>
 
+        <View style={styles.consentGroup}>
+          <Controller control={control} name="aceiteLembretes"
+            render={({ field: { onChange, value } }) => (
+              <Pressable
+                onPress={() => onChange(!value)}
+                style={styles.consentRow}
+                hitSlop={4}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: value }}
+                accessibilityLabel="Aceito receber lembretes de vacina e consulta (obrigatório)"
+              >
+                <View style={[styles.checkbox, { borderColor: errors.aceiteLembretes ? c.danger : c.border, backgroundColor: value ? c.primary : 'transparent' }]}>
+                  {value && <KIcon name="check" size={12} color={c.textOnPrimary} strokeWidth={2.5} />}
+                </View>
+                <Text style={{ fontFamily: theme.fonts.body, color: c.textSoft, fontSize: theme.fontSize.xs, flex: 1, lineHeight: 18 }}>
+                  Aceito receber lembretes de vacina, consultas e comunicados da clínica.{' '}
+                  <Text style={{ fontFamily: theme.fonts.bodyMedium, color: c.textMute }}>Obrigatório.</Text>
+                </Text>
+              </Pressable>
+            )}
+          />
+          {errors.aceiteLembretes && (
+            <Text style={[styles.consentError, { color: c.danger, fontFamily: theme.fonts.body, fontSize: theme.fontSize.xs }]}>
+              {errors.aceiteLembretes.message}
+            </Text>
+          )}
+
+          <Controller control={control} name="aceiteTeleorientacao"
+            render={({ field: { onChange, value } }) => (
+              <Pressable
+                onPress={() => onChange(!value)}
+                style={styles.consentRow}
+                hitSlop={4}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: value }}
+                accessibilityLabel="Autorizo o uso de teleorientação por chamada de vídeo (opcional)"
+              >
+                <View style={[styles.checkbox, { borderColor: c.border, backgroundColor: value ? c.primary : 'transparent' }]}>
+                  {value && <KIcon name="check" size={12} color={c.textOnPrimary} strokeWidth={2.5} />}
+                </View>
+                <Text style={{ fontFamily: theme.fonts.body, color: c.textSoft, fontSize: theme.fontSize.xs, flex: 1, lineHeight: 18 }}>
+                  Autorizo o uso de teleorientação (chamada de vídeo) quando indicado pelo veterinário.{' '}
+                  <Text style={{ fontFamily: theme.fonts.bodyMedium, color: c.textMute }}>Opcional.</Text>
+                </Text>
+              </Pressable>
+            )}
+          />
+        </View>
+
         <KButton
           variant="primary"
           block
@@ -187,5 +242,9 @@ const styles = StyleSheet.create({
   kicker:       { letterSpacing: 0.2 },
   fields:       { gap: 0 },
   field:        { marginBottom: 8 },
+  consentGroup: { gap: 4, marginTop: 12, marginBottom: 4 },
+  consentRow:   { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8, minHeight: 44 },
+  checkbox:     { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  consentError: { marginLeft: 30, marginTop: -4, marginBottom: 4 },
   footerMono:   { textAlign: 'center', letterSpacing: 1.2, marginTop: 20 },
 });

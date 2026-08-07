@@ -1,7 +1,14 @@
 // ─── Auth ─────────────────────────────────────────────────────
 export interface LoginRequest { dsEmail: string; dsSenha: string; }
 export interface LoginResponse { accessToken: string; expiresAt: string; tutor: TutorMe; }
-export interface RegisterTutorRequest { inviteToken: string; nmTutor: string; dsSenha: string; dsTelefone: string; }
+// TASK-61: aceiteLembretes é obrigatório (bloqueia submit no cliente — consentimento
+// LGPD real, não mais `aceites: []` fixo); aceiteTeleorientacao é opcional. Nomes
+// app-facing — o mapeamento para o shape Java (TipoConsentimento/versaoTermo) fica
+// isolado dentro de auth.service.ts (camada anti-corrupção, ver TASK-55).
+export interface RegisterTutorRequest {
+  inviteToken: string; nmTutor: string; dsSenha: string; dsTelefone: string;
+  aceiteLembretes: boolean; aceiteTeleorientacao: boolean;
+}
 export interface RegisterTutorResponse { idTutor: number; accessToken: string; expiresAt: string; }
 export interface TutorMe { id: number; nmTutor: string; dsEmail: string; dsTelefone: string; dtCadastro: string; }
 

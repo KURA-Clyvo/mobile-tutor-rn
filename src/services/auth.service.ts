@@ -21,11 +21,45 @@ interface RegisterInviteApiResponse {
   tutor: { idTutor: number; nmTutor: string };
 }
 
+// TASK-61: shape real de cada item de `aceites` — Java `AceiteRequest`
+// (onboarding/api/dto/AceiteRequest.java): { tipo: TipoConsentimento, versaoTermo: string,
+// aceito: boolean, textoTermo?: string }. `tipo` é o enum Java
+// (consentimento/lgpd/TipoConsentimento.java) — os nomes abaixo têm que bater exatamente
+// com os valores do enum (TELEORIENTACAO, LEMBRETES, DADOS_ANONIMOS,
+// COMPARTILHAR_SEGURADORA, MARKETING), senão o Jackson rejeita o payload com 400.
+// `versaoTermo` tem que bater com a versão vigente no servidor (TermoVigente.java —
+// hoje 'v1.0' para todos os tipos) ou o registro falha com RegraDeNegocioException.
+interface AceiteInviteApi {
+  tipo: 'TELEORIENTACAO' | 'LEMBRETES' | 'DADOS_ANONIMOS' | 'COMPARTILHAR_SEGURADORA' | 'MARKETING';
+  versaoTermo: string;
+  aceito: boolean;
+  textoTermo?: string;
+}
+
+const VERSAO_TERMO_ATUAL = 'v1.0'; // espelha TermoVigente.* (backend-tutor-java)
+
+// TASK-61: constrói `aceites` a partir do que o usuário marcou no formulário — antes
+// disso o app mandava `aceites: []` fixo, sem capturar consentimento real (gap LGPD
+// sinalizado pelo revisor da TASK-55). Só entram no array os itens que o tutor de fato
+// marcou (aceito=true); nada de mandar aceito=false para tipo nunca aceito (o Java trata
+// isso como revogação, que exige consentimento ativo prévio — não faz sentido no
+// registro).
+function montarAceites(req: RegisterTutorRequest): AceiteInviteApi[] {
+  const aceites: AceiteInviteApi[] = [];
+  if (req.aceiteLembretes) {
+    aceites.push({ tipo: 'LEMBRETES', versaoTermo: VERSAO_TERMO_ATUAL, aceito: true });
+  }
+  if (req.aceiteTeleorientacao) {
+    aceites.push({ tipo: 'TELEORIENTACAO', versaoTermo: VERSAO_TERMO_ATUAL, aceito: true });
+  }
+  return aceites;
+}
+
 export async function register(req: RegisterTutorRequest): Promise<RegisterTutorResponse> {
   const res = await apiClient.post<RegisterInviteApiResponse>('/api/v1/auth/register-invite', {
     token: req.inviteToken,
     senha: req.dsSenha,
-    aceites: [],
+    aceites: montarAceites(req),
   });
   return {
     idTutor:     res.data.tutor.idTutor,
