@@ -9,7 +9,7 @@ import { KButton }       from '@components/primitives/KButton';
 import { KTextField }    from '@components/primitives/KTextField';
 import { KIcon }         from '@components/primitives/KIcon';
 import { useAuthStore }  from '../store/authStore';
-import { register }      from '../services/auth.service';
+import { register, isVersaoTermoDesatualizadaError } from '../services/auth.service';
 import { registerSchema, type RegisterFormData } from '../utils/validators';
 
 export default function RegisterScreen() {
@@ -67,6 +67,10 @@ export default function RegisterScreen() {
       const msg =
         status === 401 ? 'Convite expirado ou já utilizado.' :
         status === 409 ? 'E-mail já cadastrado. Faça login.' :
+        // TASK-61 (fix round): versão do termo LGPD desatualizada no cliente — só
+        // resolve atualizando o app (ver nota em auth.service.ts). Mensagem
+        // acionável em vez do genérico abaixo.
+        isVersaoTermoDesatualizadaError(err) ? 'Uma nova versão do aplicativo é necessária para concluir o cadastro. Atualize o app na loja e tente novamente.' :
         'Erro ao criar conta. Tente novamente.';
       Alert.alert('Atenção', msg);
     } finally {

@@ -67,3 +67,26 @@ export async function register(req: RegisterTutorRequest): Promise<RegisterTutor
     expiresAt:   new Date(Date.now() + res.data.expiresIn * 1000).toISOString(),
   };
 }
+
+// TASK-61 (rodada de fix — achado Important da revisão): fixar VERSAO_TERMO_ATUAL no
+// cliente acopla a versão do app à versão vigente no servidor (ValidadorConsentimento.
+// validarVersaoTermo) — algo que não existia antes desta task, porque `aceites` sempre
+// vinha vazio e esse validador nunca era chamado. Se o Java der bump em TermoVigente
+// antes do app ser atualizado nas lojas, TODO registro por convite passa a falhar com
+// 422 até a próxima versão do app. Não dá para resolver a causa raiz aqui (exigiria
+// endpoint novo no Java para o app descobrir a versão vigente antes de montar o
+// payload — fora de escopo deste repo) — a mitigação possível é reconhecer esse erro
+// específico e mostrar uma mensagem acionável ("atualize o app") em vez do genérico
+// "Erro ao criar conta".
+//
+// 422/REGRA_DE_NEGOCIO no Java também cobre OUTRA regra de negócio sem relação
+// (RegraDeNegocioException é lançada também quando o tutor não recebeu o aviso de
+// privacidade — OnboardingService.registrarPorInvite, passo 6) — mesmo status e
+// mesmo `code`, então não dá pra distinguir só por eles. Por isso o match é pelo
+// texto da mensagem real que ValidadorConsentimento.validarVersaoTermo produz
+// ("Versão do termo desatualizada. Versão vigente: ..."), não só pelo status/code.
+export function isVersaoTermoDesatualizadaError(err: unknown): boolean {
+  const status  = (err as { status?: number })?.status;
+  const message = (err as { message?: string })?.message ?? '';
+  return status === 422 && /vers[ãa]o do termo desatualizada/i.test(message);
+}

@@ -1,4 +1,4 @@
-import { register } from '../services/auth.service';
+import { register, isVersaoTermoDesatualizadaError } from '../services/auth.service';
 import { apiClient } from '../services/api/client';
 
 jest.mock('../services/api/client', () => ({
@@ -53,5 +53,37 @@ describe('auth.service register()', () => {
     expect(res.idTutor).toBe(7);
     expect(res.accessToken).toBe('tok');
     expect(typeof res.expiresAt).toBe('string');
+  });
+});
+
+// TASK-61 (rodada de fix — achado Important da revisão): fixar VERSAO_TERMO_ATUAL no
+// cliente acopla a versão do app à versão vigente no servidor — risco novo introduzido
+// por esta task (antes `aceites` sempre era [], então validarVersaoTermo nunca rodava).
+// Ver nota completa em auth.service.ts, isVersaoTermoDesatualizadaError.
+describe('isVersaoTermoDesatualizadaError', () => {
+  it('reconhece o 422 real de ValidadorConsentimento.validarVersaoTermo', () => {
+    expect(isVersaoTermoDesatualizadaError({
+      status: 422, code: 'REGRA_DE_NEGOCIO',
+      message: 'Versão do termo desatualizada. Versão vigente: v1.1. Recarregue o aplicativo e tente novamente.',
+    })).toBe(true);
+  });
+
+  it('não confunde com outro 422 REGRA_DE_NEGOCIO (aviso de privacidade) — mesmo status/code, mensagem diferente', () => {
+    expect(isVersaoTermoDesatualizadaError({
+      status: 422, code: 'REGRA_DE_NEGOCIO',
+      message: 'Tutor não recebeu o aviso de privacidade. Entre em contato com a clínica.',
+    })).toBe(false);
+  });
+
+  it('não confunde com 400/409/401 — status precisa ser 422', () => {
+    expect(isVersaoTermoDesatualizadaError({
+      status: 400, code: 'VALIDACAO_INVALIDA', message: 'Versão do termo desatualizada.',
+    })).toBe(false);
+  });
+
+  it('não quebra com erro sem status/message (rede, undefined, etc.)', () => {
+    expect(isVersaoTermoDesatualizadaError(undefined)).toBe(false);
+    expect(isVersaoTermoDesatualizadaError(new Error('network'))).toBe(false);
+    expect(isVersaoTermoDesatualizadaError({})).toBe(false);
   });
 });
