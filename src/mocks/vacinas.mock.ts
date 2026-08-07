@@ -1,12 +1,30 @@
-import type { VacinaTutorResponse, VacinaStatusResponse } from '../types/api';
-export async function list(): Promise<VacinaTutorResponse[]> {
+import type { VacinaVencendoRaw, VacinaStatusRaw } from '../types/api';
+
+// TASK-65 (FIX_5): list()/status() devolviam VacinaTutorResponse[]/VacinaStatusResponse
+// (tipos app-facing) onde getVacinas()/getVacinaStatus() esperam o shape RAW de
+// VW_VACINAS_VENCENDO (VacinaVencendoRaw/VacinaStatusRaw) — mesma classe de bug do
+// B0.1. Não lançava (mapVacinaDto/mapVacinaStatusDto só leem campos ausentes como
+// undefined), mas corrompia silenciosamente os dados: `raw.idPet` undefined
+// quebrava o hash de id, `raw.dtProximaDose` ausente na Antirrábica virava vacina
+// sem data nenhuma, e todo item saía com sgStatus 'VENCENDO' fixo (mapVacinaDto
+// sempre grava esse valor — condizente com VW_VACINAS_VENCENDO só listar
+// pendências futuras, mas exige que o raw tenha os campos certos para o resto do
+// mapeamento funcionar).
+function extractIdPet(url?: string): number {
+  const match = url?.match(/\/pets\/(\d+)\/vacinas/);
+  return match ? parseInt(match[1] ?? '1', 10) : 1;
+}
+
+export async function list(config: { url?: string }): Promise<VacinaVencendoRaw[]> {
+  const idPet = extractIdPet(config.url);
+  const nmClinica = 'Clínica KURA';
   return [
-    { id: 1, nmVacina: 'V10', dtAplicacao: new Date(Date.now() - 30 * 86400_000).toISOString(), nmClinica: 'Clínica KURA', nmVeterinario: 'Dr. José Neto', nrLote: 'KR2026-01', dtProximaDose: new Date(Date.now() + 335 * 86400_000).toISOString(), sgStatus: 'EM_DIA' },
-    { id: 2, nmVacina: 'Antirrábica', dtAplicacao: new Date(Date.now() - 370 * 86400_000).toISOString(), nmClinica: 'Clínica KURA', sgStatus: 'VENCIDA' },
-    { id: 3, nmVacina: 'Gripe Canina', dtAplicacao: new Date(Date.now() - 340 * 86400_000).toISOString(), nmClinica: 'Clínica KURA', dtProximaDose: new Date(Date.now() + 20 * 86400_000).toISOString(), sgStatus: 'VENCENDO' },
-    { id: 4, nmVacina: 'Giardia', dtAplicacao: new Date(Date.now() - 60 * 86400_000).toISOString(), nmClinica: 'Clínica KURA', sgStatus: 'EM_DIA' },
+    { idPet, nmVacina: 'Gripe Canina', dtProximaDose: new Date(Date.now() + 20 * 86400_000).toISOString(), idClinica: 1, nmClinica },
+    { idPet, nmVacina: 'V10',          dtProximaDose: new Date(Date.now() + 335 * 86400_000).toISOString(), idClinica: 1, nmClinica },
   ];
 }
-export async function status(): Promise<VacinaStatusResponse> {
-  return { nrAplicadas: 4, nrTotal: 6, dsStatusGeral: 'ALERTA', dtUltimaAplicacao: new Date(Date.now() - 30 * 86400_000).toISOString(), nmUltimaVacina: 'V10' };
+
+export async function status(config: { url?: string }): Promise<VacinaStatusRaw> {
+  const idPet = extractIdPet(config.url);
+  return { idPet, qtdPendentes: 2, dtProximaDose: new Date(Date.now() + 20 * 86400_000).toISOString(), dsStatusGeral: 'ALERTA' };
 }

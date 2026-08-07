@@ -1,4 +1,6 @@
-import type { PetTutorResponse, PetTutorDetailResponse, TimelineTutorEventResponse } from '../types/api';
+import type {
+  PetTutorResponse, PetDetalheRaw, PageRaw, TimelineEventoRaw,
+} from '../types/api';
 
 export const PETS: PetTutorResponse[] = [
   {
@@ -28,20 +30,71 @@ export const PETS: PetTutorResponse[] = [
 
 export async function list(): Promise<PetTutorResponse[]> { return PETS; }
 
-export async function byId(config: { url?: string }): Promise<PetTutorDetailResponse> {
+// TASK-65 (FIX_5): devolve o shape RAW do Java (PetDetalheRaw — idPet, sgPorte
+// restrito a P/M/G, nmVeterinarioResponsavel), que é o que getPetById()/
+// mapPetDetailDto() de fato consomem. Antes devolvia PetTutorDetailResponse
+// (app-facing, campo `id`), o mesmo bug de classe do B0.1/TASK-64 — `raw.idPet`
+// dava undefined e peso/temperatura/condições eram descartados silenciosamente
+// (mapPetDetailDto não lê nenhum desses campos do tipo errado).
+export async function byId(config: { url?: string }): Promise<PetDetalheRaw> {
   const match = config.url?.match(/\/pets\/(\d+)$/);
   const id = match ? parseInt(match[1] ?? '1', 10) : 1;
   const found = PETS.find(p => p.id === id);
   if (!found) throw { response: { status: 404 } };
-  return { ...found, nrPesoKg: 28.5, nrTemperaturaC: 38.6, nrFreqCardiacaBpm: 92 };
+  return {
+    idPet: found.id,
+    nmPet: found.nmPet,
+    nmEspecie: found.nmEspecie,
+    nmRaca: found.nmRaca,
+    sgSexo: found.sgSexo,
+    dtNascimento: found.dtNascimento,
+    // PetDetalheRaw não tem 'GG' (só P/M/G) — nenhum item de PETS usa 'GG' hoje,
+    // mas o fallback documenta a decisão em vez de deixar um cast silencioso.
+    sgPorte: found.sgPorte === 'GG' ? 'G' : found.sgPorte,
+    nmClinica: found.nmClinica,
+    nmVeterinarioResponsavel: null,
+    nrConsultas: found.nrConsultas,
+  };
 }
 
-export async function timeline(): Promise<TimelineTutorEventResponse[]> {
-  return [
-    { idEventoClinico: 201, nmTipo: 'CONSULTA', dtEvento: new Date(Date.now() - 6 * 86400_000).toISOString(), nmVeterinario: 'Dra. Ana Ferreira', nrCRMV: 'SP-12345', nmClinica: 'Clínica KURA Pinheiros', sgTipoAtendimento: 'pres', dsResumoPublico: 'Consulta de rotina. Animal saudável, peso estável.' },
-    { idEventoClinico: 202, nmTipo: 'VACINA', dtEvento: new Date(Date.now() - 30 * 86400_000).toISOString(), nmVeterinario: 'Dr. José Neto', nrCRMV: 'SP-67890', nmClinica: 'Clínica KURA Pinheiros', sgTipoAtendimento: 'pres', dsResumoPublico: 'V10 aplicada — lote KR2026-01. Próxima dose em 12 meses.' },
-    { idEventoClinico: 203, nmTipo: 'TELEORIENTACAO', dtEvento: new Date(Date.now() - 3 * 86400_000).toISOString(), nmVeterinario: 'Dra. Ana Ferreira', nrCRMV: 'SP-12345', nmClinica: 'Clínica KURA Pinheiros', sgTipoAtendimento: 'tele', dsResumoPublico: 'Orientação sobre alimentação pós-cirúrgica e cuidados em casa.' },
-    { idEventoClinico: 204, nmTipo: 'PRESCRICAO', dtEvento: new Date(Date.now() - 10 * 86400_000).toISOString(), nmVeterinario: 'Dra. Ana Ferreira', nrCRMV: 'SP-12345', nmClinica: 'Clínica KURA Pinheiros', sgTipoAtendimento: 'pres', dsResumoPublico: 'Amoxicilina 250mg 2x/dia por 7 dias.' },
-    { idEventoClinico: 205, nmTipo: 'EXAME', dtEvento: new Date(Date.now() - 15 * 86400_000).toISOString(), nmClinica: 'Clínica KURA Pinheiros', dsResumoPublico: 'Hemograma completo — resultado dentro dos parâmetros normais.' },
-  ];
+// Dataset raw compartilhado entre timeline() (lista) e timelineDetail() (item).
+// dsTipoEvento usa os mesmos literais de TimelineTutorEventResponse['nmTipo'] de
+// propósito: mapTimelineEventoDto faz um cast direto (`raw.dsTipoEvento as
+// TimelineTutorEventResponse['nmTipo']`), sem tabela de tradução — se os literais
+// aqui divergirem dos do enum, o mock passa a "funcionar" mas exibe um nmTipo
+// que a UI não reconhece.
+const TIMELINE_ITEMS: Omit<TimelineEventoRaw, 'idPet' | 'nmPet'>[] = [
+  { idEvento: 201, dtEvento: new Date(Date.now() - 6 * 86400_000).toISOString(), dsTipoEvento: 'CONSULTA', stStatus: 'REALIZADO', idClinica: 1, nmClinica: 'Clínica KURA Pinheiros' },
+  { idEvento: 202, dtEvento: new Date(Date.now() - 30 * 86400_000).toISOString(), dsTipoEvento: 'VACINA', stStatus: 'REALIZADO', idClinica: 1, nmClinica: 'Clínica KURA Pinheiros' },
+  { idEvento: 203, dtEvento: new Date(Date.now() - 3 * 86400_000).toISOString(), dsTipoEvento: 'TELEORIENTACAO', stStatus: 'REALIZADO', idClinica: 1, nmClinica: 'Clínica KURA Pinheiros' },
+  { idEvento: 204, dtEvento: new Date(Date.now() - 10 * 86400_000).toISOString(), dsTipoEvento: 'PRESCRICAO', stStatus: 'REALIZADO', idClinica: 1, nmClinica: 'Clínica KURA Pinheiros' },
+  { idEvento: 205, dtEvento: new Date(Date.now() - 15 * 86400_000).toISOString(), dsTipoEvento: 'EXAME', stStatus: 'REALIZADO', idClinica: 1, nmClinica: 'Clínica KURA Pinheiros' },
+];
+
+// TASK-65: devolve PageRaw<TimelineEventoRaw> (Spring Data Page — `.content`),
+// que é o que getTimeline() de fato desembrulha (`r.data.content.map(...)`).
+// Antes devolvia um array nu de TimelineTutorEventResponse (tipo app-facing) —
+// `r.data.content` batia undefined e o `.map` seguinte lançava TypeError.
+export async function timeline(config: { url?: string }): Promise<PageRaw<TimelineEventoRaw>> {
+  const match = config.url?.match(/\/pets\/(\d+)\/timeline/);
+  const idPet = match ? parseInt(match[1] ?? '1', 10) : 1;
+  const nmPet = PETS.find(p => p.id === idPet)?.nmPet ?? 'Pet';
+  const content: TimelineEventoRaw[] = TIMELINE_ITEMS.map(item => ({ ...item, idPet, nmPet }));
+  return { content, totalElements: content.length, totalPages: 1, number: 0, size: content.length };
+}
+
+// TASK-65: rota nova — antes /timeline/:idEvento (getEventDetail) não tinha
+// handler dedicado; a regex antiga do adapter (`/\/tutor\/pets\/\d+\/timeline/`,
+// sem `$`) "sequestrava" essa URL para o handler de lista, que devolvia um
+// array em vez do objeto único que TimelineEventoRaw espera — mapTimelineEventoDetailDto
+// lia campos de um array e devolvia `{}` silenciosamente (nenhum lançava, mas o
+// evento aparecia vazio na tela). Ver mock-adapter.ts para a rota anchorada nova.
+export async function timelineDetail(config: { url?: string }): Promise<TimelineEventoRaw> {
+  const match = config.url?.match(/\/pets\/(\d+)\/timeline\/(\d+)$/);
+  const idPet = match ? parseInt(match[1] ?? '1', 10) : 1;
+  const idEvento = match ? parseInt(match[2] ?? '0', 10) : 0;
+  const nmPet = PETS.find(p => p.id === idPet)?.nmPet ?? 'Pet';
+  const item = TIMELINE_ITEMS.find(i => i.idEvento === idEvento);
+  if (!item) throw { response: { status: 404 } };
+  return { ...item, idPet, nmPet };
 }
