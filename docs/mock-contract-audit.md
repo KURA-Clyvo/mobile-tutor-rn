@@ -7,11 +7,21 @@
 > consumidor de resposta de cada service function, e nenhum gate deste projeto (G0→G4 do
 > FIX_4) jamais o exercitou** — ver `KURA_BACKLOG_FIX_5.md` §"Regra de ouro versão 5".
 >
-> Método: nada foi classificado por leitura. Todo par foi **executado** com
-> `EXPO_PUBLIC_USE_MOCKS='true'`, sem `jest.mock` do `apiClient`/`mock-adapter` — o mesmo
-> padrão do `auth.mock-contract.test.ts` (TASK-64). Ver:
+> Método: **todo par transformador foi executado**, nenhum foi classificado por leitura —
+> é neles que mora esta classe de bug. Execução com `EXPO_PUBLIC_USE_MOCKS='true'`, sem
+> `jest.mock` do `apiClient`/`mock-adapter`, no mesmo padrão do `auth.mock-contract.test.ts`
+> (TASK-64). Ver:
 > - `mobile-tutor-rn/src/__tests__/mock-contract-audit.test.ts` (11 casos)
 > - `mobile-clinica-rn/tests/mock-contract-audit.test.ts` (8 casos)
+>
+> ⚠️ **Precisão sobre a cobertura** (correção da revisão G2, achado `Minor` #4): 7 pares
+> `pass-through` da clínica (`registerClinica`, `criarPrescricao`, `enviarTranscricao`,
+> `confirmarSoap`, `gerarReceituario`, `getRelatorioTriagens`, `obterSala`) estão marcados
+> como classificados **por leitura**, não por execução. O revisor releu os 7 de forma
+> independente e confirmou a classificação (todos são `const { data } = await ...; return
+> data;` puro, sem transformação — logo sem superfície para esta classe de bug). A
+> afirmação original "nada foi classificado por leitura" era um overstatement do texto, não
+> uma varredura frouxa.
 >
 > Um grep único (`res.data`) **não cobre** — o código usa pelo menos 3 idiomas para
 > desembrulhar o axios (`.then(r => r.data)`, `.then(r => mapper(r.data))`,
@@ -54,7 +64,10 @@ clínica e na agenda) que não faziam parte da hipótese original do backlog (qu
 | `consentimentos.service.ts::listConsentimentos` | `/tutor/consentimentos$` (GET) | pass-through | ✓ | OK | nenhuma |
 | `consentimentos.service.ts::assinar` | `/tutor/consentimentos$` (POST) | pass-through | ✓ | OK | nenhuma |
 | `consentimentos.service.ts::revogar` | `/tutor/consentimentos$` (POST, mesmo endpoint de `assinar`) | pass-through (mas rota do adapter ignorava o corpo) | ✓ | devolvia `sgStatus: 'ATIVO'` fixo pra **qualquer** POST — `revogar()` recebia de volta o oposto do que pediu (`RevogarConsentimentoResponse.sgStatus` deveria ser `'REVOGADO'`) | **corrigido** — handler agora lê `dsAceite` do corpo pra decidir ATIVO vs REVOGADO |
-| `agendamentos.service.ts::isVersaoTermoDesatualizadaError` (helper) | n/a — não faz chamada de rede | n/a | — | n/a | fora de escopo (utilitário puro, sem HTTP) |
+| `auth.service.ts::isVersaoTermoDesatualizadaError` (helper, `auth.service.ts:99`) | n/a — não faz chamada de rede | n/a | — | n/a | fora de escopo (utilitário puro, sem HTTP) |
+| `notifications.service.ts::requestPermission` | n/a — wrapper de `expo-notifications` | n/a | — | n/a | fora de escopo (não passa pelo `apiClient`) |
+| `notifications.service.ts::getDeviceToken` | n/a — wrapper de `expo-notifications` | n/a | — | n/a | fora de escopo (não passa pelo `apiClient`) |
+| `notifications.service.ts::setupHandlers` | n/a — wrapper de `expo-notifications` | n/a | — | n/a | fora de escopo (não passa pelo `apiClient`) |
 
 ### Achados corrigidos — árvore causal resumida
 
