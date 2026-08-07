@@ -13,7 +13,18 @@ export async function login(req: LoginRequest): Promise<LoginResponse> {
 // em segundos em vez de `expiresAt` ISO). Mapeado aqui para isolar o resto do app do contrato
 // real do BFF — `RegisterTutorRequest`/`RegisterTutorResponse` continuam estáveis para quem
 // consome `register()` (register.tsx, mocks).
-interface RegisterInviteApiResponse {
+//
+// TASK-64 (FIX_5): exportada de propósito. `register()` lê `res.data.tutor.idTutor`/
+// `res.data.expiresIn` — ou seja, o corpo que `apiClient.post` resolve TEM que ter este
+// shape, venha ele do BFF Java real ou do mock-adapter (EXPO_PUBLIC_USE_MOCKS=true).
+// `auth.mock.ts` importa este tipo e o implementa de propósito: o mock simula a fronteira
+// HTTP deste service, então ele devolve o shape de ENTRADA de register() (o corpo cru que
+// chegaria por HTTP), não o RegisterTutorResponse que register() PRODUZ depois de mapear.
+// Ficou dessincronizado disso por 2 ciclos (TASK-55, TASK-61) porque nada executava o
+// caminho app -> mock — só o caminho app -> Oracle real era validado. Se este shape mudar
+// de novo, mudar `auth.mock.ts` junto (não há forma de o compilador pegar isso sozinho,
+// já que o mock não importava o tipo antes).
+export interface RegisterInviteApiResponse {
   accessToken: string;
   refreshToken: string;
   tokenType: string;
