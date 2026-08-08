@@ -43,20 +43,32 @@ export function useMarcarLida() {
 // o registro). Não solicita permissão (isso é ação explícita do usuário via
 // `requestPermission`, chamada só a partir do toggle) — só sincroniza se ela
 // já estiver concedida. Chamado uma vez em `app/_layout.tsx::RootLayoutInner`.
+//
+// TASK-70 fix round 1 (achado do revisor): a dependência do efeito NÃO pode
+// ser `isAuthenticated` (a função) — é a mesma referência estável durante toda
+// a vida do store Zustand, então o efeito nunca re-disparava num login feito
+// na sessão em curso (RootLayoutInner monta uma vez só; só re-executava se o
+// app fosse reaberto com sessão já persistida). O que precisa estar no array
+// de dependências é um VALOR que muda com o login/logout — `token` (string |
+// null) serve exatamente para isso, com igualdade por `Object.is` do próprio
+// Zustand fazendo o efeito rodar só na transição, não a cada render. A função
+// `isAuthenticated()` continua chamada dentro do efeito, pela checagem de
+// expiração que ela já faz — só não pode ser a dependência.
 export function usePushTokenSync() {
+  const token          = useAuthStore(s => s.token);
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
 
   useEffect(() => {
-    if (!isAuthenticated()) return;
+    if (!token || !isAuthenticated()) return;
     let cancelled = false;
     (async () => {
       const granted = await getPermissionStatus();
       if (!granted || cancelled) return;
-      const token = await getDeviceToken();
-      if (token && !cancelled) await registerDeviceToken(token);
+      const deviceToken = await getDeviceToken();
+      if (deviceToken && !cancelled) await registerDeviceToken(deviceToken);
     })();
     return () => { cancelled = true; };
-  }, [isAuthenticated]);
+  }, [token, isAuthenticated]);
 }
 
 export function useMarcarTodasLidas() {
