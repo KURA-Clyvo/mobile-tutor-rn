@@ -26,6 +26,14 @@ const ROUTES: [RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>][] = 
   // `SolicitarAgendamentoResponse`/`agendaMock.criar()` produzem. `criar()` já
   // existia no mock desde sempre, mas nunca era chamado pelo adapter.
   [/\/tutor\/agendamentos$/,                (c) => c.method === 'post' ? agendaMock.criar() : agendaMock.list()],
+  // TASK-71 (FIX_6): cancelarAgendamento (DELETE /tutor/agendamentos/{id}) — rota nova,
+  // ausente até esta task. Regex própria (com `/\d+$/`, sem casar a rota de
+  // GET/POST em `/tutor/agendamentos`, sem sufixo) — não reabre o bug que a TASK-65
+  // corrigiu na linha acima (cegueira a método na MESMA URL): aqui a URL já é
+  // diferente (tem o `/{id}` a mais), então nem precisaria checar `c.method`, mas o
+  // padrão `\d+$` garante que só DELETE .../agendamentos/{id} casa aqui, nunca
+  // .../agendamentos puro.
+  [/\/tutor\/agendamentos\/\d+$/,           (c) => agendaMock.cancelar(c)],
   [/\/tutor\/consentimentos\/\d+$/,          () => Promise.resolve({ id: 1, sgStatus: 'REVOGADO', dtRevogacao: new Date().toISOString() })],
   [/\/tutor\/consentimentos$/,              (c) => {
     if (c.method === 'post') {

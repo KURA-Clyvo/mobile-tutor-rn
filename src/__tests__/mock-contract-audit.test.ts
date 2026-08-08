@@ -6,6 +6,11 @@
 // jest.mock do apiClient/mock-adapter. Ver docs/mock-contract-audit.md para a tabela
 // completa de pares service x mock, incluindo os que NÃO precisaram de fix.
 //
+// TASK-71 (FIX_6): fecha uma das 3 rotas que a TASK-65 tinha deixado documentadas,
+// sem mock — cancelarAgendamento (DELETE) ganhou rota no adapter (ver describe
+// 'agendamentos.service'). registerDeviceToken foi reavaliada e continua sem mock,
+// por decisão justificada (ver describe 'rota sem mock' no fim deste arquivo).
+//
 // Achados corrigidos aqui (ver docs/mock-contract-audit.md para a árvore causal
 // completa de cada um):
 //   - getTimeline / getNotificacoes: o service espera PageRaw<T> (Spring Data Page,
@@ -126,6 +131,33 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
       expect(typeof res.id).toBe('number');
       expect(typeof res.dtSolicitacao).toBe('string');
     });
+
+    // TASK-71 (FIX_6): cancelarAgendamento (DELETE) não tinha rota no adapter —
+    // era uma das 3 rotas sem mock do backlog. Prova os TRÊS caminhos na mesma URL
+    // base (GET lista, POST cria, DELETE cancela) pra travar a não-regressão do fix
+    // da TASK-65 (a rota `/tutor/agendamentos$` ficar cega a método de novo).
+    it('cancelarAgendamento (DELETE) executa sem lançar e devolve sgStatus CANCELADO', async () => {
+      const res = await cancelarAgendamento(7);
+      expect(Array.isArray(res)).toBe(false);
+      expect(res.id).toBe(7);
+      expect(res.sgStatus).toBe('CANCELADO');
+    });
+
+    it('GET, POST e DELETE em /tutor/agendamentos não se confundem (despacho por método+path)', async () => {
+      const listaRes = await listAgendamentos();
+      const criarRes = await solicitarAgendamento({
+        idPet: 1,
+        sgTipoConsulta: 'ROTINA',
+        dsMotivo: 'Check-up',
+        dtPreferida: new Date(Date.now() + 86400_000).toISOString(),
+      });
+      const cancelarRes = await cancelarAgendamento(9);
+
+      expect(Array.isArray(listaRes)).toBe(true);
+      expect(criarRes.sgStatus).toBe('SOLICITADO');
+      expect(cancelarRes.sgStatus).toBe('CANCELADO');
+      expect(cancelarRes.id).toBe(9);
+    });
   });
 
   // Pares pass-through (`.then(r => r.data)` sem transformação) — baixo risco por
@@ -153,21 +185,32 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
     });
   });
 
-  // Rotas de service SEM mock correspondente — o adapter lança "No mock for ...".
-  // Registradas aqui (e em docs/mock-contract-audit.md) por decisão explícita: são
-  // um modo de falha diferente do shape mismatch, não algo que esta task exige
-  // corrigir (ver KURA_BACKLOG_FIX_5.md, passo 2 do método da TASK-65).
-  describe('rotas sem mock (documentadas, não corrigidas nesta task)', () => {
-    it('cancelarAgendamento (DELETE) não tem rota no adapter', async () => {
-      await expect(cancelarAgendamento(1)).rejects.toThrow('No mock for');
-    });
-
-    it('registerDeviceToken (PATCH /me/push-token) não tem rota — mas o service já captura o erro', async () => {
-      // service tem try/catch próprio (notifications.service.ts) — não deve
-      // propagar exceção mesmo sem mock correspondente. TASK-70: a função passou
-      // a devolver `boolean` (sucesso/falha) em vez de `void` — sem rota no
-      // adapter, o resultado esperado é `false` (falha observável, não mais um
-      // `undefined` silencioso).
+  // TASK-71 (FIX_6): das 3 rotas sem mock que a TASK-65 (FIX_5) tinha documentado
+  // e deixado de propósito, `cancelarAgendamento` ganhou mock nesta task (ver
+  // describe('agendamentos.service') acima) e a de teleconsulta da clínica também
+  // (mobile-clinica-rn/tests/mock-contract-audit.test.ts). `registerDeviceToken`
+  // foi REAVALIADA à luz do estado pós-TASK-70 (que reescreveu este mesmo service
+  // e corrigiu um bug de contrato real, dsPlatform -> dsPlatforma) e a decisão
+  // continua sendo NÃO adicionar mock — justificativa abaixo.
+  describe('rota sem mock — decisão revisitada nesta task (TASK-71, FIX_6)', () => {
+    // Decisão: NÃO adicionar mock para registerDeviceToken.
+    //
+    // Motivos, examinando o estado atual (não o que a TASK-65 presumia):
+    // 1. O service (notifications.service.ts:61-75, TASK-70) já tem `try/catch`
+    //    próprio e devolve `boolean` — nenhuma tela ou hook trata `false` como erro
+    //    visível (usePushTokenSync, useNotifications.ts:57-72, só ignora o retorno).
+    //    Diferente de `cancelarAgendamento`/`criarOuObterSala`, aqui NÃO existe tela
+    //    sem `try/catch` esperando por este mock — o "plano B" já funciona hoje.
+    // 2. É chamado em background (efeito de sincronização de push token no login),
+    //    nunca a partir de uma ação explícita do usuário — não há botão "Registrar
+    //    push token" numa demo. Adicionar mock não muda nada visível em plano B.
+    // 3. Adicionar um mock só trocaria `false` (falha silenciosa, já correta) por
+    //    `true` (sucesso silencioso) — nenhum dos dois é observável, então o ganho
+    //    de fechar esta rota é zero pro objetivo do backlog ("plano B quebra
+    //    exatamente onde precisa funcionar"). Aqui ele não quebra visivelmente.
+    // Custo de NÃO fechar: nenhum identificado — mantém o comportamento e o teste
+    // de baixo risco já herdados da TASK-65/TASK-70, sem escopo extra sem retorno.
+    it('registerDeviceToken (PATCH /me/push-token) continua sem rota — mas o service já captura o erro', async () => {
       await expect(registerDeviceToken('tok')).resolves.toBe(false);
     });
   });
