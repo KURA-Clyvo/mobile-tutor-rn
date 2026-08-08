@@ -3,7 +3,6 @@ import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Pla
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '@theme/index';
 import { KButton } from '@components/primitives/KButton';
 import { KIcon }   from '@components/primitives/KIcon';
@@ -22,14 +21,12 @@ export default function AddPetScreen() {
   const { colors, fonts, fontSize, radius } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const qc     = useQueryClient();
 
   const [fotoUri,   setFotoUri]   = useState<string | null>(null);
   const [nmPet,     setNmPet]     = useState('');
   const [especie,   setEspecie]   = useState<Especie | null>(null);
   const [raca,      setRaca]      = useState('');
   const [sexo,      setSexo]      = useState<Sexo | null>(null);
-  const [loading,   setLoading]   = useState(false);
 
   const handlePickPhoto = () => {
     Alert.alert('Foto do pet', 'Como deseja adicionar a foto?', [
@@ -55,25 +52,24 @@ export default function AddPetScreen() {
     ]);
   };
 
-  const handleSubmit = async () => {
+  // TASK-69: não existe endpoint de criação de pet neste ecossistema — o BFF Java
+  // (`TutorBffController`) só expõe GET para pets, e a tabela PET é .NET-owned
+  // (ver CLAUDE.md, "Tabelas e ownership"). Construir esse endpoint é mudança de
+  // arquitetura, fora do escopo deste ciclo. Por isso esta tela não simula uma
+  // chamada de API nem finge persistência: ela só valida o formulário e orienta
+  // o tutor a pedir o cadastro pela via que existe de fato hoje (falar com a
+  // clínica). Sem chamada de API, não há nada que possa lançar — por isso não há
+  // try/catch aqui: mantê-lo seria tratamento de erro para uma chamada fantasma.
+  const handleSubmit = () => {
     if (!nmPet.trim()) { Alert.alert('Atenção', 'Digite o nome do pet.'); return; }
     if (!especie)      { Alert.alert('Atenção', 'Selecione a espécie.'); return; }
     if (!sexo)         { Alert.alert('Atenção', 'Selecione o sexo.'); return; }
 
-    setLoading(true);
-    try {
-      await new Promise(r => setTimeout(r, 800));
-      qc.invalidateQueries({ queryKey: ['pets'] });
-      Alert.alert('Pet cadastrado!', `${nmPet} foi adicionado com sucesso.`, [{ text: 'OK', onPress: () => router.back() }]);
-    } catch (err: any) {
-      if (err?.status === 404 || err?.status === 405) {
-        Alert.alert('Solicite à sua clínica', `Peça à clínica para cadastrar ${nmPet} no sistema. Você receberá uma notificação quando estiver disponível.`, [{ text: 'OK', onPress: () => router.back() }]);
-      } else {
-        Alert.alert('Erro', 'Não foi possível cadastrar. Tente novamente.');
-      }
-    } finally {
-      setLoading(false);
-    }
+    Alert.alert(
+      'Solicite à sua clínica',
+      `Peça à clínica para cadastrar ${nmPet} no sistema.`,
+      [{ text: 'OK', onPress: () => router.back() }],
+    );
   };
 
   return (
@@ -191,7 +187,6 @@ export default function AddPetScreen() {
         <KButton
           variant="primary"
           block
-          loading={loading}
           onPress={handleSubmit}
           style={styles.cta}
           iconRight={<KIcon name="arrowR" size={16} color={colors.textOnPrimary} style={{ marginLeft: 6 }} />}
