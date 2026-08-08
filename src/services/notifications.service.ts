@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import { apiClient } from './api/client';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Router } from 'expo-router';
-import type { PageRaw, NotificacaoRaw, MarcarLidaResponse } from '../types/api';
+import type { PageRaw, NotificacaoRaw, MarcarLidaResponse, RegisterPushTokenRequest } from '../types/api';
 import { mapNotificacaoDto } from '../utils/mappers';
 
 // ─── In-app notification history ─────────────────────────────────────────────
@@ -31,6 +31,14 @@ export async function requestPermission(): Promise<boolean> {
   return status === 'granted';
 }
 
+// TASK-70: consulta o status atual SEM disparar o prompt do SO — usada para a
+// tela de perfil refletir a permissão real quando abre, em vez de um
+// `value={false}` fixo que mentia independente do que o tutor já tinha concedido.
+export async function getPermissionStatus(): Promise<boolean> {
+  const { status } = await Notifications.getPermissionsAsync();
+  return status === 'granted';
+}
+
 export async function getDeviceToken(): Promise<string | null> {
   try {
     const token = await Notifications.getExpoPushTokenAsync();
@@ -40,14 +48,29 @@ export async function getDeviceToken(): Promise<string | null> {
   }
 }
 
-export async function registerDeviceToken(token: string): Promise<void> {
+// TASK-70: o endpoint `PATCH /api/v1/tutor/me/push-token` EXISTE (Java,
+// TutorBffController:154) e responde 204 — o `catch` antigo alegava o
+// contrário ("endpoint not yet available") e por isso nunca foi corrigido.
+// Devolve `boolean` (sucesso/falha) em vez de `void`: push é acessório e uma
+// falha de registro não pode quebrar a tela, mas engolir em silêncio total
+// foi exatamente o que escondeu por meses que esta função nunca era chamada
+// em produção. O chamador decide o que fazer com `false` (hoje: nada de
+// visível ao tutor, só log — ver justificativa completa no relatório da task).
+// LGPD: o valor do token nunca é logado, aqui nem no console de erro abaixo —
+// só status/code normalizados (nenhum dos dois carrega o token).
+export async function registerDeviceToken(token: string): Promise<boolean> {
   try {
-    await apiClient.patch('/api/v1/tutor/me/push-token', {
-      dsPushToken: token,
-      dsPlatform: Platform.OS as 'ios' | 'android',
-    });
-  } catch {
-    console.warn('[Push] push-token endpoint not yet available — mocked silently');
+    // TASK-70: tipado contra RegisterPushTokenRequest (types/api.ts) — o DTO Java
+    // (PushTokenRequest.java:19) declara `dsPlatforma` (PT-BR), não `dsPlatform`;
+    // o nome antigo nunca teria passado da validação @NotBlank do campo real
+    // (400, não 204). Divergência de contrato real, achada e corrigida nesta
+    // task; a anotação de tipo aqui trava a regressão em tempo de compilação.
+    const body: RegisterPushTokenRequest = { dsPushToken: token, dsPlatforma: Platform.OS as 'ios' | 'android' };
+    await apiClient.patch('/api/v1/tutor/me/push-token', body);
+    return true;
+  } catch (err: any) {
+    console.error('[Push] falha ao registrar push token — status:', err?.status, 'code:', err?.code);
+    return false;
   }
 }
 

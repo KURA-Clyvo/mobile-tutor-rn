@@ -13,6 +13,7 @@ import { queryClient, asyncStoragePersister } from '@services/queryClient';
 import { useAuthStore } from '../store/authStore';
 import { parseInviteLink } from '../utils/invite';
 import { setupHandlers } from '../services/notifications.service';
+import { usePushTokenSync } from '../hooks/useNotifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -75,6 +76,10 @@ function RootLayoutInner() {
     const cleanup = setupHandlers(queryClient, router as any);
     return cleanup;
   }, [router]);
+
+  // TASK-70: registra o push token no servidor quando há sessão de tutor
+  // autenticada e a permissão do dispositivo já está concedida.
+  usePushTokenSync();
 
   void isAuthenticated;
 

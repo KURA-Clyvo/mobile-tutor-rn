@@ -163,9 +163,12 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
     });
 
     it('registerDeviceToken (PATCH /me/push-token) não tem rota — mas o service já captura o erro', async () => {
-      // service tem try/catch próprio (notifications.service.ts:43-51) — não deve
-      // propagar exceção mesmo sem mock correspondente.
-      await expect(registerDeviceToken('tok')).resolves.toBeUndefined();
+      // service tem try/catch próprio (notifications.service.ts) — não deve
+      // propagar exceção mesmo sem mock correspondente. TASK-70: a função passou
+      // a devolver `boolean` (sucesso/falha) em vez de `void` — sem rota no
+      // adapter, o resultado esperado é `false` (falha observável, não mais um
+      // `undefined` silencioso).
+      await expect(registerDeviceToken('tok')).resolves.toBe(false);
     });
   });
 });

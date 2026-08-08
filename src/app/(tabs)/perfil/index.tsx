@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Switch, ScrollView, StyleSheet, Alert, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Notifications from 'expo-notifications';
 import { useTheme, useToggleTheme } from '@theme/index';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KButton } from '@components/primitives/KButton';
 import { KCard }   from '@components/primitives/KCard';
 import { useAuthStore } from '../../../store/authStore';
 import { queryClient  } from '../../../services/queryClient';
+import {
+  getPermissionStatus,
+  requestPermission,
+  getDeviceToken,
+  registerDeviceToken,
+} from '../../../services/notifications.service';
 
 export default function PerfilScreen() {
   const { colors, fonts, fontSize } = useTheme();
@@ -18,6 +23,16 @@ export default function PerfilScreen() {
   const tutor        = useAuthStore(s => s.tutor);
   const clearSession = useAuthStore(s => s.clearSession);
   const [aboutVisible, setAboutVisible] = useState(false);
+  // TASK-70: fonte da verdade é a permissão real do SO, consultada sem popup
+  // (getPermissionStatus) quando a tela abre — não um `false` fixo nem uma
+  // preferência local independente do que o dispositivo de fato concedeu.
+  const [notifEnabled, setNotifEnabled] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    getPermissionStatus().then(granted => { if (mounted) setNotifEnabled(granted); });
+    return () => { mounted = false; };
+  }, []);
 
   const initials = (() => {
     if (!tutor?.nmTutor) return '?';
@@ -45,11 +60,35 @@ export default function PerfilScreen() {
     );
   };
 
-  const handleNotifToggle = async () => {
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permissão negada', 'Ative as notificações nas configurações do dispositivo.');
+  const handleNotifToggle = async (next: boolean) => {
+    if (!next) {
+      // O app não pode revogar a permissão do SO — só o dispositivo pode.
+      // Reconsulta o estado real em vez de aceitar `false` do toque: se a
+      // permissão continuar concedida, o switch volta a refletir a verdade.
+      const stillGranted = await getPermissionStatus();
+      setNotifEnabled(stillGranted);
+      if (stillGranted) {
+        Alert.alert(
+          'Não é possível desativar por aqui',
+          'Para desativar as notificações, acesse as configurações do dispositivo.',
+        );
+      }
+      return;
     }
+
+    const granted = await requestPermission();
+    setNotifEnabled(granted);
+    if (!granted) {
+      Alert.alert('Permissão negada', 'Ative as notificações nas configurações do dispositivo.');
+      return;
+    }
+
+    // Defesa equivalente à do endpoint: sem tutor autenticado não há JWT, e o
+    // servidor devolveria 401 (idTutor é derivado do token). Não tenta.
+    if (!tutor) return;
+
+    const token = await getDeviceToken();
+    if (token) await registerDeviceToken(token);
   };
 
   return (
@@ -117,7 +156,7 @@ export default function PerfilScreen() {
               <Text style={{ fontFamily: fonts.body, color: colors.text, fontSize: fontSize.sm }}>Notificações push</Text>
             </View>
             <Switch
-              value={false}
+              value={notifEnabled}
               onValueChange={handleNotifToggle}
               trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor={colors.surface}

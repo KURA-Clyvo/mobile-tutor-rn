@@ -105,7 +105,12 @@ export interface NotificacaoTutorResponse {
   idPet?: number; nmPet?: string; idAgendamento?: number;
 }
 export interface MarcarLidaResponse { id: number; flLida: true; }
-export interface RegisterPushTokenRequest { dsPushToken: string; dsPlatform: 'ios' | 'android'; }
+// TASK-70: campo é `dsPlatforma` (PT-BR) no DTO Java real
+// (PushTokenRequest.java:19) — este tipo estava declarado com `dsPlatform`
+// (inglês), mesmo erro do payload que o service mandava e nunca foi pego
+// porque o tipo nunca era importado em lugar nenhum (achado ao corrigir
+// notifications.service.ts::registerDeviceToken).
+export interface RegisterPushTokenRequest { dsPushToken: string; dsPlatforma: 'ios' | 'android'; }
 
 // ─── Erros ───────────────────────────────────────────────────
 export interface ApiError { status: number; code: string; message: string; details?: Record<string, string[]>; }
