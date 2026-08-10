@@ -8,7 +8,20 @@ export async function list(): Promise<AgendamentoTutorResponse[]> {
     { id: 3, dtInicio: new Date(Date.now() - 15 * 86400_000).toISOString(), nrDuracaoMinutos: 30, sgStatus: 'CONCLUIDO', sgTipoConsulta: 'ROTINA', pet: { id: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador' }, nmClinica: 'Clínica KURA Pinheiros', dsMotivo: 'Vacina V10' },
   ];
 }
-export async function criar(): Promise<{ id: number; sgStatus: 'SOLICITADO'; dtSolicitacao: string }> {
+// TASK-74b (FIX_7): antes desta task `criar()` não recebia `config` e ignorava o
+// corpo inteiro — devolvia sucesso fixo mesmo que `agendamentos.service.ts`
+// mandasse o shape antigo da tela (`dtPreferida`/`sgTipoConsulta`/`dsMotivo`, que
+// não existem no Java real). Foi exatamente essa complacência que mascarou o 400
+// permanente do modo real por 6 ciclos (regra de ouro v5, G4b: o mock é o segundo
+// consumidor da mesma função de resposta). Agora valida a presença dos 3 campos
+// obrigatórios do shape Java real (`AgendamentoRequest`: `idPet`/`dtAgendamento`/
+// `tipo` — `@NotNull`/`@Future`/`@NotBlank`) para que um regresso ao shape antigo
+// (ou qualquer shape incompleto) quebre o modo mock em vez de passar em silêncio.
+export async function criar(config: InternalAxiosRequestConfig): Promise<{ id: number; sgStatus: 'SOLICITADO'; dtSolicitacao: string }> {
+  const body = typeof config.data === 'string' ? JSON.parse(config.data || '{}') : (config.data ?? {});
+  if (body.idPet == null || !body.dtAgendamento || !body.tipo) {
+    throw new Error('[MockAdapter] agendamentos.mock.criar: corpo não bate com AgendamentoRequest (idPet/dtAgendamento/tipo obrigatórios)');
+  }
   return { id: Math.floor(Math.random() * 9000 + 1000), sgStatus: 'SOLICITADO', dtSolicitacao: new Date().toISOString() };
 }
 

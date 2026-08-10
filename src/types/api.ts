@@ -76,6 +76,25 @@ export interface SolicitarAgendamentoRequest {
 export interface SolicitarAgendamentoResponse { id: number; sgStatus: 'SOLICITADO'; dtSolicitacao: string; }
 export interface CancelarAgendamentoResponse { id: number; sgStatus: 'CANCELADO'; }
 
+// TASK-74b (FIX_7): shape real de POST /v1/tutor/agendamentos — AgendamentoRequest.java
+// (backend-tutor-java/.../agendamento/api/dto/AgendamentoRequest.java). `idPet`/
+// `dtAgendamento`/`tipo` são obrigatórios (@NotNull/@Future/@NotBlank); `idClinica`/
+// `idVeterinario`/`duracaoMinutos`/`observacoes` são opcionais. O app nunca manda
+// `idClinica` (decisão do Felipe, task-74-brief.md item 1: o Java deriva a clínica
+// do pet) nem `idVeterinario`/`duracaoMinutos` (a tela não tem esse dado — não
+// inventar valor). A tradução de `SolicitarAgendamentoRequest` (app-facing) para
+// este shape mora em `agendamentos.service.ts` (camada anti-corrupção, mesmo
+// padrão de `consentimentos.service.ts`/TASK-73).
+export interface AgendamentoRequestJava {
+  idPet: number;
+  idClinica?: number;
+  idVeterinario?: number;
+  dtAgendamento: string;
+  tipo: 'CONSULTA' | 'RETORNO' | 'VACINA' | 'EXAME' | 'PROCEDIMENTO' | 'TELEORIENTACAO';
+  duracaoMinutos?: number;
+  observacoes?: string;
+}
+
 // ─── Consentimentos LGPD ──────────────────────────────────────
 // TASK-73 (FIX_7): reescrito para o shape real do Java (ConsentimentoRequest/
 // ConsentimentoResponse, backend-tutor-java/.../consentimento/api/dto). O shape

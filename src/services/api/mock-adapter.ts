@@ -25,7 +25,7 @@ const ROUTES: [RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>][] = 
   // recebia de volta um ARRAY (a listagem) em vez do objeto único que
   // `SolicitarAgendamentoResponse`/`agendaMock.criar()` produzem. `criar()` já
   // existia no mock desde sempre, mas nunca era chamado pelo adapter.
-  [/\/tutor\/agendamentos$/,                (c) => c.method === 'post' ? agendaMock.criar() : agendaMock.list()],
+  [/\/tutor\/agendamentos$/,                (c) => c.method === 'post' ? agendaMock.criar(c) : agendaMock.list()],
   // TASK-71 (FIX_6): cancelarAgendamento (DELETE /tutor/agendamentos/{id}) — rota nova,
   // ausente até esta task. Regex própria (com `/\d+$/`, sem casar a rota de
   // GET/POST em `/tutor/agendamentos`, sem sufixo) — não reabre o bug que a TASK-65
