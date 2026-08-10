@@ -39,10 +39,35 @@ function montarObservacoes(req: SolicitarAgendamentoRequest): string {
   return req.sgTipoConsulta === 'URGENCIA' ? `${PREFIXO_URGENCIA}${req.dsMotivo}` : req.dsMotivo;
 }
 
+// TASK-74b (FIX_7, rodada de fix 1): `dtAgendamento` é `LocalDateTime` no Java —
+// relógio de parede, SEM fuso. `req.dtPreferida` chega como ISO com sufixo `Z`
+// (`agenda/novo.tsx::dtPreferida`, monta um `Date` com o horário LOCAL escolhido
+// via `setHours` e serializa com `.toISOString()`, que converte pra UTC). O
+// Jackson do lado Java desserializa esse `Z` de forma leniente e **descarta o
+// offset em silêncio** (`LocalDateTime.ofInstant(Instant.parse(...), UTC)`) — sem
+// 400, sem crash, só grava a hora ERRADA: tutor escolhe 10:30 em UTC-3, o servidor
+// grava 13:30. Achado pela revisão da rodada 1 (commit `5bb05d7`), com
+// `TZ=America/Sao_Paulo` confirmado.
+//
+// Fix: desfazer a conversão UTC feita pela tela, sem tocar na tela (mesmo
+// argumento que levou toda a tradução de shape pra cá). `new Date(isoComZ)`
+// recria o mesmo instante; os getters LOCAIS (`getHours`/`getMinutes`/...)
+// devolvem de volta os valores de relógio de parede que `novo.tsx` tinha
+// escolhido — porque o service roda no MESMO processo/fuso que criou a string
+// (React Native é single-thread; não há troca de fuso entre a tela e esta
+// chamada). O resultado é formatado sem `Z`/offset (`YYYY-MM-DDTHH:mm:ss`), como
+// `LocalDateTime` do Java espera.
+function paraLocalDateTimeJava(isoComOffset: string): string {
+  const d = new Date(isoComOffset);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+         `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 export const solicitarAgendamento = (req: SolicitarAgendamentoRequest) =>
   apiClient.post<SolicitarAgendamentoResponse>('/api/v1/tutor/agendamentos', {
     idPet:         req.idPet,
-    dtAgendamento: req.dtPreferida,
+    dtAgendamento: paraLocalDateTimeJava(req.dtPreferida),
     tipo:          mapTipoParaJava(req.sgTipoConsulta),
     observacoes:   montarObservacoes(req),
   } satisfies AgendamentoRequestJava).then(r => r.data);

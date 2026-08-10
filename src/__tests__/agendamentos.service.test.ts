@@ -14,6 +14,13 @@
 // ser opcional, mas o app perdia o motivo do tutor). Isso fazia o POST devolver 400
 // sempre — o CTA central "Solicitar agendamento" do app do tutor. Este teste falha
 // contra o código antigo e passa depois do fix.
+//
+// TASK-74b, rodada de fix 1: `dtAgendamento` deixou de ser passthrough do
+// `dtPreferida` recebido — agora é convertido pra relógio de parede local sem
+// offset (ver `agendamentos.service.ts::paraLocalDateTimeJava`). Este arquivo só
+// verifica o FORMATO (sem `Z`); a correção do VALOR (dígito a dígito, com fuso
+// pinado) é responsabilidade de `agendamentos.timezone.test.ts`, que não depende
+// do fuso da máquina que roda o teste.
 import { solicitarAgendamento } from '../services/agendamentos.service';
 import { apiClient } from '../services/api/client';
 
@@ -35,7 +42,9 @@ describe('agendamentos.service — contrato real do Java (TASK-74b)', () => {
     });
     const body = (apiClient.post as jest.Mock).mock.calls[0]![1];
     expect(body.idPet).toBe(1);
-    expect(body.dtAgendamento).toBe('2026-09-01T10:30:00.000Z');
+    // Formato LocalDateTime (sem Z/offset) — o VALOR exato, com fuso pinado, é
+    // coberto por agendamentos.timezone.test.ts.
+    expect(body.dtAgendamento).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
     expect(body.tipo).toBe('CONSULTA'); // ROTINA -> CONSULTA (decisão do Felipe, item 2)
     expect(body.observacoes).toBe('Check-up anual');
     expect(body.dtPreferida).toBeUndefined();

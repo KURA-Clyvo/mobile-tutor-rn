@@ -89,6 +89,12 @@ export interface AgendamentoRequestJava {
   idPet: number;
   idClinica?: number;
   idVeterinario?: number;
+  // TASK-74b (FIX_7, rodada de fix 1): `LocalDateTime` no Java — relógio de parede,
+  // SEM fuso. Formato esperado: `YYYY-MM-DDTHH:mm:ss`, SEM sufixo `Z` e SEM offset.
+  // Um ISO com `Z` (`Date.toISOString()`) é aceito sem erro pelo Jackson (leniente),
+  // mas o offset é descartado em silêncio — o valor gravado vira a hora UTC, não a
+  // hora local que o tutor escolheu. Conversão feita em
+  // `agendamentos.service.ts::paraLocalDateTimeJava`, nunca `.toISOString()` direto.
   dtAgendamento: string;
   tipo: 'CONSULTA' | 'RETORNO' | 'VACINA' | 'EXAME' | 'PROCEDIMENTO' | 'TELEORIENTACAO';
   duracaoMinutos?: number;
