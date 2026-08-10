@@ -77,24 +77,38 @@ export interface SolicitarAgendamentoResponse { id: number; sgStatus: 'SOLICITAD
 export interface CancelarAgendamentoResponse { id: number; sgStatus: 'CANCELADO'; }
 
 // ─── Consentimentos LGPD ──────────────────────────────────────
+// TASK-73 (FIX_7): reescrito para o shape real do Java (ConsentimentoRequest/
+// ConsentimentoResponse, backend-tutor-java/.../consentimento/api/dto). O shape
+// anterior (dsTipoConsentimento/dsAceite:'SIM'|'NAO'/sgStatus/dtConsentimento) não
+// batia com NENHUM campo do backend real — todo POST devolvia 400 (campo
+// obrigatório ausente: tipo/versaoTermo/aceito) e todo GET nunca casava "ativo"
+// (B0.1, KURA_BACKLOG_FIX_7). `TipoConsentimentoApi` é a mesma lista fechada de 5
+// valores que `constants/lgpd.ts::TipoConsentimento` usa como chave — enum Java
+// (TipoConsentimento.java) e CHECK constraint do Oracle (V1__initial_schema.sql:
+// 241-243).
+export type TipoConsentimentoApi =
+  'TELEORIENTACAO' | 'LEMBRETES' | 'DADOS_ANONIMOS' | 'COMPARTILHAR_SEGURADORA' | 'MARKETING';
+
+// GET e POST /api/v1/tutor/consentimentos devolvem o mesmo shape
+// (ConsentimentoResponse.java) — POST 201 ao criar, 200 em replay idempotente.
 export interface ConsentimentoResponse {
-  id: number;
-  dsTipoConsentimento: 'COMUNICACAO_WHATSAPP' | 'DADOS_CLINICOS_IA' | 'COMPARTILHAMENTO_LABORATORIO';
-  sgStatus: 'ATIVO' | 'REVOGADO'; dtConsentimento: string; dtRevogacao?: string;
+  idConsentimento: number;
+  tipo: TipoConsentimentoApi;
+  versaoTermo: string;
+  aceito: boolean;
+  ativo: boolean;
+  dtAceite: string;
+  dtRevogacao: string | null;
 }
-export interface AssinarConsentimentoRequest {
-  dsTipoConsentimento: 'COMUNICACAO_WHATSAPP' | 'DADOS_CLINICOS_IA' | 'COMPARTILHAMENTO_LABORATORIO';
-  dsAceite: 'SIM'; // STRING not boolean — LGPD audit requirement
-}
-export interface AssinarConsentimentoResponse {
-  id: number; sgStatus: 'ATIVO'; dtConsentimento: string; dsIdempotencyKey: string;
-}
-export interface RevogarConsentimentoResponse { id: number; sgStatus: 'REVOGADO'; dtRevogacao: string; }
-// TASK-31: revogação é insert-only — POST com dsAceite: 'NAO' (nunca DELETE).
-// Mesmo payload shape de AssinarConsentimentoRequest, só muda o valor de dsAceite.
-export interface RevogarConsentimentoRequest {
-  dsTipoConsentimento: 'COMUNICACAO_WHATSAPP' | 'DADOS_CLINICOS_IA' | 'COMPARTILHAMENTO_LABORATORIO';
-  dsAceite: 'NAO';
+
+// O que vai no fio do POST (ConsentimentoRequest.java) — `aceito` aqui é STRING
+// 'S'|'N' (@Pattern("[SN]")), diferente de ConsentimentoResponse.aceito, que É
+// boolean na resposta. `textoTermo` é opcional, não usado pelo app hoje.
+export interface ConsentimentoRequest {
+  tipo: TipoConsentimentoApi;
+  versaoTermo: string;
+  aceito: 'S' | 'N';
+  textoTermo?: string;
 }
 
 // ─── Notificações ─────────────────────────────────────────────

@@ -34,24 +34,32 @@ const ROUTES: [RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>][] = 
   // padrão `\d+$` garante que só DELETE .../agendamentos/{id} casa aqui, nunca
   // .../agendamentos puro.
   [/\/tutor\/agendamentos\/\d+$/,           (c) => agendaMock.cancelar(c)],
+  // Rota de DELETE por id — nunca chamada pelo app (revogação é insert-only via
+  // POST, ver TASK-31/consentimentos.service.ts). Mantida como já estava antes desta
+  // task: o DELETE do Java é stub 501 e este handler é código morto no caminho real,
+  // fora do escopo da TASK-73 (achado lateral reportado, não corrigido).
   [/\/tutor\/consentimentos\/\d+$/,          () => Promise.resolve({ id: 1, sgStatus: 'REVOGADO', dtRevogacao: new Date().toISOString() })],
+  // TASK-73 (FIX_7): shape cru do Java (ConsentimentoResponse) — antes devolvia
+  // {id, sgStatus, dtConsentimento, dsIdempotencyKey}, que não existe no Java real
+  // nem no tipo ConsentimentoResponse atual. `assinar()`/`revogar()` batem no MESMO
+  // endpoint (revogação é insert-only — POST com aceito:'N', ver TASK-31) — o corpo
+  // manda `aceito: 'S'|'N'` (não mais `dsAceite: 'SIM'|'NAO'`). `config.data` pode
+  // chegar como string JSON ou objeto já desserializado, dependendo do ponto do
+  // pipeline do axios em que o interceptor de mock intercepta — tratamos os dois.
   [/\/tutor\/consentimentos$/,              (c) => {
     if (c.method === 'post') {
-      // TASK-65 (FIX_5): assinar() e revogar() batem no MESMO endpoint (revogação é
-      // insert-only — POST com dsAceite:'NAO', ver consentimentos.service.ts:15-18) —
-      // e este handler devolvia sgStatus:'ATIVO' fixo pra QUALQUER POST, ignorando o
-      // corpo. `revogar()` (que espera RevogarConsentimentoResponse.sgStatus ===
-      // 'REVOGADO') recebia de volta um objeto dizendo 'ATIVO' — o oposto do que foi
-      // pedido. Não lançava (os dois tipos de resposta têm o mesmo formato de campos),
-      // mas corrompia silenciosamente o resultado. `config.data` pode chegar como
-      // string JSON ou objeto já desserializado, dependendo do ponto do pipeline do
-      // axios em que o interceptor de mock intercepta — tratamos os dois.
       const body = typeof c.data === 'string' ? JSON.parse(c.data || '{}') : (c.data ?? {});
-      const isRevogacao = body.dsAceite === 'NAO';
-      if (isRevogacao) {
-        return Promise.resolve({ id: Math.floor(Math.random() * 9000 + 1000), sgStatus: 'REVOGADO', dtRevogacao: new Date().toISOString() });
-      }
-      return Promise.resolve({ id: Math.floor(Math.random() * 9000 + 1000), sgStatus: 'ATIVO', dtConsentimento: new Date().toISOString(), dsIdempotencyKey: 'mock-key' });
+      const aceito = body.aceito === 'S';
+      const agora = new Date().toISOString();
+      return Promise.resolve({
+        idConsentimento: Math.floor(Math.random() * 9000 + 1000),
+        tipo: body.tipo,
+        versaoTermo: body.versaoTermo,
+        aceito,
+        ativo: aceito,
+        dtAceite: agora,
+        dtRevogacao: aceito ? null : agora,
+      });
     }
     return consentMock.list();
   }],

@@ -177,11 +177,17 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
       expect(Array.isArray(cons)).toBe(true);
     });
 
+    // TASK-73 (FIX_7): shape atualizado — assinar/revogar agora recebem `tipo`
+    // direto (a montagem de versaoTermo/aceito:'S'|'N' é do service, ver
+    // consentimentos.service.ts) e a resposta usa `ativo`/`tipo` (não mais
+    // `sgStatus`).
     it('assinar/revogar consentimento executam sem lançar (mesma rota, método explícito)', async () => {
-      const a = await assinar({ dsTipoConsentimento: 'COMUNICACAO_WHATSAPP', dsAceite: 'SIM' }, 'idem-1');
-      expect(a.sgStatus).toBe('ATIVO');
-      const r = await revogar('COMUNICACAO_WHATSAPP', 'idem-2');
-      expect(r.sgStatus).toBe('REVOGADO');
+      const a = await assinar('LEMBRETES', 'idem-1');
+      expect(a.ativo).toBe(true);
+      expect(a.tipo).toBe('LEMBRETES');
+      const r = await revogar('LEMBRETES', 'idem-2');
+      expect(r.ativo).toBe(false);
+      expect(r.tipo).toBe('LEMBRETES');
     });
   });
 

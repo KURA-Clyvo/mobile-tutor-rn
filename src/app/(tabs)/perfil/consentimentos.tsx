@@ -16,7 +16,9 @@ function generateUUID(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
-const TIPOS: TipoConsentimento[] = ['COMUNICACAO_WHATSAPP', 'DADOS_CLINICOS_IA', 'COMPARTILHAMENTO_LABORATORIO'];
+// TASK-73 (FIX_7): 5 tipos reais (enum Java TipoConsentimento), não mais os 3
+// inventados que não existiam no backend (ver constants/lgpd.ts).
+const TIPOS: TipoConsentimento[] = ['TELEORIENTACAO', 'LEMBRETES', 'DADOS_ANONIMOS', 'COMPARTILHAR_SEGURADORA', 'MARKETING'];
 
 export default function ConsentimentosScreen() {
   const { colors, fonts, fontSize } = useTheme();
@@ -30,7 +32,7 @@ export default function ConsentimentosScreen() {
   const [modalLoading, setModalLoading] = useState(false);
 
   const getStatus = (tipo: TipoConsentimento): ConsentimentoResponse | undefined =>
-    lista.find(c => c.dsTipoConsentimento === tipo);
+    lista.find(c => c.tipo === tipo);
 
   const handleSwitch = (tipo: TipoConsentimento, currentlyActive: boolean) => {
     if (currentlyActive) {
@@ -54,10 +56,7 @@ export default function ConsentimentosScreen() {
     setModalLoading(true);
     try {
       await assinar({
-        req: {
-          dsTipoConsentimento: modalTipo,
-          dsAceite: 'SIM', // STRING — never boolean
-        },
+        tipo: modalTipo,
         key: generateUUID(), // Idempotency-Key: unique per action
       });
       setModalTipo(null);
@@ -70,9 +69,9 @@ export default function ConsentimentosScreen() {
 
   const chipForStatus = (tipo: TipoConsentimento) => {
     const c = getStatus(tipo);
-    if (!c)                     return { tone: 'amber' as const, label: 'Pendente'  };
-    if (c.sgStatus === 'ATIVO') return { tone: 'sage'  as const, label: 'Ativo'     };
-    return                           { tone: 'clay'  as const, label: 'Revogado' };
+    if (!c)        return { tone: 'amber' as const, label: 'Pendente'  };
+    if (c.ativo)   return { tone: 'sage'  as const, label: 'Ativo'     };
+    return              { tone: 'clay'  as const, label: 'Revogado' };
   };
 
   return (
@@ -96,7 +95,7 @@ export default function ConsentimentosScreen() {
         {TIPOS.map(tipo => {
           const meta    = LGPD_CONSENTIMENTOS[tipo];
           const chip    = chipForStatus(tipo);
-          const isAtivo = getStatus(tipo)?.sgStatus === 'ATIVO';
+          const isAtivo = getStatus(tipo)?.ativo === true;
 
           return (
             <KCard key={tipo} style={styles.consentCard}>
