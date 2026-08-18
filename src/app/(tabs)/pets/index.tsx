@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, Text, FlatList, RefreshControl, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KIcon }        from '@components/primitives/KIcon';
@@ -15,6 +16,7 @@ import type { PetDomain } from '../../../types/domain';
 
 export default function MeusPetsScreen() {
   const { colors, fonts, fontSize } = useTheme();
+  const insets  = useSafeAreaInsets();
   const router  = useRouter();
   const tutor   = useAuthStore(s => s.tutor);
   const { data: pets = [], isLoading, refetch } = usePets();
@@ -32,7 +34,7 @@ export default function MeusPetsScreen() {
   return (
     <View style={[styles.flex, { backgroundColor: colors.bg }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 14, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerLeft}>
           <Text style={{ fontFamily: fonts.display, color: colors.primary, fontSize: 24 }}>Kura.</Text>
         </View>

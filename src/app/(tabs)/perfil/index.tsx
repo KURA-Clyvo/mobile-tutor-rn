@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Switch, ScrollView, StyleSheet, Alert, Modal } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, useToggleTheme } from '@theme/index';
@@ -17,6 +18,7 @@ import {
 
 export default function PerfilScreen() {
   const { colors, fonts, fontSize } = useTheme();
+  const insets       = useSafeAreaInsets();
   const toggleTheme  = useToggleTheme();
   const isDark       = useTheme().isDark;
   const router       = useRouter();
@@ -93,7 +95,7 @@ export default function PerfilScreen() {
 
   return (
     <>
-      <ScrollView style={[styles.flex, { backgroundColor: colors.bg }]} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.flex, { backgroundColor: colors.bg }]} contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
 
         {/* Avatar */}
         <View style={styles.avatarArea}>

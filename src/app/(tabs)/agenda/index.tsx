@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, ScrollView, RefreshControl, Alert, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KButton } from '@components/primitives/KButton';
@@ -10,6 +11,7 @@ import { isFuture } from '../../../utils/date';
 
 export default function AgendaScreen() {
   const { colors, fonts, fontSize } = useTheme();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { data: agendamentos = [], isLoading, refetch } = useAgendamentos();
   const { mutate: cancelar, isPending: canceling } = useCancelarAgendamento();
@@ -32,7 +34,7 @@ export default function AgendaScreen() {
 
   return (
     <View style={[styles.flex, { backgroundColor: colors.bg }]}>
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 20, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 32, lineHeight: 38 }}>
             {'Minha '}

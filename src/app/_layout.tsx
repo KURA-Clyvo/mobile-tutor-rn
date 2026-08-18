@@ -2,6 +2,7 @@ import { useFonts, Cormorant_500Medium } from '@expo-google-fonts/cormorant';
 import { Lexend_400Regular, Lexend_500Medium } from '@expo-google-fonts/lexend';
 import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
 import { SplashScreen, Stack, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, DeviceEventEmitter } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -18,7 +19,7 @@ import { usePushTokenSync } from '../hooks/useNotifications';
 SplashScreen.preventAutoHideAsync();
 
 function SplashContent() {
-  const { colors, fonts } = useTheme();
+  const { colors, fonts, isDark } = useTheme();
   const opacity = useSharedValue(0.3);
 
   useEffect(() => {
@@ -29,6 +30,10 @@ function SplashContent() {
 
   return (
     <View style={[styles.splash, { backgroundColor: colors.bg }]}>
+      {/* TASK-F07: expo-status-bar era dependência instalada e nunca importada;
+          estilo segue o tema (claro/escuro) em vez de fixo, porque o app tem os
+          dois — barra fixa erraria contraste num deles. */}
+      <StatusBar style={isDark ? 'light' : 'dark'} translucent />
       <View style={[styles.orbTR, { backgroundColor: colors.amber, opacity: 0.18 }]} />
       <View style={[styles.orbBL, { backgroundColor: colors.primary, opacity: 0.18 }]} />
       <View style={styles.logoArea}>
@@ -52,6 +57,7 @@ function SplashContent() {
 
 function RootLayoutInner() {
   const router = useRouter();
+  const { isDark } = useTheme();
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
 
   useEffect(() => {
@@ -83,7 +89,17 @@ function RootLayoutInner() {
 
   void isAuthenticated;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <>
+      {/* TASK-F07: expo-status-bar era dependência instalada e nunca importada
+          (grep confirmou). Estilo derivado do tema — o app tem claro e escuro,
+          então uma barra fixa erraria o contraste num dos dois. `translucent`
+          acompanha o edge-to-edge que o SDK 54 já impõe por padrão no Android
+          (medido: sem ele as 4 telas de aba já ficavam sob a status bar). */}
+      <StatusBar style={isDark ? 'light' : 'dark'} translucent />
+      <Stack screenOptions={{ headerShown: false }} />
+    </>
+  );
 }
 
 export default function RootLayout() {

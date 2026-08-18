@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQueries } from '@tanstack/react-query';
 import { useTheme } from '@theme/index';
@@ -13,6 +14,7 @@ import type { VacinaTutorResponse } from '../../../types/api';
 
 export default function SaudeScreen() {
   const { colors, fonts, fontSize } = useTheme();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { data: pets = [], isLoading: petsLoading, refetch: refetchPets } = usePets();
 
@@ -48,7 +50,7 @@ export default function SaudeScreen() {
   return (
     <View style={[styles.flex, { backgroundColor: colors.bg }]}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
