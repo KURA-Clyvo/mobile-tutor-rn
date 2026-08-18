@@ -2,28 +2,27 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, usePathname } from 'expo-router';  // ← usePathname pra saber aba ativa
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@theme/index';
-import { KIcon } from '../primitives/KIcon';
+import { KIcon, type IconName } from '../primitives/KIcon';
 import { KBadge } from '../primitives/KBadge';
 
-const TABS = [
-  { name: 'pets',   label: 'Pets',   icon: 'pets'   as const, route: '/(tabs)/pets'   },
-  { name: 'agenda', label: 'Agenda', icon: 'agenda' as const, route: '/(tabs)/agenda' },
-  { name: 'saude',  label: 'Saúde',  icon: 'saude'  as const, route: '/(tabs)/saude'  },
-  { name: 'perfil', label: 'Perfil', icon: 'perfil' as const, route: '/(tabs)/perfil' },
-];
+// Metadados de exibição por nome de rota — a ORDEM e a lista de abas em si
+// vêm de `state.routes` (expo-router/(tabs)/_layout.tsx), não deste mapa.
+const TAB_META: Record<string, { label: string; icon: IconName }> = {
+  pets:   { label: 'Pets',   icon: 'pets'   },
+  agenda: { label: 'Agenda', icon: 'agenda' },
+  saude:  { label: 'Saúde',  icon: 'saude'  },
+  perfil: { label: 'Perfil', icon: 'perfil' },
+};
 
 interface KTabBarProps extends BottomTabBarProps {
   agendaBadgeCount?: number;
 }
 
-export function KTabBar({ agendaBadgeCount = 0 }: KTabBarProps) {
-  const theme    = useTheme();
-  const insets   = useSafeAreaInsets();
-  const router   = useRouter();
-  const pathname = usePathname();          // ex: '/pets', '/saude'
+export function KTabBar({ state, descriptors, navigation, agendaBadgeCount = 0 }: KTabBarProps) {
+  const theme  = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={[
@@ -35,22 +34,39 @@ export function KTabBar({ agendaBadgeCount = 0 }: KTabBarProps) {
         paddingTop:      8,
       },
     ]}>
-      {TABS.map(tab => {
-        const active = pathname.includes(tab.name);  // '/pets' includes 'pets' ✓
+      {state.routes.map((route, index) => {
+        const meta   = TAB_META[route.name] ?? { label: route.name, icon: 'pets' as IconName };
+        const label  = descriptors[route.key]?.options?.title ?? meta.label;
+        const active = state.index === index;             // aba ativa vem do navegador, não de pathname
         const color  = active ? theme.colors.primary : theme.colors.textMute;
+
+        const onPress = () => {
+          // Padrão canônico do @react-navigation/bottom-tabs: emite o evento
+          // tabPress, respeita preventDefault() e só navega se a aba não
+          // estiver focada. Troca de aba, não empilha (router.push empilhava).
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!active && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
 
         return (
           <Pressable
-            key={tab.name}
-            onPress={() => router.push(tab.route as any)}
+            key={route.key}
+            onPress={onPress}
             style={styles.tab}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
-            accessibilityLabel={tab.label}
+            accessibilityLabel={label}
           >
             <View style={styles.iconWrap}>
-              <KIcon name={tab.icon} size={22} color={color} />
-              {tab.name === 'agenda' && agendaBadgeCount > 0 && (
+              <KIcon name={meta.icon} size={22} color={color} />
+              {route.name === 'agenda' && agendaBadgeCount > 0 && (
                 <View style={styles.badgeWrap}>
                   <KBadge count={agendaBadgeCount} />
                 </View>
@@ -60,7 +76,7 @@ export function KTabBar({ agendaBadgeCount = 0 }: KTabBarProps) {
               styles.label,
               { fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color, letterSpacing: 0.6 },
             ]}>
-              {tab.label.toUpperCase()}
+              {label.toUpperCase()}
             </Text>
           </Pressable>
         );
