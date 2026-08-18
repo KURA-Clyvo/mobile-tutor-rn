@@ -4,10 +4,10 @@ import { useTheme } from '@theme/index';
 import { KChip }   from '@components/primitives/KChip';
 import { KButton } from '@components/primitives/KButton';
 import { KIcon }   from '@components/primitives/KIcon';
-import { ConsultaSection } from '../../../../components/domain/ConsultaSection';
-import { usePetTimeline, usePetTimelineEvent } from '../../../../hooks/usePetTimeline';
-import { formatDateBR } from '../../../../utils/date';
-import type { TimelineTutorEventResponse } from '../../../../types/api';
+import { ConsultaSection } from './ConsultaSection';
+import { usePetTimeline, usePetTimelineEvent } from '@hooks/usePetTimeline';
+import { formatDateBR } from '../../utils/date';
+import type { TimelineTutorEventResponse } from '../../types/api';
 
 type Filter = 'all' | 'pres' | 'tele';
 

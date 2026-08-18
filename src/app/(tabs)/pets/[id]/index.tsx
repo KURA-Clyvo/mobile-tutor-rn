@@ -8,8 +8,9 @@ import { KIcon }        from '@components/primitives/KIcon';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
 import { KConditionChip } from '@components/primitives/KConditionChip';
 import { KNextActionCard } from '@components/primitives/KNextActionCard';
-import { ConsultasTab } from './consultas';
-import { VacinasTab }   from './vacinas';
+import { ConsultasTab } from '@components/domain/ConsultasTab';
+import { VacinasTab }   from '@components/domain/VacinasTab';
+import { DocsTab }      from '@components/domain/DocsTab';
 import { usePetDetail } from '../../../../hooks/usePetDetail';
 import { useVoltar } from '../../../../hooks/useVoltar';
 import { formatDateBR } from '../../../../utils/date';
@@ -134,7 +135,7 @@ export default function PetDetailScreen() {
           {tab === 'visao'     && <VisaoTab pet={pet} />}
           {tab === 'consultas' && <ConsultasTab petId={petId} />}
           {tab === 'vacinas'   && <VacinasTab petId={petId} />}
-          {tab === 'docs'      && <DocsPlaceholder />}
+          {tab === 'docs'      && <DocsTab />}
         </View>
       </ScrollView>
 
@@ -244,16 +245,6 @@ function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
           </View>
         </>
       )}
-    </View>
-  );
-}
-
-function DocsPlaceholder() {
-  const { colors, fonts, fontSize } = useTheme();
-  return (
-    <View style={{ alignItems: 'center', paddingTop: 40, gap: 12 }}>
-      <KIcon name="download" size={28} color={colors.textMute} />
-      <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.sm }}>Documentos em breve</Text>
     </View>
   );
 }

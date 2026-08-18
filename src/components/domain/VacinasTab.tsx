@@ -3,8 +3,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KIcon }     from '@components/primitives/KIcon';
-import { VacinaItem } from '../../../../components/domain/VacinaItem';
-import { usePetVacinas } from '../../../../hooks/usePetVacinas';
+import { VacinaItem } from './VacinaItem';
+import { usePetVacinas } from '@hooks/usePetVacinas';
 
 export function VacinasTab({ petId }: { petId: number }) {
   const { colors, fonts, fontSize } = useTheme();
