@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KButton }    from '@components/primitives/KButton';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
 import { KIcon }      from '@components/primitives/KIcon';
 import { usePets }    from '../../../hooks/usePets';
 import { useSolicitarAgendamento } from '../../../hooks/useAgendamentos';
+import { useVoltar } from '../../../hooks/useVoltar';
 import { addDays, formatDateBR } from '../../../utils/date';
 import type { SolicitarAgendamentoRequest } from '../../../types/api';
 
@@ -19,8 +20,10 @@ const INDISPONIVEIS = new Set(['10:00','11:30','14:00','16:30']);
 
 export default function NovoAgendamentoScreen() {
   const { colors, fonts, fontSize, radius } = useTheme();
-  const router  = useRouter();
   const insets  = useSafeAreaInsets();
+  // TASK-F02: destino de fallback quando esta tela é alcançada sem
+  // histórico (ex.: deep link direto pra "novo agendamento").
+  const voltar  = useVoltar('/(tabs)/agenda');
   const { idPet: idPetParam, tipo: tipoParam } = useLocalSearchParams<{ idPet?: string; tipo?: string }>();
 
   const { data: pets = [] } = usePets();
@@ -61,8 +64,12 @@ export default function NovoAgendamentoScreen() {
     };
     try {
       await solicitar(req);
+      // TASK-F02: chamada dentro de callback de Alert — voltar() é seguro
+      // aqui porque lê canGoBack()/despacha no momento do toque, não no
+      // momento em que este onSubmit foi criado (ver nota em useVoltar.ts
+      // sobre a migração futura da F06 pra componente de Alert próprio).
       Alert.alert('Solicitação enviada!', 'A clínica confirmará em até 24h.', [
-        { text: 'OK', onPress: () => router.back() },
+        { text: 'OK', onPress: () => voltar() },
       ]);
     } catch {
       Alert.alert('Erro', 'Não foi possível solicitar. Tente novamente.');
@@ -78,7 +85,7 @@ export default function NovoAgendamentoScreen() {
     <KeyboardAvoidingView style={[styles.flex, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       {/* Header */}
       <View style={[styles.headerRow, { paddingTop: insets.top + 12, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <Pressable onPress={() => router.back()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Fechar">
+        <Pressable onPress={() => voltar()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Fechar">
           <KIcon name="close" size={18} color={colors.text} />
         </Pressable>
         <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1.2 }}>

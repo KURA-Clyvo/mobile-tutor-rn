@@ -6,6 +6,7 @@ import { useTheme } from '@theme/index';
 import { KIcon } from '@components/primitives/KIcon';
 import { KChip } from '@components/primitives/KChip';
 import { useNotifications, useMarcarLida, useMarcarTodasLidas } from '../hooks/useNotifications';
+import { useVoltar } from '../hooks/useVoltar';
 import type { NotificacaoTutorResponse } from '../types/api';
 
 type Tone = 'amber' | 'sage' | 'clay' | 'ocean';
@@ -23,6 +24,9 @@ export default function NotificacoesScreen() {
   const { colors, fonts, fontSize, radius } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // TASK-F02: alcançável por toque em notificação push
+  // (notifications.service.ts:93-95), sem histórico de navegação.
+  const voltar = useVoltar('/(tabs)/pets');
   const { data: notifs = [], isLoading }          = useNotifications();
   const { mutate: marcarLida }                    = useMarcarLida();
   const { mutate: marcarTodas, isPending: markingAll } = useMarcarTodasLidas();
@@ -40,7 +44,7 @@ export default function NotificacoesScreen() {
     <View style={[styles.flex, { backgroundColor: colors.bg }]}>
       <View style={[styles.header, { paddingTop: insets.top + 12, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => voltar()}
           style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]}
           hitSlop={8}
           accessibilityRole="button"

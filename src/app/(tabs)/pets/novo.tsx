@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, Image, Linking, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@theme/index';
 import { KButton } from '@components/primitives/KButton';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KChip }   from '@components/primitives/KChip';
+import { useVoltar } from '../../../hooks/useVoltar';
 
 type Especie = 'Cão' | 'Gato' | 'Coelho' | 'Ave';
 type Sexo    = 'M' | 'F';
@@ -19,8 +19,10 @@ const ESPECIES: { key: Especie; emoji: string }[] = [
 
 export default function AddPetScreen() {
   const { colors, fonts, fontSize, radius } = useTheme();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+  // TASK-F02: alcançável sem histórico se um link direto apontar pra "novo
+  // pet"; volta pra lista de pets em vez de travar.
+  const voltar = useVoltar('/(tabs)/pets');
 
   const [fotoUri,   setFotoUri]   = useState<string | null>(null);
   const [nmPet,     setNmPet]     = useState('');
@@ -65,21 +67,26 @@ export default function AddPetScreen() {
     if (!especie)      { Alert.alert('Atenção', 'Selecione a espécie.'); return; }
     if (!sexo)         { Alert.alert('Atenção', 'Selecione o sexo.'); return; }
 
+    // TASK-F02: chamada dentro de callback de Alert — voltar() é seguro
+    // aqui porque lê canGoBack()/despacha no momento do toque, não no
+    // momento em que este handleSubmit foi criado (ver nota em
+    // useVoltar.ts sobre a migração futura da F06 pra componente de Alert
+    // próprio — não reescrever esta lógica de fallback, só o container).
     Alert.alert(
       'Solicite à sua clínica',
       `Peça à clínica para cadastrar ${nmPet} no sistema.`,
-      [{ text: 'OK', onPress: () => router.back() }],
+      [{ text: 'OK', onPress: () => voltar() }],
     );
   };
 
   return (
     <KeyboardAvoidingView style={[styles.flex, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={[styles.headerRow, { paddingTop: insets.top + 12, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <Pressable onPress={() => router.back()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
+        <Pressable onPress={() => voltar()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
         <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1.2 }}>NOVO · 1 DE 2</Text>
-        <Pressable onPress={() => router.back()} hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }} accessibilityRole="button">
+        <Pressable onPress={() => voltar()} hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }} accessibilityRole="button">
           <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, color: colors.primary, letterSpacing: 1 }}>CANCELAR</Text>
         </Pressable>
       </View>

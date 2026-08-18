@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, Switch, Pressable, ScrollView, Modal, Alert, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KChip }   from '@components/primitives/KChip';
 import { KButton } from '@components/primitives/KButton';
 import { KCard }   from '@components/primitives/KCard';
 import { useConsentimentos, useAssinar, useRevogar } from '../../../hooks/useConsentimentos';
+import { useVoltar } from '../../../hooks/useVoltar';
 import { LGPD_CONSENTIMENTOS, type TipoConsentimento } from '../../../constants/lgpd';
 import type { ConsentimentoResponse } from '../../../types/api';
 
@@ -22,8 +22,10 @@ const TIPOS: TipoConsentimento[] = ['TELEORIENTACAO', 'LEMBRETES', 'DADOS_ANONIM
 
 export default function ConsentimentosScreen() {
   const { colors, fonts, fontSize } = useTheme();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+  // TASK-F02: tela alcançável via link direto do perfil/deep link; sem
+  // histórico, cai na aba pai em vez de travar.
+  const voltar = useVoltar('/(tabs)/perfil');
   const { data: lista = [] }                          = useConsentimentos();
   const { mutateAsync: assinar,  isPending: assinando } = useAssinar();
   const { mutateAsync: revogar,  isPending: revogando } = useRevogar();
@@ -78,7 +80,7 @@ export default function ConsentimentosScreen() {
     <>
       <ScrollView style={[styles.flex, { backgroundColor: colors.bg }]} contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
+          <Pressable onPress={() => voltar()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
             <KIcon name="back" size={18} color={colors.text} />
           </Pressable>
         </View>

@@ -11,11 +11,16 @@ import { KIcon }         from '@components/primitives/KIcon';
 import { useAuthStore }  from '../store/authStore';
 import { register, isVersaoTermoDesatualizadaError } from '../services/auth.service';
 import { registerSchema, type RegisterFormData } from '../utils/validators';
+import { useVoltar } from '../hooks/useVoltar';
 
 export default function RegisterScreen() {
   const theme    = useTheme();
   const router   = useRouter();
   const insets   = useSafeAreaInsets();
+  // TASK-F02: esta tela é o destino do deep link de convite (_layout.tsx),
+  // ou seja, é o caso canônico de tela SEM histórico — o botão de voltar
+  // antigo (router.back()) travava quando o app abria direto aqui.
+  const voltar   = useVoltar('/login');
   const setSession = useAuthStore(s => s.setSession);
   const [loading, setLoading] = useState(false);
 
@@ -87,7 +92,7 @@ export default function RegisterScreen() {
     >
       <View style={[styles.headerRow, { paddingTop: insets.top + 12, borderBottomColor: c.border, backgroundColor: c.surface }]}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => voltar()}
           style={[styles.circleBtn, { backgroundColor: c.surface, borderColor: c.border }]}
           hitSlop={8}
           accessibilityLabel="Voltar"

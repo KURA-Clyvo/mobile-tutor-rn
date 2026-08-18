@@ -11,6 +11,7 @@ import { KNextActionCard } from '@components/primitives/KNextActionCard';
 import { ConsultasTab } from './consultas';
 import { VacinasTab }   from './vacinas';
 import { usePetDetail } from '../../../../hooks/usePetDetail';
+import { useVoltar } from '../../../../hooks/useVoltar';
 import { formatDateBR } from '../../../../utils/date';
 
 type Tab = 'visao' | 'consultas' | 'vacinas' | 'docs';
@@ -34,6 +35,9 @@ export default function PetDetailScreen() {
   const { colors, fonts, fontSize } = useTheme();
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
+  // TASK-F02: alcançável sem histórico (ex.: deep link direto pro pet a
+  // partir de notificação); volta pra lista de pets em vez de travar.
+  const voltar  = useVoltar('/(tabs)/pets');
   const { data: pet } = usePetDetail(petId);
   const [tab, setTab] = useState<Tab>('visao');
 
@@ -43,7 +47,7 @@ export default function PetDetailScreen() {
     <View style={[styles.flex, { backgroundColor: colors.bg }]}>
       {/* Header bar */}
       <View style={[styles.hdr, { paddingTop: insets.top + 14, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
+        <Pressable onPress={() => voltar()} style={styles.backBtn} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{pet?.nmPet ?? '…'}</Text>
