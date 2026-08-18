@@ -24,7 +24,8 @@ export default function ConsentimentosScreen() {
   const { colors, fonts, fontSize } = useTheme();
   const insets = useSafeAreaInsets();
   // TASK-F02: tela alcançável via link direto do perfil/deep link; sem
-  // histórico, cai na aba pai em vez de travar.
+  // histórico, o back() antigo não fazia nada (sem feedback pro usuário,
+  // ver useVoltar.ts) — agora cai na aba pai.
   const voltar = useVoltar('/(tabs)/perfil');
   const { data: lista = [] }                          = useConsentimentos();
   const { mutateAsync: assinar,  isPending: assinando } = useAssinar();

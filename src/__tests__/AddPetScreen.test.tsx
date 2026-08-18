@@ -11,8 +11,12 @@ import AddPetScreen from '../app/(tabs)/pets/novo';
 // afirmar que persistiu um cadastro que nenhuma chamada de API tentou fazer.
 
 const mockBack = jest.fn();
+// TASK-F02 (rodada de fix 1): useVoltar() (usado por AddPetScreen desde a
+// migração) chama router.canGoBack() — sem isso no mock, um teste futuro
+// que pressione "Voltar"/"CANCELAR" quebra com "canGoBack is not a
+// function".
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ back: mockBack, push: jest.fn(), replace: jest.fn() }),
+  useRouter: () => ({ back: mockBack, push: jest.fn(), replace: jest.fn(), canGoBack: jest.fn(() => true) }),
 }));
 
 const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

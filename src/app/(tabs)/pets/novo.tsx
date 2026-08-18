@@ -21,7 +21,8 @@ export default function AddPetScreen() {
   const { colors, fonts, fontSize, radius } = useTheme();
   const insets = useSafeAreaInsets();
   // TASK-F02: alcançável sem histórico se um link direto apontar pra "novo
-  // pet"; volta pra lista de pets em vez de travar.
+  // pet"; sem isto o back() antigo não faria nada (ver useVoltar.ts) —
+  // agora volta pra lista de pets.
   const voltar = useVoltar('/(tabs)/pets');
 
   const [fotoUri,   setFotoUri]   = useState<string | null>(null);

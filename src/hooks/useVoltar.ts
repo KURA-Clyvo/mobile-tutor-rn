@@ -33,7 +33,15 @@ import type { Href } from 'expo-router';
  * de segurança: se houver histórico de navegação, comporta-se exatamente
  * como `router.back()`; se não houver (tela alcançada por deep link ou
  * notificação push, sem stack para desempilhar), navega para
- * `destinoFallback` via `router.replace()` em vez de travar.
+ * `destinoFallback` via `router.replace()`.
+ *
+ * ⚠️ O `router.back()` puro, sem esta rede, NÃO trava/congela o app quando
+ * não há histórico — medido na fonte do expo-router (rodada de fix 1 da
+ * TASK-F02): é no-op silencioso em produção, `console.error` em dev, só
+ * lança sob `NODE_ENV=test`. O problema que este hook corrige é mais sutil
+ * que um crash: o toque simplesmente não faz nada, sem feedback nenhum
+ * pro usuário sobre por quê — daí "rede de segurança", não "correção de
+ * crash".
  *
  * @param destinoFallback rota hierarquicamente correta para esta tela — ex.:
  *   a aba pai (`/(tabs)/pets`) ou a tela de entrada (`/login`). Cada

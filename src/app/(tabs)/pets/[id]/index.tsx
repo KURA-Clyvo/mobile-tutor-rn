@@ -36,7 +36,8 @@ export default function PetDetailScreen() {
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
   // TASK-F02: alcançável sem histórico (ex.: deep link direto pro pet a
-  // partir de notificação); volta pra lista de pets em vez de travar.
+  // partir de notificação); sem isto o back() antigo não faria nada (ver
+  // useVoltar.ts) — agora volta pra lista de pets.
   const voltar  = useVoltar('/(tabs)/pets');
   const { data: pet } = usePetDetail(petId);
   const [tab, setTab] = useState<Tab>('visao');

@@ -5,7 +5,10 @@ import { ThemeProvider } from '../theme/index';
 
 import NotificacoesScreen from '../app/notificacoes';
 
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn() }) }));
+// TASK-F02 (rodada de fix 1): useVoltar() (usado por NotificacoesScreen
+// desde a migração) chama router.canGoBack() — sem isso no mock, um teste
+// futuro que pressione "Voltar" quebra com "canGoBack is not a function".
+jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn(), replace: jest.fn(), canGoBack: jest.fn(() => true) }) }));
 jest.mock('../hooks/useNotifications', () => ({
   useNotifications: () => ({
     data: [

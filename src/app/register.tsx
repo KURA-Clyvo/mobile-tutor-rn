@@ -18,8 +18,12 @@ export default function RegisterScreen() {
   const router   = useRouter();
   const insets   = useSafeAreaInsets();
   // TASK-F02: esta tela é o destino do deep link de convite (_layout.tsx),
-  // ou seja, é o caso canônico de tela SEM histórico — o botão de voltar
-  // antigo (router.back()) travava quando o app abria direto aqui.
+  // ou seja, é o caso canônico de tela SEM histórico. O router.back()
+  // antigo NÃO travava o app nesse caso — medido na fonte do expo-router
+  // (rodada de fix 1): sem histórico, back() é no-op silencioso em
+  // produção (console.error em dev), nunca lança/congela em runtime real.
+  // O sintoma real era mais sutil: o toque no botão simplesmente não fazia
+  // nada — o tutor ficava preso na tela sem feedback nenhum de por quê.
   const voltar   = useVoltar('/login');
   const setSession = useAuthStore(s => s.setSession);
   const [loading, setLoading] = useState(false);

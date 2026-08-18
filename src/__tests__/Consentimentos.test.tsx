@@ -5,7 +5,18 @@ import { ThemeProvider } from '../theme/index';
 
 import ConsentimentosScreen from '../app/(tabs)/perfil/consentimentos';
 
-jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn() }) }));
+// TASK-F02 (rodada de fix 1): useVoltar() (usado por ConsentimentosScreen
+// desde a migração) chama router.canGoBack() — mock antigo só declarava
+// `back`, e um teste que pressionasse "Voltar" quebrava com
+// "router.canGoBack is not a function". mockBack/mockReplace/mockCanGoBack
+// no escopo do módulo pra serem controláveis pelo describe de baixo.
+const mockBack      = jest.fn();
+const mockReplace   = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
+
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ back: mockBack, replace: mockReplace, canGoBack: mockCanGoBack }),
+}));
 // TASK-73 (FIX_7): shape real do Java (ConsentimentoResponse: idConsentimento/tipo/
 // versaoTermo/aceito/ativo/dtAceite/dtRevogacao) — antes usava campos que não
 // existem no backend (id/dsTipoConsentimento/sgStatus/dtConsentimento), com os 3
@@ -59,5 +70,35 @@ describe('ConsentimentosScreen', () => {
     const btns = getAllByText('VER TEXTO COMPLETO →');
     fireEvent.press(btns[0]!);
     await waitFor(() => expect(getByText('Aceitar')).toBeTruthy());
+  });
+});
+
+// TASK-F02 (rodada de fix 1): segunda mordida real de call site migrado
+// (a primeira é em RegisterScreen.test.tsx, cenário "sem histórico"). Este
+// cobre o cenário "com histórico" numa tela diferente — chegada normal por
+// navegação (perfil -> consentimentos), não deep link.
+describe('ConsentimentosScreen — botão Voltar (TASK-F02)', () => {
+  beforeEach(() => {
+    mockBack.mockClear();
+    mockReplace.mockClear();
+    mockCanGoBack.mockReset();
+  });
+
+  it('com histórico (canGoBack=true): back() puro, replace NUNCA chamado — comportamento preservado', async () => {
+    mockCanGoBack.mockReturnValue(true);
+    const { getByLabelText, findByText } = render(<ConsentimentosScreen />, { wrapper: W });
+    await findByText('Teleorientação por vídeo');
+    fireEvent.press(getByLabelText('Voltar'));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('sem histórico (canGoBack=false): replace("/(tabs)/perfil"), back() NUNCA chamado', async () => {
+    mockCanGoBack.mockReturnValue(false);
+    const { getByLabelText, findByText } = render(<ConsentimentosScreen />, { wrapper: W });
+    await findByText('Teleorientação por vídeo');
+    fireEvent.press(getByLabelText('Voltar'));
+    expect(mockReplace).toHaveBeenCalledWith('/(tabs)/perfil');
+    expect(mockBack).not.toHaveBeenCalled();
   });
 });

@@ -6,8 +6,19 @@ import { ThemeProvider } from '../theme/index';
 import RegisterScreen from '../app/register';
 import { register } from '../services/auth.service';
 
+// TASK-F02 (rodada de fix 1): useVoltar() chama router.canGoBack(), então
+// qualquer mock de expo-router usado por uma tela migrada precisa declarar
+// canGoBack — sem isso, o botão Voltar quebra com "router.canGoBack is not
+// a function" no primeiro teste que de fato pressioná-lo. mockBack/
+// mockReplace/mockCanGoBack ficam no escopo do módulo (prefixo "mock",
+// permitido pelo hoist do jest) para serem controláveis por teste — ver
+// describe('RegisterScreen — botão Voltar (TASK-F02)') mais abaixo.
+const mockBack      = jest.fn();
+const mockReplace   = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
+
 jest.mock('expo-router', () => ({
-  useRouter:            () => ({ replace: jest.fn(), push: jest.fn(), back: jest.fn() }),
+  useRouter:            () => ({ replace: mockReplace, push: jest.fn(), back: mockBack, canGoBack: mockCanGoBack }),
   useLocalSearchParams: () => ({ token: 'mock-invite-token-123', clinicaId: '1' }),
 }));
 // isVersaoTermoDesatualizadaError fica com a implementação REAL (jest.requireActual)
@@ -150,5 +161,34 @@ describe('RegisterScreen', () => {
   it('renders LGPD footer', () => {
     const { getByText } = render(<RegisterScreen />, { wrapper: W });
     expect(getByText(/DADOS CIFRADOS/)).toBeTruthy();
+  });
+});
+
+// TASK-F02 (rodada de fix 1): esta é a mordida real da migração — não do
+// hook isolado (já coberto em useVoltar.test.tsx), mas do call site de
+// register.tsx:97 de fato. register.tsx é o caso canônico do brief: é o
+// destino do deep link de convite (_layout.tsx), então "sem histórico" não
+// é um cenário hipotético aqui, é o caminho de entrada mais comum da tela.
+describe('RegisterScreen — botão Voltar (TASK-F02)', () => {
+  beforeEach(() => {
+    mockBack.mockClear();
+    mockReplace.mockClear();
+    mockCanGoBack.mockReset();
+  });
+
+  it('com histórico (canGoBack=true): back() puro, replace NUNCA chamado — comportamento preservado', () => {
+    mockCanGoBack.mockReturnValue(true);
+    const { getByLabelText } = render(<RegisterScreen />, { wrapper: W });
+    fireEvent.press(getByLabelText('Voltar'));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('sem histórico (canGoBack=false, caso canônico de deep link): replace("/login"), back() NUNCA chamado', () => {
+    mockCanGoBack.mockReturnValue(false);
+    const { getByLabelText } = render(<RegisterScreen />, { wrapper: W });
+    fireEvent.press(getByLabelText('Voltar'));
+    expect(mockReplace).toHaveBeenCalledWith('/login');
+    expect(mockBack).not.toHaveBeenCalled();
   });
 });
