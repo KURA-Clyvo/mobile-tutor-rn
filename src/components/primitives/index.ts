@@ -9,3 +9,5 @@ export { KConditionChip }             from './KConditionChip';
 export type { CondicaoDomain }        from './KConditionChip';
 export { KNextActionCard }            from './KNextActionCard';
 export type { NextActionDomain }      from './KNextActionCard';
+export { KDialog, KDialogProvider, useDialog } from './KDialog';
+export type { KDialogAction, KDialogActionStyle, KDialogOptions, KDialogProps, KDialogApi, ConfirmarOptions } from './KDialog';
