@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, RefreshControl, Alert, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KButton } from '@components/primitives/KButton';
 import { KIcon }   from '@components/primitives/KIcon';
+import { useDialog } from '@components/primitives/KDialog';
 import { AgendamentoItem } from '../../../components/domain/AgendamentoItem';
 import { useAgendamentos, useCancelarAgendamento } from '../../../hooks/useAgendamentos';
 import { isFuture } from '../../../utils/date';
@@ -15,21 +16,24 @@ export default function AgendaScreen() {
   const router = useRouter();
   const { data: agendamentos = [], isLoading, refetch } = useAgendamentos();
   const { mutate: cancelar, isPending: canceling } = useCancelarAgendamento();
+  const { confirmar } = useDialog();
 
   const { proximos, historico } = useMemo(() => ({
     proximos:  [...agendamentos.filter(a => isFuture(a.dtInicio))].sort((a, b) => new Date(a.dtInicio).getTime() - new Date(b.dtInicio).getTime()),
     historico: [...agendamentos.filter(a => !isFuture(a.dtInicio))].sort((a, b) => new Date(b.dtInicio).getTime() - new Date(a.dtInicio).getTime()),
   }), [agendamentos]);
 
-  const handleCancel = (id: number) => {
-    Alert.alert(
-      'Cancelar agendamento?',
-      'Você pode solicitar outro agendamento depois.',
-      [
-        { text: 'Voltar', style: 'cancel' },
-        { text: 'Cancelar agendamento', style: 'destructive', onPress: () => cancelar(id) },
-      ]
-    );
+  // TASK-F06: era um Alert nativo. A confirmação continua obrigatória —
+  // `cancelar(id)` só roda quando o botão destrutivo é tocado.
+  const handleCancel = async (id: number) => {
+    const confirmado = await confirmar({
+      titulo:     'Cancelar agendamento?',
+      mensagem:   'Você pode solicitar outro agendamento depois.',
+      cancelar:   'Voltar',
+      confirmar:  'Cancelar agendamento',
+      destrutivo: true,
+    });
+    if (confirmado) cancelar(id);
   };
 
   return (
@@ -62,7 +66,7 @@ export default function AgendaScreen() {
         {proximos.length === 0
           ? <EmptySection label="Sem próximos agendamentos" />
           : proximos.map(a => (
-              <AgendamentoItem key={a.id} item={a} onLongPress={() => handleCancel(a.id)} />
+              <AgendamentoItem key={a.id} item={a} onLongPress={() => void handleCancel(a.id)} />
             ))
         }
 

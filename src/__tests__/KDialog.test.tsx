@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { Modal } from 'react-native';
 import { ThemeProvider } from '../theme/index';
-import { KDialogProvider, useDialog, type KDialogApi } from '../components/primitives/KDialog';
+import { KDialog, KDialogProvider, useDialog, type KDialogApi } from '../components/primitives/KDialog';
 import { lightColors, darkColors } from '../theme/tokens';
 import { useAuthStore } from '../store/authStore';
 
@@ -290,5 +290,38 @@ describe('KDialog — acessibilidade', () => {
     const erro = jest.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<ThemeProvider><Solto /></ThemeProvider>)).toThrow(/KDialogProvider/);
     erro.mockRestore();
+  });
+});
+
+// TASK-F06 (fecha M1 e M3 da revisão G2 da F05): duas props do <Modal> e a
+// camada de apresentação standalone estavam corretas mas SEM teste versionado —
+// o revisor as verificou com teste temporário, que ele apagou. Prop declarada
+// sem teste é prop que some num refactor sem ninguém notar.
+describe('KDialog — props do Modal e camada standalone (M1/M3 da F05)', () => {
+  it('o Modal declara statusBarTranslucent, accessibilityViewIsModal e onRequestClose', () => {
+    const tela = montar();
+    act(() => { void api.alerta('Atenção', 'Mensagem.'); });
+    const modal = tela.UNSAFE_getByType(Modal);
+    expect(modal.props.statusBarTranslucent).toBe(true);
+    expect(modal.props.accessibilityViewIsModal).toBe(true);
+    expect(typeof modal.props.onRequestClose).toBe('function');
+  });
+
+  it('o KDialog de apresentação renderiza sozinho, sem provider, e devolve o valor da ação', () => {
+    const onFechar = jest.fn();
+    const tela = render(
+      <ThemeProvider>
+        <KDialog
+          visivel
+          opcoes={{ titulo: 'Permissão negada', acoes: [{ label: 'Abrir configurações', value: 'abrir' }] }}
+          onFechar={onFechar}
+        />
+      </ThemeProvider>,
+    );
+    expect(tela.getByText('Permissão negada')).toBeTruthy();
+    // Sem mensagem, o parágrafo não é renderizado (forma degenerada de pets/novo.tsx).
+    expect(tela.queryByTestId('kdialog-mensagem')).toBeNull();
+    fireEvent.press(tela.getByTestId('kdialog-acao-abrir'));
+    expect(onFechar).toHaveBeenCalledWith('abrir');
   });
 });

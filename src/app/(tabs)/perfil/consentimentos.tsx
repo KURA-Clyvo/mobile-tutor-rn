@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, Switch, Pressable, ScrollView, Modal, Alert, StyleSheet } from 'react-native';
+import { View, Text, Switch, Pressable, ScrollView, Modal, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@theme/index';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KChip }   from '@components/primitives/KChip';
 import { KButton } from '@components/primitives/KButton';
 import { KCard }   from '@components/primitives/KCard';
+import { useDialog } from '@components/primitives/KDialog';
 import { useConsentimentos, useAssinar, useRevogar } from '../../../hooks/useConsentimentos';
 import { useVoltar } from '../../../hooks/useVoltar';
 import { LGPD_CONSENTIMENTOS, type TipoConsentimento } from '../../../constants/lgpd';
@@ -27,6 +28,7 @@ export default function ConsentimentosScreen() {
   // histórico, o back() antigo não fazia nada (sem feedback pro usuário,
   // ver useVoltar.ts) — agora cai na aba pai.
   const voltar = useVoltar('/(tabs)/perfil');
+  const { alerta, confirmar } = useDialog();
   const { data: lista = [] }                          = useConsentimentos();
   const { mutateAsync: assinar,  isPending: assinando } = useAssinar();
   const { mutateAsync: revogar,  isPending: revogando } = useRevogar();
@@ -37,18 +39,21 @@ export default function ConsentimentosScreen() {
   const getStatus = (tipo: TipoConsentimento): ConsentimentoResponse | undefined =>
     lista.find(c => c.tipo === tipo);
 
-  const handleSwitch = (tipo: TipoConsentimento, currentlyActive: boolean) => {
+  const handleSwitch = async (tipo: TipoConsentimento, currentlyActive: boolean) => {
     if (currentlyActive) {
       const c = getStatus(tipo);
       if (!c) return;
-      Alert.alert(
-        'Revogar consentimento?',
-        LGPD_CONSENTIMENTOS[tipo].resumo,
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Revogar', style: 'destructive', onPress: () => revogar({ tipo, key: generateUUID() }) },
-        ]
-      );
+      // TASK-F06: LGPD — revogar é irreversível pelo app, então a confirmação
+      // continua obrigatória. `revogar(...)` só roda com `confirmado === true`;
+      // dispensar o diálogo (back-button, toque fora) resolve false.
+      const confirmado = await confirmar({
+        titulo:     'Revogar consentimento?',
+        mensagem:   LGPD_CONSENTIMENTOS[tipo].resumo,
+        cancelar:   'Cancelar',
+        confirmar:  'Revogar',
+        destrutivo: true,
+      });
+      if (confirmado) revogar({ tipo, key: generateUUID() });
     } else {
       setModalTipo(tipo);
     }
@@ -64,7 +69,11 @@ export default function ConsentimentosScreen() {
       });
       setModalTipo(null);
     } catch {
-      Alert.alert('Erro', 'Não foi possível registrar o consentimento. Tente novamente.');
+      // TASK-F06: `void` de propósito — o `finally` abaixo desliga o spinner do
+      // modal e não pode esperar o tutor fechar o diálogo. Aguardar aqui
+      // deixaria o botão em "loading" enquanto o aviso estivesse na tela,
+      // comportamento que o Alert nativo (fire-and-forget) não tinha.
+      void alerta('Erro', 'Não foi possível registrar o consentimento. Tente novamente.');
     } finally {
       setModalLoading(false);
     }
@@ -111,7 +120,7 @@ export default function ConsentimentosScreen() {
                   <KChip tone={chip.tone}>{chip.label}</KChip>
                   <Switch
                     value={isAtivo}
-                    onValueChange={() => handleSwitch(tipo, isAtivo)}
+                    onValueChange={() => void handleSwitch(tipo, isAtivo)}
                     trackColor={{ false: colors.border, true: colors.primary }}
                     thumbColor={colors.surface}
                     disabled={assinando || revogando}

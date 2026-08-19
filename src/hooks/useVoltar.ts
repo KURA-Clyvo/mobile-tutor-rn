@@ -15,16 +15,22 @@
 // back() chega a bubblar até o navegador de abas; o caso que este hook
 // cobre é o de tela sem histórico nenhum, onde nem chega a bubblar).
 //
-// ⚠️ Nota para a F06 (migração de Alert.alert para componente próprio):
-// a função `voltar` devolvida por este hook é SEGURA de chamar de dentro
-// de um callback assíncrono — onPress de um botão de Alert, callback de
-// um toast, o que for — mesmo tempo depois do render que criou o
-// componente. router.canGoBack()/back()/replace() são lidos e despachados
-// no MOMENTO em que voltar() é invocada, nunca capturados em variável de
-// estado do corpo do componente no momento do toque. Ao migrar as duas
-// chamadas dentro de Alert.alert (pets/novo.tsx:71, agenda/novo.tsx:65)
-// para o componente novo, basta trocar o onPress por `() => voltar()` —
-// NÃO é preciso (nem deve) reescrever a lógica de fallback.
+// ⚠️ A função `voltar` devolvida por este hook é SEGURA de chamar de dentro
+// de um callback assíncrono — resultado de um diálogo, callback de um toast,
+// o que for — mesmo tempo depois do render que criou o componente.
+// router.canGoBack()/back()/replace() são lidos e despachados no MOMENTO em
+// que voltar() é invocada, nunca capturados em variável de estado do corpo do
+// componente.
+//
+// TASK-F06 (FEITA): as duas chamadas que ficavam dentro de callback de
+// Alert.alert nativo — `pets/novo.tsx::handleSubmit` e
+// `agenda/novo.tsx::handleSubmit` — migraram para o KDialog. A lógica de
+// fallback NÃO foi reescrita, só o container: hoje elas são
+// `const acao = await mostrar({...}); if (acao === 'OK') voltar();`.
+// A comparação com 'OK' é deliberada (decisão I1 da F06): `alerta()` resolve
+// também quando o diálogo é DISPENSADO sem escolha, e usar `alerta()` faria
+// voltar() rodar no back-button do Android — coisa que o Alert nativo não
+// fazia. Quem mexer aqui no futuro: continue não reescrevendo o fallback.
 import { useRouter } from 'expo-router';
 import type { Href } from 'expo-router';
 

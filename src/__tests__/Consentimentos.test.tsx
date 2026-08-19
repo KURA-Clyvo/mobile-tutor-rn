@@ -1,7 +1,9 @@
 import React from 'react';
+import { Switch } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '../theme/index';
+import { KDialogProvider } from '../components/primitives/KDialog';
 
 import ConsentimentosScreen from '../app/(tabs)/perfil/consentimentos';
 
@@ -24,6 +26,7 @@ jest.mock('expo-router', () => ({
 // COMPARTILHAMENTO_LABORATORIO) que também não existem. Cobre os 5 tipos reais:
 // LEMBRETES ativo, DADOS_ANONIMOS revogado, os outros 3 pendentes (ausentes da
 // lista).
+const mockRevogar = jest.fn(() => Promise.resolve());
 jest.mock('../hooks/useConsentimentos', () => ({
   useConsentimentos: () => ({
     data: [
@@ -32,12 +35,14 @@ jest.mock('../hooks/useConsentimentos', () => ({
     ],
   }),
   useAssinar:  () => ({ mutateAsync: jest.fn(), isPending: false }),
-  useRevogar:  () => ({ mutateAsync: jest.fn(), isPending: false }),
+  useRevogar:  () => ({ mutateAsync: mockRevogar, isPending: false }),
 }));
 
 const W = ({ children }: any) => {
   const qc = new QueryClient();
-  return <QueryClientProvider client={qc}><ThemeProvider>{children}</ThemeProvider></QueryClientProvider>;
+  // TASK-F06: KDialogProvider é obrigatório — a tela usa `useDialog()` para a
+  // confirmação de revogação de consentimento (LGPD).
+  return <QueryClientProvider client={qc}><ThemeProvider><KDialogProvider>{children}</KDialogProvider></ThemeProvider></QueryClientProvider>;
 };
 
 describe('ConsentimentosScreen', () => {
@@ -100,5 +105,51 @@ describe('ConsentimentosScreen — botão Voltar (TASK-F02)', () => {
     fireEvent.press(getByLabelText('Voltar'));
     expect(mockReplace).toHaveBeenCalledWith('/(tabs)/perfil');
     expect(mockBack).not.toHaveBeenCalled();
+  });
+});
+
+// TASK-F06: fluxo DESTRUTIVO e de LGPD — revogar consentimento NÃO pode virar
+// ação direta na migração de Alert.alert para KDialog. Revogar sem confirmar é
+// regressão de produto, não de estilo. Não existia teste desta confirmação
+// antes desta task.
+describe('ConsentimentosScreen — revogação exige confirmação (TASK-F06)', () => {
+  beforeEach(() => mockRevogar.mockClear());
+
+  // LEMBRETES é o único consentimento ativo no fixture, então é o único Switch
+  // com value === true — o gesto que dispara a revogação.
+  const desligarOAtivo = (utils: ReturnType<typeof render>) => {
+    const ativo = utils
+      .UNSAFE_getAllByType(Switch)
+      .find(n => n.props.value === true);
+    fireEvent(ativo!, 'valueChange', false);
+  };
+
+  it('abre o diálogo e NÃO revoga enquanto o tutor não confirmar', async () => {
+    const utils = render(<ConsentimentosScreen />, { wrapper: W });
+    await waitFor(() => expect(utils.getByText('Lembretes e comunicados da clínica')).toBeTruthy());
+
+    desligarOAtivo(utils);
+
+    await waitFor(() => expect(utils.getByTestId('kdialog-titulo').props.children)
+      .toBe('Revogar consentimento?'));
+    expect(mockRevogar).not.toHaveBeenCalled();
+
+    fireEvent.press(utils.getByTestId('kdialog-acao-__cancelar__'));
+    await waitFor(() => expect(utils.queryByTestId('kdialog-card')).toBeNull());
+    expect(mockRevogar).not.toHaveBeenCalled();
+  });
+
+  it('revoga quando o botão destrutivo é tocado', async () => {
+    const utils = render(<ConsentimentosScreen />, { wrapper: W });
+    await waitFor(() => expect(utils.getByText('Lembretes e comunicados da clínica')).toBeTruthy());
+
+    desligarOAtivo(utils);
+    const destrutivo = await waitFor(() => utils.getByTestId('kdialog-acao-__confirmar__'));
+    expect(destrutivo.props.accessibilityHint).toBe('Ação destrutiva. Não pode ser desfeita.');
+    fireEvent.press(destrutivo);
+
+    await waitFor(() => expect(mockRevogar).toHaveBeenCalledWith(
+      expect.objectContaining({ tipo: 'LEMBRETES' }),
+    ));
   });
 });

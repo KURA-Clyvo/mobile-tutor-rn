@@ -10,6 +10,7 @@ import Animated, { useSharedValue, withRepeat, withTiming, useAnimatedStyle } fr
 import * as Linking from 'expo-linking';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { ThemeProvider, useTheme } from '@theme/index';
+import { KDialogProvider } from '@components/primitives/KDialog';
 import { queryClient, asyncStoragePersister } from '@services/queryClient';
 import { useAuthStore } from '../store/authStore';
 import { parseInviteLink } from '../utils/invite';
@@ -131,7 +132,14 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
         <ThemeProvider>
-          <RootLayoutInner />
+          {/* TASK-F06: KDialogProvider vive DENTRO do ThemeProvider porque o
+              KDialog lê `useTheme()`; e envolve o RootLayoutInner para que
+              qualquer tela do Stack alcance `useDialog()`. Sem este ponto de
+              montagem, toda tela migrada lançaria "useDialog precisa estar
+              dentro de <KDialogProvider>". */}
+          <KDialogProvider>
+            <RootLayoutInner />
+          </KDialogProvider>
         </ThemeProvider>
       </PersistQueryClientProvider>
     </SafeAreaProvider>

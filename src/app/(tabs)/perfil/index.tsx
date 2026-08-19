@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, Switch, ScrollView, StyleSheet, Alert, Modal } from 'react-native';
+import { View, Text, Pressable, Switch, ScrollView, StyleSheet, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,6 +7,7 @@ import { useTheme, useToggleTheme } from '@theme/index';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KButton } from '@components/primitives/KButton';
 import { KCard }   from '@components/primitives/KCard';
+import { useDialog } from '@components/primitives/KDialog';
 import { useAuthStore } from '../../../store/authStore';
 import { queryClient  } from '../../../services/queryClient';
 import {
@@ -24,6 +25,7 @@ export default function PerfilScreen() {
   const router       = useRouter();
   const tutor        = useAuthStore(s => s.tutor);
   const clearSession = useAuthStore(s => s.clearSession);
+  const { alerta, confirmar } = useDialog();
   const [aboutVisible, setAboutVisible] = useState(false);
   // TASK-70: fonte da verdade é a permissão real do SO, consultada sem popup
   // (getPermissionStatus) quando a tela abre — não um `false` fixo nem uma
@@ -43,23 +45,20 @@ export default function PerfilScreen() {
     return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
   })();
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Sair do app?',
-      'Você será redirecionado para a tela de login.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: () => {
-            queryClient.clear();
-            clearSession();
-            router.replace('/login');
-          },
-        },
-      ]
-    );
+  // TASK-F06: era um Alert nativo. A confirmação continua obrigatória — o
+  // logout (limpar cache + sessão + navegar) só roda com `confirmado === true`.
+  const handleLogout = async () => {
+    const confirmado = await confirmar({
+      titulo:     'Sair do app?',
+      mensagem:   'Você será redirecionado para a tela de login.',
+      cancelar:   'Cancelar',
+      confirmar:  'Sair',
+      destrutivo: true,
+    });
+    if (!confirmado) return;
+    queryClient.clear();
+    clearSession();
+    router.replace('/login');
   };
 
   const handleNotifToggle = async (next: boolean) => {
@@ -70,7 +69,7 @@ export default function PerfilScreen() {
       const stillGranted = await getPermissionStatus();
       setNotifEnabled(stillGranted);
       if (stillGranted) {
-        Alert.alert(
+        await alerta(
           'Não é possível desativar por aqui',
           'Para desativar as notificações, acesse as configurações do dispositivo.',
         );
@@ -81,7 +80,7 @@ export default function PerfilScreen() {
     const granted = await requestPermission();
     setNotifEnabled(granted);
     if (!granted) {
-      Alert.alert('Permissão negada', 'Ative as notificações nas configurações do dispositivo.');
+      await alerta('Permissão negada', 'Ative as notificações nas configurações do dispositivo.');
       return;
     }
 
@@ -198,7 +197,7 @@ export default function PerfilScreen() {
         <KButton
           variant="danger"
           block
-          onPress={handleLogout}
+          onPress={() => void handleLogout()}
           style={styles.logoutBtn}
           iconLeft={<KIcon name="close" size={16} color={colors.textOnPrimary} style={{ marginRight: 6 }} />}
         >

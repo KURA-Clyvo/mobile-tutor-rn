@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KButton }    from '@components/primitives/KButton';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
 import { KIcon }      from '@components/primitives/KIcon';
+import { useDialog }  from '@components/primitives/KDialog';
 import { usePets }    from '../../../hooks/usePets';
 import { useSolicitarAgendamento } from '../../../hooks/useAgendamentos';
 import { useVoltar } from '../../../hooks/useVoltar';
@@ -24,6 +25,7 @@ export default function NovoAgendamentoScreen() {
   // TASK-F02: destino de fallback quando esta tela é alcançada sem
   // histórico (ex.: deep link direto pra "novo agendamento").
   const voltar  = useVoltar('/(tabs)/agenda');
+  const { alerta, mostrar } = useDialog();
   const { idPet: idPetParam, tipo: tipoParam } = useLocalSearchParams<{ idPet?: string; tipo?: string }>();
 
   const { data: pets = [] } = usePets();
@@ -49,11 +51,11 @@ export default function NovoAgendamentoScreen() {
 
   const handleSubmit = async () => {
     if (!selectedPet || !selectedSlot || !dtPreferida) {
-      Alert.alert('Atenção', 'Selecione o pet, uma data e um horário.');
+      await alerta('Atenção', 'Selecione o pet, uma data e um horário.');
       return;
     }
     if (!motivo.trim()) {
-      Alert.alert('Atenção', 'Descreva o motivo da consulta.');
+      await alerta('Atenção', 'Descreva o motivo da consulta.');
       return;
     }
     const req: SolicitarAgendamentoRequest = {
@@ -64,15 +66,23 @@ export default function NovoAgendamentoScreen() {
     };
     try {
       await solicitar(req);
-      // TASK-F02: chamada dentro de callback de Alert — voltar() é seguro
-      // aqui porque lê canGoBack()/despacha no momento do toque, não no
-      // momento em que este onSubmit foi criado (ver nota em useVoltar.ts
-      // sobre a migração futura da F06 pra componente de Alert próprio).
-      Alert.alert('Solicitação enviada!', 'A clínica confirmará em até 24h.', [
-        { text: 'OK', onPress: () => voltar() },
-      ]);
+      // TASK-F02: voltar() é seguro aqui porque lê canGoBack()/despacha no
+      // momento do toque, não no momento em que este onSubmit foi criado.
+      // TASK-F06: o container deixou de ser o Alert nativo, mas a lógica
+      // de fallback do voltar() NÃO foi reescrita — só o container.
+      // Decisão I1 (ver task-F06-report.md): `mostrar()` em vez de `alerta()`
+      // porque `alerta()` resolve TAMBÉM quando o diálogo é dispensado sem
+      // escolha (back-button do Android), o que faria voltar() rodar num caso
+      // em que o Alert nativo não voltava. Comparar com 'OK' preserva o
+      // comportamento anterior: só o toque no botão navega.
+      const acao = await mostrar({
+        titulo:   'Solicitação enviada!',
+        mensagem: 'A clínica confirmará em até 24h.',
+        acoes:    [{ label: 'OK' }],
+      });
+      if (acao === 'OK') voltar();
     } catch {
-      Alert.alert('Erro', 'Não foi possível solicitar. Tente novamente.');
+      await alerta('Erro', 'Não foi possível solicitar. Tente novamente.');
     }
   };
 

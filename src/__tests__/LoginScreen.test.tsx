@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
+import { KDialogProvider } from '../components/primitives/KDialog';
 
 import LoginScreen from '../app/login';
 import { login } from '../services/auth.service';
@@ -22,7 +23,14 @@ jest.mock('../store/authStore', () => ({
   }),
 }));
 
-const W = ({ children }: any) => <ThemeProvider>{children}</ThemeProvider>;
+// TASK-F06: a tela usa `useDialog()` (KDialog substituiu Alert.alert), que
+// exige o KDialogProvider na árvore — mesma ordem da raiz (_layout.tsx:
+// ThemeProvider > KDialogProvider).
+const W = ({ children }: any) => (
+  <ThemeProvider>
+    <KDialogProvider>{children}</KDialogProvider>
+  </ThemeProvider>
+);
 
 describe('LoginScreen', () => {
   it('renders email and password fields', () => {

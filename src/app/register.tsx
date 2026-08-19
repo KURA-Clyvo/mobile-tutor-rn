@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Alert, Pressable } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -8,6 +8,7 @@ import { useTheme }      from '@theme/index';
 import { KButton }       from '@components/primitives/KButton';
 import { KTextField }    from '@components/primitives/KTextField';
 import { KIcon }         from '@components/primitives/KIcon';
+import { useDialog }     from '@components/primitives/KDialog';
 import { useAuthStore }  from '../store/authStore';
 import { register, isVersaoTermoDesatualizadaError } from '../services/auth.service';
 import { registerSchema, type RegisterFormData } from '../utils/validators';
@@ -26,6 +27,7 @@ export default function RegisterScreen() {
   // nada — o tutor ficava preso na tela sem feedback nenhum de por quê.
   const voltar   = useVoltar('/login');
   const setSession = useAuthStore(s => s.setSession);
+  const { alerta } = useDialog();
   const [loading, setLoading] = useState(false);
 
   const { token: inviteToken, clinicaId } = useLocalSearchParams<{ token?: string; clinicaId?: string }>();
@@ -50,7 +52,7 @@ export default function RegisterScreen() {
 
   const onSubmit = async (data: RegisterFormData) => {
     if (!hasInvite) {
-      Alert.alert('Convite necessário', 'O cadastro requer um link de convite da clínica.');
+      await alerta('Convite necessário', 'O cadastro requer um link de convite da clínica.');
       return;
     }
     setLoading(true);
@@ -81,7 +83,10 @@ export default function RegisterScreen() {
         // acionável em vez do genérico abaixo.
         isVersaoTermoDesatualizadaError(err) ? 'Uma nova versão do aplicativo é necessária para concluir o cadastro. Atualize o app na loja e tente novamente.' :
         'Erro ao criar conta. Tente novamente.';
-      Alert.alert('Atenção', msg);
+      // TASK-F06: `void` de propósito — o `finally` abaixo desliga o loading do
+      // botão e não pode esperar o tutor fechar o diálogo (o Alert nativo era
+      // fire-and-forget).
+      void alerta('Atenção', msg);
     } finally {
       setLoading(false);
     }

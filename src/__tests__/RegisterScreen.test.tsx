@@ -1,7 +1,7 @@
 import React from 'react';
-import { Alert } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
+import { KDialogProvider } from '../components/primitives/KDialog';
 
 import RegisterScreen from '../app/register';
 import { register } from '../services/auth.service';
@@ -37,7 +37,13 @@ jest.mock('../store/authStore', () => ({
   }),
 }));
 
-const W = ({ children }: any) => <ThemeProvider>{children}</ThemeProvider>;
+// TASK-F06: RegisterScreen deixou de chamar Alert.alert e passou a usar
+// `useDialog()`. Wrapper com o KDialogProvider REAL, na ordem da raiz.
+const W = ({ children }: any) => (
+  <ThemeProvider>
+    <KDialogProvider>{children}</KDialogProvider>
+  </ThemeProvider>
+);
 
 describe('RegisterScreen', () => {
   beforeEach(() => {
@@ -120,8 +126,7 @@ describe('RegisterScreen', () => {
       code: 'REGRA_DE_NEGOCIO',
       message: 'Versão do termo desatualizada. Versão vigente: v1.1. Recarregue o aplicativo e tente novamente.',
     });
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
-    const { getByLabelText, getByText } = render(<RegisterScreen />, { wrapper: W });
+    const { getByLabelText, getByText, getByTestId } = render(<RegisterScreen />, { wrapper: W });
     fireEvent.changeText(getByLabelText('Seu nome'),        'Guilherme Sola');
     fireEvent.changeText(getByLabelText('E-mail'),          'gui@kura.com');
     fireEvent.changeText(getByLabelText('Telefone'),        '11999990001');
@@ -129,11 +134,12 @@ describe('RegisterScreen', () => {
     fireEvent.changeText(getByLabelText('Confirmar senha'), 'senha1234');
     fireEvent.press(getByLabelText('Aceito receber lembretes de vacina e consulta (obrigatório)'));
     fireEvent.press(getByText('Criar conta'));
-    await waitFor(() => expect(alertSpy).toHaveBeenCalledWith(
-      'Atenção',
+    // Antes: toHaveBeenCalledWith('Atenção', <mensagem exata>). Agora as MESMAS
+    // duas strings são conferidas, só que lidas do diálogo renderizado.
+    await waitFor(() => expect(getByTestId('kdialog-titulo').props.children).toBe('Atenção'));
+    expect(getByTestId('kdialog-mensagem').props.children).toBe(
       'Uma nova versão do aplicativo é necessária para concluir o cadastro. Atualize o app na loja e tente novamente.'
-    ));
-    alertSpy.mockRestore();
+    );
   });
 
   it('mantém a mensagem genérica para outro 422 REGRA_DE_NEGOCIO sem relação com versão de termo', async () => {
@@ -145,8 +151,7 @@ describe('RegisterScreen', () => {
       code: 'REGRA_DE_NEGOCIO',
       message: 'Tutor não recebeu o aviso de privacidade. Entre em contato com a clínica.',
     });
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
-    const { getByLabelText, getByText } = render(<RegisterScreen />, { wrapper: W });
+    const { getByLabelText, getByText, getByTestId } = render(<RegisterScreen />, { wrapper: W });
     fireEvent.changeText(getByLabelText('Seu nome'),        'Guilherme Sola');
     fireEvent.changeText(getByLabelText('E-mail'),          'gui@kura.com');
     fireEvent.changeText(getByLabelText('Telefone'),        '11999990001');
@@ -154,8 +159,10 @@ describe('RegisterScreen', () => {
     fireEvent.changeText(getByLabelText('Confirmar senha'), 'senha1234');
     fireEvent.press(getByLabelText('Aceito receber lembretes de vacina e consulta (obrigatório)'));
     fireEvent.press(getByText('Criar conta'));
-    await waitFor(() => expect(alertSpy).toHaveBeenCalledWith('Atenção', 'Erro ao criar conta. Tente novamente.'));
-    alertSpy.mockRestore();
+    // Antes: toHaveBeenCalledWith('Atenção', 'Erro ao criar conta. Tente
+    // novamente.'). Agora as MESMAS duas strings, lidas do diálogo renderizado.
+    await waitFor(() => expect(getByTestId('kdialog-titulo').props.children).toBe('Atenção'));
+    expect(getByTestId('kdialog-mensagem').props.children).toBe('Erro ao criar conta. Tente novamente.');
   });
 
   it('renders LGPD footer', () => {

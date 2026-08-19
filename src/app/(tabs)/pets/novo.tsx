@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, Image, Linking, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, Image, Linking, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@theme/index';
 import { KButton } from '@components/primitives/KButton';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KChip }   from '@components/primitives/KChip';
+import { useDialog } from '@components/primitives/KDialog';
 import { useVoltar } from '../../../hooks/useVoltar';
 
 type Especie = 'Cão' | 'Gato' | 'Coelho' | 'Ave';
@@ -24,6 +25,7 @@ export default function AddPetScreen() {
   // pet"; sem isto o back() antigo não faria nada (ver useVoltar.ts) —
   // agora volta pra lista de pets.
   const voltar = useVoltar('/(tabs)/pets');
+  const { alerta, mostrar } = useDialog();
 
   const [fotoUri,   setFotoUri]   = useState<string | null>(null);
   const [nmPet,     setNmPet]     = useState('');
@@ -31,28 +33,47 @@ export default function AddPetScreen() {
   const [raca,      setRaca]      = useState('');
   const [sexo,      setSexo]      = useState<Sexo | null>(null);
 
-  const handlePickPhoto = () => {
-    Alert.alert('Foto do pet', 'Como deseja adicionar a foto?', [
-      {
-        text: 'Câmera',
-        onPress: async () => {
-          const perm = await ImagePicker.requestCameraPermissionsAsync();
-          if (!perm.granted) { Alert.alert('Permissão negada', '', [{ text: 'Abrir configurações', onPress: () => Linking.openSettings() }]); return; }
-          const res = await ImagePicker.launchCameraAsync({ quality: 0.7, allowsEditing: true, aspect: [1, 1] });
-          if (!res.canceled) setFotoUri(res.assets[0]?.uri ?? null);
-        },
-      },
-      {
-        text: 'Galeria',
-        onPress: async () => {
-          const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (!perm.granted) { Alert.alert('Permissão negada'); return; }
-          const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.7, allowsEditing: true, aspect: [1, 1] });
-          if (!res.canceled) setFotoUri(res.assets[0]?.uri ?? null);
-        },
-      },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
+  // TASK-F06: era um Alert nativo de 3 opções com um segundo Alert nativo de
+  // "Permissão negada" ANINHADO dentro de cada callback async. Com `await` os
+  // dois deixam de ser aninhados e o fluxo vira linear — mesmos textos, mesmos
+  // botões, mesma ordem.
+  const handlePickPhoto = async () => {
+    const escolha = await mostrar({
+      titulo:   'Foto do pet',
+      mensagem: 'Como deseja adicionar a foto?',
+      acoes: [
+        { label: 'Câmera',   value: 'camera'   },
+        { label: 'Galeria',  value: 'galeria'  },
+        { label: 'Cancelar', value: 'cancelar', style: 'cancel' },
+      ],
+    });
+    if (escolha !== 'camera' && escolha !== 'galeria') return;
+
+    if (escolha === 'camera') {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) {
+        // Forma degenerada original: título 'Permissão negada' com mensagem
+        // string VAZIA e um botão 'Abrir configurações'. Aqui `mensagem` é
+        // simplesmente OMITIDA e o KDialog não renderiza parágrafo nenhum
+        // (KDialog.tsx:161). Nenhum texto inventado.
+        const acao = await mostrar({
+          titulo: 'Permissão negada',
+          acoes: [{ label: 'Abrir configurações', value: 'abrir' }],
+        });
+        if (acao === 'abrir') Linking.openSettings();
+        return;
+      }
+      const res = await ImagePicker.launchCameraAsync({ quality: 0.7, allowsEditing: true, aspect: [1, 1] });
+      if (!res.canceled) setFotoUri(res.assets[0]?.uri ?? null);
+      return;
+    }
+
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    // Forma degenerada original: só o título 'Permissão negada', sem mensagem
+    // e sem botões. `alerta()` reproduz o OK implícito do nativo (ACOES_PADRAO).
+    if (!perm.granted) { await alerta('Permissão negada'); return; }
+    const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.7, allowsEditing: true, aspect: [1, 1] });
+    if (!res.canceled) setFotoUri(res.assets[0]?.uri ?? null);
   };
 
   // TASK-69: não existe endpoint de criação de pet neste ecossistema — o BFF Java
@@ -63,21 +84,27 @@ export default function AddPetScreen() {
   // o tutor a pedir o cadastro pela via que existe de fato hoje (falar com a
   // clínica). Sem chamada de API, não há nada que possa lançar — por isso não há
   // try/catch aqui: mantê-lo seria tratamento de erro para uma chamada fantasma.
-  const handleSubmit = () => {
-    if (!nmPet.trim()) { Alert.alert('Atenção', 'Digite o nome do pet.'); return; }
-    if (!especie)      { Alert.alert('Atenção', 'Selecione a espécie.'); return; }
-    if (!sexo)         { Alert.alert('Atenção', 'Selecione o sexo.'); return; }
+  const handleSubmit = async () => {
+    if (!nmPet.trim()) { await alerta('Atenção', 'Digite o nome do pet.'); return; }
+    if (!especie)      { await alerta('Atenção', 'Selecione a espécie.'); return; }
+    if (!sexo)         { await alerta('Atenção', 'Selecione o sexo.'); return; }
 
-    // TASK-F02: chamada dentro de callback de Alert — voltar() é seguro
-    // aqui porque lê canGoBack()/despacha no momento do toque, não no
-    // momento em que este handleSubmit foi criado (ver nota em
-    // useVoltar.ts sobre a migração futura da F06 pra componente de Alert
-    // próprio — não reescrever esta lógica de fallback, só o container).
-    Alert.alert(
-      'Solicite à sua clínica',
-      `Peça à clínica para cadastrar ${nmPet} no sistema.`,
-      [{ text: 'OK', onPress: () => voltar() }],
-    );
+    // TASK-F02: voltar() é seguro aqui porque lê canGoBack()/despacha no
+    // momento do toque, não no momento em que este handleSubmit foi criado
+    // (ver nota em useVoltar.ts). A F06 trocou o CONTAINER (Alert nativo
+    // → KDialog) e NÃO reescreveu esta lógica de fallback — voltar() continua
+    // sendo chamado no toque do OK, e só nele.
+    // Decisão I1 (ver task-F06-report.md): `mostrar()` em vez de `alerta()`,
+    // porque `alerta()` resolve TAMBÉM quando o diálogo é dispensado sem
+    // escolha (back-button do Android) — o que faria voltar() rodar num caso em
+    // que o Alert nativo não voltava. Comparar com 'OK' preserva o
+    // comportamento anterior.
+    const acao = await mostrar({
+      titulo:   'Solicite à sua clínica',
+      mensagem: `Peça à clínica para cadastrar ${nmPet} no sistema.`,
+      acoes:    [{ label: 'OK' }],
+    });
+    if (acao === 'OK') voltar();
   };
 
   return (
@@ -102,7 +129,7 @@ export default function AddPetScreen() {
         </Text>
 
         <Pressable
-          onPress={handlePickPhoto}
+          onPress={() => void handlePickPhoto()}
           style={[styles.photoArea, { borderColor: colors.borderStrong, borderRadius: radius.xl }]}
           accessibilityRole="button"
           accessibilityLabel="Adicionar foto do pet"
@@ -195,7 +222,7 @@ export default function AddPetScreen() {
         <KButton
           variant="primary"
           block
-          onPress={handleSubmit}
+          onPress={() => void handleSubmit()}
           style={styles.cta}
           iconRight={<KIcon name="arrowR" size={16} color={colors.textOnPrimary} style={{ marginLeft: 6 }} />}
         >

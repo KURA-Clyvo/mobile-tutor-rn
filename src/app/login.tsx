@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, Alert, Pressable } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -8,6 +8,7 @@ import { useTheme }    from '@theme/index';
 import { KButton }     from '@components/primitives/KButton';
 import { KTextField }  from '@components/primitives/KTextField';
 import { KIcon }       from '@components/primitives/KIcon';
+import { useDialog }   from '@components/primitives/KDialog';
 import { useAuthStore }  from '../store/authStore';
 import { login }         from '../services/auth.service';
 import { loginSchema, type LoginFormData } from '../utils/validators';
@@ -17,6 +18,7 @@ export default function LoginScreen() {
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
   const setSession = useAuthStore(s => s.setSession);
+  const { alerta } = useDialog();
   const [loading, setLoading] = useState(false);
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
@@ -34,7 +36,10 @@ export default function LoginScreen() {
       const msg = err?.status === 401
         ? 'E-mail ou senha incorretos'
         : 'Erro de conexão. Verifique sua internet.';
-      Alert.alert('Atenção', msg);
+      // TASK-F06: `void` de propósito — o `finally` abaixo desliga o loading do
+      // botão e não pode esperar o tutor fechar o diálogo (o Alert nativo era
+      // fire-and-forget).
+      void alerta('Atenção', msg);
     } finally {
       setLoading(false);
     }
@@ -104,7 +109,7 @@ export default function LoginScreen() {
             accessibilityLabel="Esqueci minha senha"
             hitSlop={8}
             style={{ alignSelf: 'flex-end', marginBottom: 20, minHeight: 44, justifyContent: 'center' }}
-            onPress={() => Alert.alert(
+            onPress={() => void alerta(
               'Recuperar senha',
               'Entre em contato com a clínica para redefinir sua senha de acesso.',
             )}
