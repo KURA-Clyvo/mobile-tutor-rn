@@ -119,6 +119,13 @@ describe('KDialog — padrão 3: callback no OK roda DEPOIS do fechamento', () =
     // `onPress` cru, o commit ainda não aconteceu quando o handler retorna:
     // se `resolver()` fosse chamado ali, o `.then` rodaria com o cartão ainda
     // montado e esta asserção falharia.
+    //
+    // 🔴 Para reproduzir a mordida, a mutação tem que ir em `onFechar`, FORA do
+    // updater de `setFila`. A mesma mutação escrita DENTRO do updater é inócua e
+    // o teste passa — o que faz uma reprodução ingênua concluir errado que a
+    // garantia sumiu (aconteceu com o revisor do G2 da F06, achado M-R2).
+    // E não troque este `onPress` cru por `fireEvent.press`: isso reintroduz o
+    // `act` e apaga a garantia em silêncio.
     const onPressCru = tela
       .UNSAFE_getAllByProps({ testID: 'kdialog-acao-OK' })
       .map(n => n.props.onPress)

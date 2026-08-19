@@ -19,9 +19,10 @@ import { KButton } from './KButton';
 // F06 em reescrita de handler, não em troca de container. Com `await` o corpo do
 // handler continua linear e o `if (!x) { ...; return; }` sobrevive intacto.
 //
-// 🔴 O provider NÃO é montado nesta task: montar `KDialogProvider` na raiz toca
-// `src/app/_layout.tsx`, que está fora do escopo (F05 entrega o componente, F06
-// migra as telas). Ver task-F05-report.md.
+// Onde o provider é montado: `src/app/_layout.tsx` (TASK-F06). A F05 entregou o
+// componente sem montar nada — montar tocaria a raiz, que era escopo da F06.
+// Esta nota já disse "o provider NÃO é montado"; ficou desatualizada no momento
+// em que a F06 montou, e foi corrigida no fechamento dela (achado M-R3 do G2).
 
 export type KDialogActionStyle = 'default' | 'cancel' | 'destructive';
 
