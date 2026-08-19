@@ -20,6 +20,23 @@
 // "sentinela" ao fim de cada regra PROVAM isso de forma versionada — código
 // sintético com a chamada só em comentário tem que dar 0 violação, e o mesmo
 // código com a chamada de verdade tem que dar 1.
+//
+// 🔴 LIMITES DECLARADOS DE COBERTURA — o que este gate NÃO pega
+// Levantados pelo G2 (task-F09-review.md). Nenhum é falso-verde no caminho de
+// regressão realista: todos exigem escrever contra a convenção do repo de forma
+// deliberada. Estão aqui porque cobertura não declarada é a forma como um gate
+// vira enfeite sem ninguém perceber — e porque, na entrega original, o limite da
+// regra 2 estava declarado e os das regras 3 e 4 não (assimetria apontada pelo
+// revisor como Minor-2/Minor-3).
+//   Regra 2 — não detecta `require('react-native').SafeAreaView` nem
+//             `import * as RN from 'react-native'` + `RN.SafeAreaView`.
+//   Regra 3 — não detecta `RN.Alert.alert(...)`, `const { alert } = Alert` nem
+//             `(Alert as any)?.alert(...)`. A forma `Alert?.alert('x')` É pega.
+//   Regra 4 — não detecta receptor renomeado: `const r = useRouter(); r.back()`.
+//   Regra 5 — prova a PRESENÇA do `_layout.tsx`, nunca o seu conteúdo. Um
+//             `_layout.tsx` vazio ou sem `<Stack>` passa.
+// Ao ampliar qualquer regra, amplie também o teste sentinela correspondente —
+// senão a ampliação não tem prova de que morde.
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
