@@ -1,3 +1,14 @@
+// TASK-F04: 🔴 ESTE IMPORT TEM QUE SER O PRIMEIRO DO ARQUIVO, antes do
+// `expo-notifications` logo abaixo. Os 2 avisos de push do Expo Go são emitidos
+// na AVALIAÇÃO daquele módulo, e imports são avaliados na ordem em que aparecem —
+// então o filtro só os alcança se for instalado antes. Não reordene.
+//
+// Medido: a primeira tentativa pôs este import no topo de `_layout.tsx` e PERDEU
+// a corrida (a linha própria saiu 21 ms DEPOIS dos dois avisos, logcat em
+// `g4c/f04-logcat-coldstart-DEPOIS.txt`) — o expo-router avalia outros módulos
+// antes do layout raiz. Aqui, no único arquivo do app que importa
+// `expo-notifications`, a ordem é garantida por construção, não por sorte.
+import '../utils/silenciarAvisosPushExpoGo.fx';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { apiClient } from './api/client';
