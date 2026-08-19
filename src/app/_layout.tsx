@@ -1,3 +1,9 @@
+// TASK-F04: 🔴 ORDEM LOAD-BEARING — este import PRECISA vir antes de qualquer
+// coisa que puxe `expo-notifications` (hoje: `services/notifications.service`,
+// mais abaixo). Os 2 avisos de push do Expo Go são emitidos na AVALIAÇÃO daquele
+// módulo, então um filtro instalado depois chega tarde. Não reordene.
+import '../utils/silenciarAvisosPushExpoGo.fx';
+
 import { useFonts, Cormorant_500Medium } from '@expo-google-fonts/cormorant';
 import { Lexend_400Regular, Lexend_500Medium } from '@expo-google-fonts/lexend';
 import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
