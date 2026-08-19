@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, Pressable } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -55,7 +55,12 @@ export default function LoginScreen() {
       <View style={[styles.orbTR, { backgroundColor: c.amber, opacity: 0.15 }]} />
       <View style={[styles.orbBL, { backgroundColor: c.primary, opacity: 0.12 }]} />
 
-      <View style={[styles.inner, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 32 }]}>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={[styles.inner, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 32 }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={[styles.logo, { fontFamily: theme.fonts.display, color: c.primary }]}>Kura.</Text>
           <Text style={[styles.kicker, { fontFamily: theme.fonts.bodyMedium, color: c.primary, fontSize: theme.fontSize.sm }]}>
@@ -152,14 +157,14 @@ export default function LoginScreen() {
             Clyvo Vet
           </Text>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   flex:   { flex: 1 },
-  inner:  { flex: 1, paddingHorizontal: 32, paddingTop: 64, paddingBottom: 32, justifyContent: 'space-between' },
+  inner:  { flexGrow: 1, paddingHorizontal: 32, paddingTop: 64, paddingBottom: 32, justifyContent: 'space-between' },
   header: { gap: 12 },
   logo:   { fontSize: 36, lineHeight: 40 },
   kicker: { letterSpacing: 0.2 },
