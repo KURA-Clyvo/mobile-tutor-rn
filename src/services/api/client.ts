@@ -1,8 +1,8 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
 import { resolveMock } from './mock-adapter';
 import { normalizeError } from './errors';
+import { useAuthStore } from '../../store/authStore';
 
 export const apiClient = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
@@ -21,7 +21,17 @@ function attachInterceptors(client: typeof apiClient) {
     if (process.env.EXPO_PUBLIC_USE_MOCKS === 'true') {
       return Promise.reject({ __mock: true, config });
     }
-    const token = await AsyncStorage.getItem('KURA_TUTOR_AUTH_TOKEN');
+    // O token sai do store — NUNCA de uma leitura crua do AsyncStorage. A versão
+    // anterior fazia `AsyncStorage.getItem('KURA_TUTOR_AUTH_TOKEN')`, a MESMA chave que
+    // o `persist` do Zustand usa como `name` em `store/authStore.ts`. O que está gravado
+    // ali não é o JWT: é o envelope do store inteiro (`{"state":{"token":...},"version":0}`),
+    // então todo request autenticado saía com `Bearer {"state":...}` — e, como o envelope
+    // existe mesmo deslogado, o header saía até sem sessão. `EXPO_PUBLIC_USE_MOCKS=true`
+    // (o default do `.env`) rejeita ACIMA desta linha, então nada no projeto jamais
+    // executou este caminho — por isso a colisão sobreviveu sem sintoma visível.
+    //
+    // Ler do store também elimina o `await` que existia aqui só por causa do AsyncStorage.
+    const token = useAuthStore.getState().token;
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   });
@@ -30,7 +40,15 @@ function attachInterceptors(client: typeof apiClient) {
     async (error) => {
       if (error?.__mock) return resolveMock(error.config);
       if (error?.response?.status === 401) {
-        await AsyncStorage.removeItem('KURA_TUTOR_AUTH_TOKEN');
+        // `clearSession()` em vez do antigo `AsyncStorage.removeItem('KURA_TUTOR_AUTH_TOKEN')`,
+        // que era a mesma colisão de chave do interceptor de request acima: aquela chave é o
+        // envelope do `persist` INTEIRO, então o removeItem (a) não derrubava a sessão em
+        // memória — só o disco, deixando o app "logado" até o próximo boot — e (b) levava
+        // junto `themeOverride`, que não tem nada com autenticação. `clearSession()` zera
+        // exatamente os 3 campos de sessão e deixa o `persist` regravar o resto.
+        useAuthStore.getState().clearSession();
+        // O evento continua: é o que faz `app/_layout.tsx` limpar a cache do react-query
+        // (dados de OUTRO tutor não podem sobreviver a uma troca de sessão).
         DeviceEventEmitter.emit('auth:logout');
       }
       return Promise.reject(normalizeError(error));
