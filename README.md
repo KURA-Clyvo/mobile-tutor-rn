@@ -45,7 +45,12 @@ Sem drawer — drawer é exclusivo do app clínica (Parte A).
 2. Cadastro de pet pode não ter endpoint POST /tutor/pets (Felipe #4)
 3. Auth scheme da Luna a confirmar — JWT ou API key (Felipe #3)
 4. GET /tutor/notificacoes pode não estar exposto ainda (Felipe #7)
-5. Push notifications requerem EAS Build em iOS (não funciona no Expo Go desde SDK 53)
+5. Push notifications requerem EAS Build em iOS (não funciona no Expo Go desde SDK 53).
+   **Pendente:** `app.json` ainda não tem `extra.eas.projectId`, e sem essa chave
+   `Notifications.getExpoPushTokenAsync()` lança `ERR_NOTIFICATIONS_NO_EXPERIENCE_ID` —
+   nenhum build registra push, nem dev nem loja. Rode `eas init` na raiz (grava a chave
+   sozinho) ou copie o ID do projeto em expo.dev. Enquanto faltar, `getDeviceToken()`
+   devolve `null` e reporta o que fazer no console (antes falhava em silêncio).
 6. Teleconsulta (TASK-11): o botão "Entrar na teleconsulta" (exibido quando
    `sgTipoConsulta === 'TELEORIENTACAO'` e `dsSalaUrl` já foi criada pela clínica) abre a sala
    do Daily.co no navegador do aparelho (`Linking.openURL`), não em SDK nativo embutido — mesma

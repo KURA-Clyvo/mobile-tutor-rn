@@ -56,11 +56,39 @@ export async function getPermissionStatus(): Promise<boolean> {
   return status === 'granted';
 }
 
+/**
+ * Erro que o expo-notifications lança quando não acha o `projectId` em canto nenhum
+ * (`getExpoPushTokenAsync.js:49-53`: options -> `Constants.easConfig` ->
+ * `Constants.expoConfig.extra.eas.projectId`).
+ */
+const SEM_PROJECT_ID = 'ERR_NOTIFICATIONS_NO_EXPERIENCE_ID';
+
+/**
+ * Não passamos `projectId` explícito: o próprio SDK já o resolve a partir de
+ * `extra.eas.projectId` do app config, que é a MESMA fonte que qualquer valor que
+ * passássemos aqui teria. O que faltava não era o argumento — era o `extra.eas` no
+ * `app.json`, que este repo nunca teve.
+ *
+ * O `catch` era cego (`catch { return null }`) e é por isso que ninguém percebeu:
+ * `usePushTokenSync` roda em todo boot, recebia `null` e desistia sem rastro. Falha de
+ * rede é transitória e a doc do próprio SDK manda tolerá-la em silêncio; config faltando
+ * NÃO é transitória — some com o push em todo build e só some do caminho com intervenção
+ * humana, então tem que gritar.
+ *
+ * LGPD: nada aqui imprime o valor do token, nem no caminho de erro.
+ */
 export async function getDeviceToken(): Promise<string | null> {
   try {
     const token = await Notifications.getExpoPushTokenAsync();
     return token.data;
-  } catch {
+  } catch (err) {
+    if ((err as { code?: string })?.code === SEM_PROJECT_ID) {
+      console.error(
+        '[Push] push desabilitado: falta `extra.eas.projectId` no app.json. ' +
+          'Rode `eas init` na raiz do projeto (grava a chave sozinho) ou copie o ID do ' +
+          'projeto em expo.dev. Sem isso, nenhum build registra push — nem dev, nem loja.',
+      );
+    }
     return null;
   }
 }
