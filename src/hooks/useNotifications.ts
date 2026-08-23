@@ -1,36 +1,45 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
+import { useNotificacoesLidasStore } from '../store/notificacoesLidasStore';
+import type { NotificacaoTutorResponse } from '../types/api';
 import {
   getNotificacoes, marcarLida, marcarTodasLidas,
   getPermissionStatus, getDeviceToken, registerDeviceToken,
 } from '../services/notifications.service';
 
 export function useNotifications() {
-  return useQuery({
+  const lidas = useNotificacoesLidasStore(s => s.lidas);
+  const query = useQuery({
     queryKey: ['notificacoes'],
     queryFn:  getNotificacoes,
     staleTime: 15_000,
   });
+
+  // A cache guarda a verdade do servidor; a leitura local é sobreposta na hora de ler.
+  // É o que faz "lida" sobreviver a um refetch de QUALQUER origem — antes o estado morava
+  // dentro da própria cache, então todo GET novo o apagava (o servidor sempre responde
+  // `flLida: false`, porque não existe endpoint que registre a leitura).
+  const data = useMemo(
+    () => query.data?.map(n => (!n.flLida && lidas.includes(n.id) ? { ...n, flLida: true } : n)),
+    [query.data, lidas],
+  );
+
+  return { ...query, data };
 }
 
+// `mutationFn` continua sendo a função do service (hoje um no-op que só resolve) em vez
+// de escrever direto no store: é a costura por onde entra o PATCH real no dia em que o
+// backend expuser um — aí só o service muda, e o `onSuccess` já está no lugar certo.
+// O `invalidateQueries` que existia no `onSettled` saiu de propósito: sem escrita no
+// servidor ele não tinha o que buscar de novo, e o refetch que ele disparava era
+// exatamente o que desfazia a leitura que a mutação acabara de registrar.
 export function useMarcarLida() {
-  const qc = useQueryClient();
+  const marcar = useNotificacoesLidasStore(s => s.marcar);
   return useMutation({
     mutationFn: marcarLida,
     retry: 0,
-    onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['notificacoes'] });
-      const prev = qc.getQueryData<import('../types/api').NotificacaoTutorResponse[]>(['notificacoes']);
-      qc.setQueryData<import('../types/api').NotificacaoTutorResponse[]>(['notificacoes'], old =>
-        old?.map(n => n.id === id ? { ...n, flLida: true } : n) ?? []
-      );
-      return { prev };
-    },
-    onError: (_err, _id, ctx) => {
-      if (ctx?.prev) qc.setQueryData(['notificacoes'], ctx.prev);
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['notificacoes'] }),
+    onSuccess: (_res, id) => marcar(id),
   });
 }
 
@@ -73,20 +82,16 @@ export function usePushTokenSync() {
 
 export function useMarcarTodasLidas() {
   const qc = useQueryClient();
+  const marcarVarias = useNotificacoesLidasStore(s => s.marcarVarias);
   return useMutation({
     mutationFn: marcarTodasLidas,
     retry: 0,
-    onMutate: async () => {
-      await qc.cancelQueries({ queryKey: ['notificacoes'] });
-      const prev = qc.getQueryData<import('../types/api').NotificacaoTutorResponse[]>(['notificacoes']);
-      qc.setQueryData<import('../types/api').NotificacaoTutorResponse[]>(['notificacoes'], old =>
-        old?.map(n => ({ ...n, flLida: true })) ?? []
-      );
-      return { prev };
+    // Os ids saem da cache (a verdade do servidor), não da lista já mesclada: o que
+    // interessa é o conjunto completo do que existe, e marcar de novo algo já lido é
+    // no-op no store.
+    onSuccess: () => {
+      const doServidor = qc.getQueryData<NotificacaoTutorResponse[]>(['notificacoes']) ?? [];
+      marcarVarias(doServidor.map(n => n.id));
     },
-    onError: (_err, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(['notificacoes'], ctx.prev);
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['notificacoes'] }),
   });
 }

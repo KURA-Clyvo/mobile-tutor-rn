@@ -27,8 +27,14 @@ export const getNotificacoes = () =>
 
 // TASK-31: decisão travada — sem PATCH marcar-lida no backend (NOTIFICACAO é
 // .NET owned; Java nunca escreve nela). "Lida" vira estado local, só na sessão
-// do app (o hook já faz update otimista da cache do react-query) — nenhuma
-// chamada de rede é feita aqui de propósito.
+// do app — nenhuma chamada de rede é feita aqui de propósito.
+//
+// Onde o estado mora: `store/notificacoesLidasStore.ts`, e NÃO na cache do react-query.
+// A versão anterior deste comentário dizia "o hook já faz update otimista da cache", que
+// era o mecanismo de fato implementado e não funcionava: a cache é um espelho do servidor,
+// e o servidor sempre responde `flLida: false` (ele nunca soube da leitura), então
+// qualquer refetch descartava a marcação — inclusive o que a própria mutação disparava
+// no `onSettled`. Ver `src/__tests__/notificacoes-lidas.test.tsx`.
 export const marcarLida = async (id: number): Promise<MarcarLidaResponse> =>
   Promise.resolve({ id, flLida: true });
 
