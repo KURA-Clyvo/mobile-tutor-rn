@@ -16,9 +16,11 @@ App mobile para tutores de pets — FIAP Challenge 2026 · Clyvo Vet.
 | Variável | Descrição |
 |---|---|
 | EXPO_PUBLIC_API_BASE_URL | Java Spring Boot backend |
-| EXPO_PUBLIC_LUNA_BASE_URL | Python Luna service |
 | EXPO_PUBLIC_USE_MOCKS | `true` para usar mocks locais |
-| EXPO_PUBLIC_LUNA_API_KEY | API key da Luna (pendente Felipe) |
+
+As duas variáveis da Luna (`EXPO_PUBLIC_LUNA_BASE_URL`, `EXPO_PUBLIC_LUNA_API_KEY`) saíram
+junto com o `lunaClient`: o serviço não tem integração neste app e nada as lia. Voltam com
+a integração — ver "Limitações v1" abaixo.
 
 ## Scripts
 - `npm run start` — Expo dev server
@@ -43,7 +45,9 @@ Sem drawer — drawer é exclusivo do app clínica (Parte A).
 ## Limitações v1
 1. Slots de agenda mockados — pendente endpoint GET /tutor/agenda/disponivel (Felipe #1)
 2. Cadastro de pet pode não ter endpoint POST /tutor/pets (Felipe #4)
-3. Auth scheme da Luna a confirmar — JWT ou API key (Felipe #3)
+3. Luna não integrada — nenhuma tela consome o serviço. O `lunaClient` e as env vars
+   existiam sem consumidor e foram removidos; auth scheme (JWT ou API key) segue a
+   confirmar quando a integração entrar (Felipe #3)
 4. GET /tutor/notificacoes pode não estar exposto ainda (Felipe #7)
 5. Push notifications requerem EAS Build em iOS (não funciona no Expo Go desde SDK 53).
    **Pendente:** `app.json` ainda não tem `extra.eas.projectId`, e sem essa chave

@@ -59,7 +59,6 @@ function SplashContent() {
 function RootLayoutInner() {
   const router = useRouter();
   const { isDark } = useTheme();
-  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
 
   useEffect(() => {
     const handleUrl = (url: string) => {
@@ -87,8 +86,6 @@ function RootLayoutInner() {
   // TASK-70: registra o push token no servidor quando há sessão de tutor
   // autenticada e a permissão do dispositivo já está concedida.
   usePushTokenSync();
-
-  void isAuthenticated;
 
   return (
     <>

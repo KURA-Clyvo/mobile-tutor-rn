@@ -81,5 +81,5 @@ export const fonts = {
   bodyMedium: 'Lexend_500Medium',
   mono:       'JetBrainsMono_400Regular',
 } as const;
-export type ColorTokens = { [K in keyof typeof lightColors]: string };
+type ColorTokens = { [K in keyof typeof lightColors]: string };
 export type Theme = { colors: ColorTokens; spacing: typeof spacing; radius: typeof radius; fontSize: typeof fontSize; fonts: typeof fonts; isDark: boolean };

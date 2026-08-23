@@ -34,11 +34,6 @@ const ROUTES: [RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>][] = 
   // padrão `\d+$` garante que só DELETE .../agendamentos/{id} casa aqui, nunca
   // .../agendamentos puro.
   [/\/tutor\/agendamentos\/\d+$/,           (c) => agendaMock.cancelar(c)],
-  // Rota de DELETE por id — nunca chamada pelo app (revogação é insert-only via
-  // POST, ver TASK-31/consentimentos.service.ts). Mantida como já estava antes desta
-  // task: o DELETE do Java é stub 501 e este handler é código morto no caminho real,
-  // fora do escopo da TASK-73 (achado lateral reportado, não corrigido).
-  [/\/tutor\/consentimentos\/\d+$/,          () => Promise.resolve({ id: 1, sgStatus: 'REVOGADO', dtRevogacao: new Date().toISOString() })],
   // TASK-73 (FIX_7): shape cru do Java (ConsentimentoResponse) — antes devolvia
   // {id, sgStatus, dtConsentimento, dsIdempotencyKey}, que não existe no Java real
   // nem no tipo ConsentimentoResponse atual. `assinar()`/`revogar()` batem no MESMO

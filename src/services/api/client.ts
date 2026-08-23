@@ -10,12 +10,6 @@ export const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-export const lunaClient = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_LUNA_BASE_URL,
-  timeout: 20_000, // Luna AI is slower
-  headers: { 'Content-Type': 'application/json' },
-});
-
 function attachInterceptors(client: typeof apiClient) {
   client.interceptors.request.use(async (config) => {
     if (process.env.EXPO_PUBLIC_USE_MOCKS === 'true') {
@@ -57,4 +51,10 @@ function attachInterceptors(client: typeof apiClient) {
 }
 
 attachInterceptors(apiClient);
-attachInterceptors(lunaClient);
+
+// `lunaClient` (segundo axios instance, apontando para EXPO_PUBLIC_LUNA_BASE_URL) foi
+// removido aqui: era criado, ganhava interceptors e NUNCA era chamado por ninguém — o
+// serviço Luna não tem integração neste app (ver "Limitações v1" no README). Se ela
+// entrar, o instance volta em 6 linhas; até lá era superfície de config viva sem uso.
+// `discover-network-consumers.ts` continua listando 'lunaClient' entre os nomes
+// canônicos de rede de propósito: é guarda, e se o cliente voltar já nasce detectado.

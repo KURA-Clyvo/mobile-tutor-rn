@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, Pressable, Linking, StyleSheet } from 'react-native';
 import { useTheme } from '@theme/index';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';

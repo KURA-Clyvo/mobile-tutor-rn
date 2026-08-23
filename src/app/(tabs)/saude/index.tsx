@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
