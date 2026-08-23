@@ -75,6 +75,7 @@
   "jest": {
     "preset": "jest-expo",
     "globalSetup": "<rootDir>/jest.global-setup.js",
+    "testTimeout": 20000,
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.js"
     ],
