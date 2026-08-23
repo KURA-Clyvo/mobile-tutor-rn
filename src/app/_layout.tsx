@@ -17,7 +17,13 @@ import { parseInviteLink } from '../utils/invite';
 import { setupHandlers } from '../services/notifications.service';
 import { usePushTokenSync } from '../hooks/useNotifications';
 
-SplashScreen.preventAutoHideAsync();
+// `.catch` obrigatorio: sem ele isto e uma promise flutuante — se o splash nao puder
+// ser segurado (o caso normal e o modulo ja ter escondido antes desta linha rodar), o
+// erro vira unhandled rejection em vez de um aviso. Nao ha o que fazer alem de anotar:
+// o app segue funcionando, so sem o splash controlado.
+SplashScreen.preventAutoHideAsync().catch(() => {
+  console.warn('[Splash] preventAutoHideAsync falhou — splash pode piscar no boot.');
+});
 
 function SplashContent() {
   const { colors, fonts, isDark } = useTheme();

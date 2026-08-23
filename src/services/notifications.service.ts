@@ -121,7 +121,7 @@ export async function registerDeviceToken(token: string): Promise<boolean> {
 
 export function setupHandlers(qc: QueryClient, router: Router): () => void {
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({ shouldShowAlert: true, shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: true }),
+    handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: true }),
   });
 
   const fgSub = Notifications.addNotificationReceivedListener(notification => {

@@ -14,10 +14,15 @@ import { isRunningInExpoGo } from 'expo';
 // Consequência prática: não existe "pular a chamada de getExpoPushTokenAsync" que
 // resolva. Quem importa `expo-notifications` já pagou os dois avisos.
 //
-// 🔴 POR ISSO A ORDEM DO IMPORT EM `_layout.tsx` É LOAD-BEARING: este módulo tem
-// que ser avaliado ANTES de `services/notifications.service`, que é quem puxa
-// `expo-notifications`. Se alguém reordenar os imports (ou um formatador o fizer),
-// o filtro passa a ser instalado tarde demais e os avisos voltam — em silêncio.
+// 🔴 POR ISSO A ORDEM DO IMPORT É LOAD-BEARING: este módulo tem que ser avaliado
+// ANTES de `expo-notifications`. O import vive no TOPO de
+// `services/notifications.service.ts` — o único arquivo do app que puxa
+// `expo-notifications` —, e não em `_layout.tsx` como uma versão anterior deste
+// comentário dizia: lá a ordem dependia do expo-router e a corrida foi PERDIDA por
+// 21 ms (medido, logcat em `g4c/f04-logcat-coldstart-DEPOIS.txt`); aqui ela é
+// garantida por construção. Se alguém reordenar os imports daquele arquivo (ou um
+// formatador o fizer), o filtro passa a ser instalado tarde demais e os avisos
+// voltam — em silêncio.
 //
 // POR QUE FILTRAR NO `console` E NÃO NO LogBox: o LogBox é alimentado PELO
 // `console.error` (stack medido: console.level → reactConsoleErrorHandler →

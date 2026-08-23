@@ -15,7 +15,10 @@ module.exports = function(api) {
           '@mocks': './src/mocks',
         },
       }],
-      'react-native-reanimated/plugin', // MUST BE LAST
+      // Reanimated 4: o plugin real mora em react-native-worklets. O antigo
+      // 'react-native-reanimated/plugin' e um shim de 3 linhas que so faz
+      // require('react-native-worklets/plugin'). TEM QUE SER O ULTIMO.
+      'react-native-worklets/plugin',
     ],
   };
 };
