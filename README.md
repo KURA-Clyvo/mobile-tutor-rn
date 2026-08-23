@@ -27,6 +27,14 @@ App mobile para tutores de pets — FIAP Challenge 2026 · Clyvo Vet.
 - `npm run test:coverage` — Cobertura (≥ 60%)
 - `npm run lint` — ESLint (0 warnings)
 - `npm run type-check` — tsc --noEmit (0 erros)
+- `npm run check:colors` / `npm run check:no-ocean` — trava a paleta do app tutor (nenhum
+  hex fora dos tokens; nenhum token `--ocean`, que é contexto clínica)
+- `bash scripts/f09-mutation-proof.sh` — prova de mutação do gate de arquitetura: aplica
+  as 5 regressões que `src/__tests__/arquitetura-gate.test.ts` cobre e verifica que cada
+  uma o derruba. Exige working tree limpa; reverte tudo no fim.
+- `python3 scripts/gerar-assets-de-marca.py` — regera os PNGs de `assets/` (ícone, splash,
+  adaptive, favicon) a partir da logomark de `Design KURA/` e dos tokens de
+  `src/theme/tokens.ts`. Requer Pillow. Rodar quando um token de cor mudar.
 
 ## Navegação
 Bottom Tab Bar (4 abas: Pets · Agenda · Saúde · Perfil).
