@@ -28,7 +28,7 @@ export default function MeusPetsScreen() {
   const primeiroNome    = tutor?.nmTutor.split(' ')[0] ?? 'Tutor';
 
   const renderItem = useCallback(({ item }: { item: PetDomain }) => (
-    <PetListCard pet={item} onPress={() => router.push(`/(tabs)/pets/${item.id}` as any)} />
+    <PetListCard pet={item} onPress={() => router.push(`/(tabs)/pets/${item.id}`)} />
   ), [router]);
 
   return (
@@ -39,7 +39,7 @@ export default function MeusPetsScreen() {
           <Text style={{ fontFamily: fonts.display, color: colors.primary, fontSize: 24 }}>Kura.</Text>
         </View>
         <Pressable
-          onPress={() => router.push('/notificacoes' as any)}
+          onPress={() => router.push('/notificacoes')}
           style={[styles.bellBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
           accessibilityLabel="Notificações"
           accessibilityRole="button"
@@ -81,13 +81,13 @@ export default function MeusPetsScreen() {
                 key={p.id}
                 title={`${p.nome} · atenção necessária`}
                 subtitle={`${p.alertasAtivos} alerta${p.alertasAtivos > 1 ? 's' : ''} ativo${p.alertasAtivos > 1 ? 's' : ''}`}
-                onPress={() => router.push(`/(tabs)/pets/${p.id}` as any)}
+                onPress={() => router.push(`/(tabs)/pets/${p.id}`)}
               />
             ))}
           </>
         }
         ListFooterComponent={
-          <KButton variant="ghost" block onPress={() => router.push('/(tabs)/pets/novo' as any)} style={{ marginTop: 4 }}>
+          <KButton variant="ghost" block onPress={() => router.push('/(tabs)/pets/novo')} style={{ marginTop: 4 }}>
             + Adicionar pet
           </KButton>
         }
@@ -97,7 +97,7 @@ export default function MeusPetsScreen() {
             <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.sm, textAlign: 'center' }}>
               Nenhum pet cadastrado ainda.
             </Text>
-            <KButton variant="primary" onPress={() => router.push('/(tabs)/pets/novo' as any)}>
+            <KButton variant="primary" onPress={() => router.push('/(tabs)/pets/novo')}>
               Adicionar pet
             </KButton>
           </View>

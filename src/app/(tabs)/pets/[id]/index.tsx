@@ -141,7 +141,7 @@ export default function PetDetailScreen() {
 
       {/* FAB Agendar */}
       <Pressable
-        onPress={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(petId) } } as any)}
+        onPress={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(petId) } })}
         style={[styles.fab, { backgroundColor: colors.primary }]}
         accessibilityRole="button"
         accessibilityLabel="Agendar consulta"

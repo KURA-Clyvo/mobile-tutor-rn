@@ -69,7 +69,7 @@ function RootLayoutInner() {
   useEffect(() => {
     const handleUrl = (url: string) => {
       const parsed = parseInviteLink(url);
-      if (parsed) router.push({ pathname: '/register', params: { token: parsed.inviteToken, clinicaId: String(parsed.clinicaId) } } as any);
+      if (parsed) router.push({ pathname: '/register', params: { token: parsed.inviteToken, clinicaId: String(parsed.clinicaId) } });
     };
     Linking.getInitialURL().then(url => { if (url) handleUrl(url); });
     const sub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
@@ -85,7 +85,7 @@ function RootLayoutInner() {
   }, []);
 
   useEffect(() => {
-    const cleanup = setupHandlers(queryClient, router as any);
+    const cleanup = setupHandlers(queryClient, router);
     return cleanup;
   }, [router]);
 

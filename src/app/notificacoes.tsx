@@ -35,8 +35,8 @@ export default function NotificacoesScreen() {
 
   const handleTap = (n: NotificacaoTutorResponse) => {
     if (!n.flLida) marcarLida(n.id);
-    if (n.idPet)              router.push(`/(tabs)/pets/${n.idPet}` as any);
-    else if (n.idAgendamento) router.push('/(tabs)/agenda' as any);
+    if (n.idPet)              router.push(`/(tabs)/pets/${n.idPet}`);
+    else if (n.idAgendamento) router.push('/(tabs)/agenda');
   };
 
   return (

@@ -48,7 +48,7 @@ export default function AgendaScreen() {
         <KButton
           variant="primary"
           size="sm"
-          onPress={() => router.push('/(tabs)/agenda/novo' as any)}
+          onPress={() => router.push('/(tabs)/agenda/novo')}
           iconLeft={<KIcon name="plus" size={14} color={colors.textOnPrimary} style={{ marginRight: 4 }} />}
         >
           Solicitar

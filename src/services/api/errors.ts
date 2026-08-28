@@ -11,9 +11,22 @@ import type { ApiError } from '../../types/api';
 // `message` de verdade. Fallback pros nomes em inglês mantido por segurança, caso
 // algum outro backend consumido pelo app (ou algo que já dependa do formato antigo)
 // use essa convenção.
+/**
+ * Shape minimo que este normalizador le de um erro do axios. Declarado em vez de
+ * `(error as any).response`: o `any` desligava a checagem justamente nos 4 acessos que
+ * decidem o resultado, que e onde o bug dos nomes PT-BR/EN acima morou por 2 ciclos.
+ */
+type ErroComResposta = {
+  response?: {
+    status?: number;
+    data?: { codigo?: string; mensagem?: string; detalhes?: Record<string, string[]>;
+             code?: string;   message?: string;  details?: Record<string, string[]> };
+  };
+};
+
 export function normalizeError(error: unknown): ApiError {
   if (typeof error === 'object' && error !== null && 'response' in error) {
-    const res  = (error as any).response;
+    const res  = (error as ErroComResposta).response;
     const data = res?.data ?? {};
     return {
       status:  res?.status ?? 500,

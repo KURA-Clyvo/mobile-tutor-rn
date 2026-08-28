@@ -85,7 +85,7 @@ export default function SaudeScreen() {
                 key={p.id}
                 title={`${p.nome} · ${p.alertasAtivos} alerta${p.alertasAtivos > 1 ? 's' : ''}`}
                 subtitle={`Status: ${p.statusGeral} · ${p.nmClinica}`}
-                onPress={() => router.push(`/(tabs)/pets/${p.id}` as any)}
+                onPress={() => router.push(`/(tabs)/pets/${p.id}`)}
               />
             ))}
           </View>
@@ -112,7 +112,7 @@ export default function SaudeScreen() {
                 key={`${pet.id}-${vacina.id}`}
                 vacina={vacina}
                 compact
-                onAgendar={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(pet.id), tipo: 'RETORNO' } } as any)}
+                onAgendar={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(pet.id), tipo: 'RETORNO' } })}
               />
             ))}
           </View>

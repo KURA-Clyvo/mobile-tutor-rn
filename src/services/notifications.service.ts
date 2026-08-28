@@ -135,9 +135,9 @@ export function setupHandlers(qc: QueryClient, router: Router): () => void {
   const tapSub = Notifications.addNotificationResponseReceivedListener(response => {
     const idPet = response.notification.request.content.data?.idPet;
     const idAgendamento = response.notification.request.content.data?.idAgendamento;
-    if (idPet) router.push(`/(tabs)/pets/${idPet}` as any);
-    else if (idAgendamento) router.push('/(tabs)/agenda' as any);
-    else router.push('/(tabs)/pets' as any);
+    if (idPet) router.push(`/(tabs)/pets/${idPet}`);
+    else if (idAgendamento) router.push('/(tabs)/agenda');
+    else router.push('/(tabs)/pets');
   });
 
   return () => { fgSub.remove(); tapSub.remove(); };

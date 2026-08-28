@@ -170,7 +170,7 @@ export default function PerfilScreen() {
         <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>MAIS</Text>
         <KCard style={styles.card}>
           <Pressable
-            onPress={() => router.push('/(tabs)/perfil/consentimentos' as any)}
+            onPress={() => router.push('/(tabs)/perfil/consentimentos')}
             style={[styles.row, { borderBottomColor: colors.border }]}
             accessibilityRole="button"
           >
