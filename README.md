@@ -47,6 +47,14 @@ a integração — ver "Limitações v1" abaixo.
 Bottom Tab Bar (4 abas: Pets · Agenda · Saúde · Perfil).
 Sem drawer — drawer é exclusivo do app clínica (Parte A).
 
+## Segurança
+O JWT de sessão fica no **SecureStore** (Keystore no Android, Keychain no iOS), não em
+AsyncStorage — que grava em claro. Só o token vai para lá: o SecureStore tem limite de
+2048 bytes por valor, e o resto do estado persistido (tutor, expiresAt, tema) não é
+segredo. Quem já tinha o app instalado é migrado na primeira leitura, sem ser deslogado.
+No alvo **web** o SecureStore não existe e o token continua em AsyncStorage — degradar
+foi preferido a quebrar o alvo. Ver `src/store/authSecureStorage.ts`.
+
 ## Limitações v1
 1. Slots de agenda mockados — pendente endpoint GET /tutor/agenda/disponivel (Felipe #1)
 2. Cadastro de pet pode não ter endpoint POST /tutor/pets (Felipe #4)
