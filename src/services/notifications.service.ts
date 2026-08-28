@@ -119,7 +119,25 @@ export async function registerDeviceToken(token: string): Promise<boolean> {
   }
 }
 
+// Tem que bater com a cor declarada no plugin `expo-notifications` do app.json: o
+// acento configurado no build so chega ao usuario atraves de um canal, e duas fontes
+// divergindo dariam cores diferentes sem ninguem perceber.
+const COR_ACENTO = '#4A6944';
+
 export function setupHandlers(qc: QueryClient, router: Router): () => void {
+  // Android 8+ (API 26) exige que toda notificacao pertenca a um canal — sem canal
+  // registrado o sistema DESCARTA a notificacao em vez de exibir. Nao havia nenhum
+  // aqui: os listeners e o handler de apresentacao estavam montados, mas a notificacao
+  // nao chegava a aparecer no Android moderno. Canais sao conceito exclusivo do
+  // Android; no iOS a chamada nem existe.
+  if (Platform.OS === 'android') {
+    void Notifications.setNotificationChannelAsync('default', {
+      name: 'Lembretes KURA',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      lightColor: COR_ACENTO,
+    });
+  }
+
   Notifications.setNotificationHandler({
     handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: true }),
   });
