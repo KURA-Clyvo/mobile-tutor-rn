@@ -53,10 +53,13 @@ jobs:
           restore-keys: |
             jest-cache-${{ runner.os }}-
 
-      # --watchAll=false: o script "test" deste app roda "jest --watchAll" por
-      # padrão, que ficaria pendurado indefinidamente no CI sem este override.
-      - name: Test
-        run: npm test -- --watchAll=false
+      # `test:coverage` em vez de `test`: o `coverageThreshold` do package.json so e
+      # avaliado quando o Jest roda COM --coverage. Rodando `npm test` aqui, o piso de
+      # cobertura existia no config e nunca era verificado por ninguem — exatamente o
+      # tipo de promessa nao-executavel que o README ja fazia ("≥ 60%", sem limiar
+      # configurado). `test:coverage` nao tem --watchAll, entao nao precisa override.
+      - name: Test (com piso de cobertura)
+        run: npm run test:coverage
 
       - name: Lint
         run: npm run lint

@@ -26,7 +26,11 @@ a integração — ver "Limitações v1" abaixo.
 - `npm run start` — Expo dev server
 - `npm run android` / `npm run ios`
 - `npm run test` — Jest
-- `npm run test:coverage` — Cobertura (≥ 60%)
+- `npm run test:coverage` — Cobertura, com piso **verificado** pelo Jest
+  (`coverageThreshold` no package.json: 78% stmts / 64% branches / 80% funcs / 81% lines).
+  Antes o README prometia "≥ 60%" e nenhum limiar estava configurado — a promessa não
+  era executável. Os números são um pouco abaixo do real de hoje (79.8 / 65.9 / 82.2 /
+  82.7) de propósito: servem de catraca contra regressão, não de meta a perseguir.
 - `npm run lint` — ESLint (0 warnings)
 - `npm run type-check` — tsc --noEmit (0 erros)
 - `npm run check:colors` / `npm run check:no-ocean` — trava a paleta do app tutor (nenhum

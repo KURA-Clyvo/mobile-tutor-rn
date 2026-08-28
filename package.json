@@ -77,6 +77,14 @@
     "globalSetup": "<rootDir>/jest.global-setup.js",
     "testTimeout": 20000,
     "cacheDirectory": "<rootDir>/.jest-cache",
+    "coverageThreshold": {
+      "global": {
+        "statements": 78,
+        "branches": 64,
+        "functions": 80,
+        "lines": 81
+      }
+    },
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.js"
     ],
