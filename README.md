@@ -31,7 +31,8 @@ a integração — ver "Limitações v1" abaixo.
   Antes o README prometia "≥ 60%" e nenhum limiar estava configurado — a promessa não
   era executável. Os números são um pouco abaixo do real de hoje (79.8 / 65.9 / 82.2 /
   82.7) de propósito: servem de catraca contra regressão, não de meta a perseguir.
-- `npm run lint` — ESLint (0 warnings)
+- `npm run lint` — ESLint 9 com flat config (`eslint.config.js`), rodando `--max-warnings 0`.
+  Antes o README prometia "0 warnings" e nada verificava; agora a build falha se aparecer um.
 - `npm run type-check` — tsc --noEmit (0 erros)
 - `npm run check:colors` / `npm run check:no-ocean` — trava a paleta do app tutor (nenhum
   hex fora dos tokens; nenhum token `--ocean`, que é contexto clínica)

@@ -100,7 +100,6 @@ describe('smoke-coverage — detector de lacuna do smoke-contratos.sh (TASK-81)'
       // Intencionalmente vazio — o it.skip por si só já deixa a lacuna visível no
       // relatório do Jest (não conta como sucesso silencioso).
     });
-    // eslint-disable-next-line no-console
     console.warn(
       '[smoke-coverage] DevOps-Cloud/scripts/smoke-contratos.sh não encontrado em nenhum dos 3 ' +
         'caminhos candidatos — a verificação de que os nomes "coberto" existem de fato no script ' +
@@ -118,7 +117,6 @@ describe('smoke-coverage — detector de lacuna do smoke-contratos.sh (TASK-81)'
     );
     for (const [chave, entrada] of naoCobertos) {
       expect(entrada.naoCoberto.trim().length).toBeGreaterThan(10);
-      // eslint-disable-next-line no-console
       console.log(`[smoke-coverage] não coberto — ${chave}: ${entrada.naoCoberto}`);
     }
   });
@@ -128,7 +126,6 @@ describe('smoke-coverage — detector de lacuna do smoke-contratos.sh (TASK-81)'
   it('imprime o resumo de cobertura (visível, não silencioso)', () => {
     const cobertos = Object.values(SMOKE_COVERAGE_REGISTRY).filter((e) => 'coberto' in e).length;
     const naoCobertos = Object.values(SMOKE_COVERAGE_REGISTRY).filter((e) => 'naoCoberto' in e).length;
-    // eslint-disable-next-line no-console
     console.log(
       `[smoke-coverage] mobile-tutor-rn: ${cobertos} cobertos / ${naoCobertos} não cobertos / ` +
         `${consumidores.length} funções de rede descobertas por AST`,

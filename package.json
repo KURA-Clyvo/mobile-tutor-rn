@@ -15,7 +15,7 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "test:coverage": "jest --coverage",
-    "lint": "eslint src tools --ext .ts,.tsx",
+    "lint": "eslint src tools --max-warnings 0",
     "type-check": "tsc --noEmit",
     "check:colors": "! grep -rn '\"#' src/components/ src/app/",
     "check:no-ocean": "! grep -rn '\"#1A3A52\"' src/"
@@ -64,7 +64,7 @@
     "babel-plugin-module-resolver": "^5.0.0",
     "babel-plugin-syntax-hermes-parser": "^0.36.1",
     "babel-preset-expo": "~54.0.10",
-    "eslint": "8.57.0",
+    "eslint": "^9.39.5",
     "eslint-config-expo": "10.0.0",
     "eslint-import-resolver-typescript": "3.10.1",
     "hermes-parser": "^0.36.1",

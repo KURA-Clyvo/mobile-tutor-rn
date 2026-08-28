@@ -4,6 +4,10 @@ import { resolveMock } from './mock-adapter';
 import { normalizeError } from './errors';
 import { useAuthStore } from '../../store/authStore';
 
+// `axios.create` e a API documentada do axios; o aviso do plugin vem do named export
+// `create` homonimo, que nao e o que queremos aqui. Silenciado na linha para a regra
+// seguir valendo no resto do projeto.
+// eslint-disable-next-line import/no-named-as-default-member
 export const apiClient = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
   timeout: 15_000,
