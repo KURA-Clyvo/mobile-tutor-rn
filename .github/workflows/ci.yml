@@ -39,6 +39,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # O cache de transform do Jest era frio em TODA execucao (o `cache: npm` acima
+      # cobre so o registry, nao isto). Medido: com ele frio, o PRIMEIRO render React
+      # Native de um worker custa ~7.2 s sozinho — foi o que empurrava o teste 1 de
+      # PerfilScreen.test.tsx contra o timeout, e o que faz cada arquivo de teste levar
+      # 20-30 s de wall clock aqui. A chave inclui o lockfile porque uma troca de
+      # dependencia invalida o resultado da transformacao.
+      - name: Cache do transform do Jest
+        uses: actions/cache@v4
+        with:
+          path: .jest-cache
+          key: jest-cache-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            jest-cache-${{ runner.os }}-
+
       # --watchAll=false: o script "test" deste app roda "jest --watchAll" por
       # padrão, que ficaria pendurado indefinidamente no CI sem este override.
       - name: Test
