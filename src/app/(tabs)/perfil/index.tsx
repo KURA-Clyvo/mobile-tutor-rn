@@ -211,7 +211,10 @@ export default function PerfilScreen() {
 
       {/* About modal */}
       <Modal visible={aboutVisible} transparent animationType="slide" onRequestClose={() => setAboutVisible(false)}>
-        <Pressable style={styles.modalBg} onPress={() => setAboutVisible(false)}>
+        {/* `accessible={false}`: e um scrim, nao um controle — mesmo tratamento que o
+            overlay do KDialog. Sem isso o leitor de tela anuncia um botao sem nome
+            cobrindo a tela inteira. Quem fecha com rotulo e o KButton "Fechar" abaixo. */}
+        <Pressable style={styles.modalBg} onPress={() => setAboutVisible(false)} accessible={false}>
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 24, marginBottom: 12 }}>Kura.</Text>
             <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, marginBottom: 8 }}>Versão 1.0.0 — Tutor App</Text>

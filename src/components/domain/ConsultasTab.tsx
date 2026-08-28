@@ -96,7 +96,19 @@ function TimelineRow({ ev, isLast, onPress }: { ev: TimelineTutorEventResponse; 
     <View style={styles.timelineRow}>
       {!isLast && <View style={[styles.connector, { backgroundColor: colors.border }]} />}
       <View style={[styles.dot, { backgroundColor: dotBg, borderColor: dotBorder }]} />
-      <Pressable onPress={onPress} style={[styles.evCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        // O card mostra data, tipo, veterinario e descricao; sem rotulo o leitor de tela
+        // anunciava so "botao". A ordem aqui e a mesma da leitura visual.
+        accessibilityLabel={[
+          isTele ? 'Teleconsulta' : 'Consulta presencial',
+          formatDateBR(ev.dtEvento),
+          ev.nmVeterinario,
+          ev.dsResumoPublico,
+        ].filter(Boolean).join('. ')}
+        style={[styles.evCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}
+      >
         <View style={styles.evMeta}>
           <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>
             {formatDateBR(ev.dtEvento)}
