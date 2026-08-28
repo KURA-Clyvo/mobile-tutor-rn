@@ -17,8 +17,8 @@
 //       inexistente quebra aqui.
 import * as fs from 'fs';
 import * as path from 'path';
-import { discoverNetworkConsumers, extrairNomesDeCheck } from '../smokeCoverage/discover-network-consumers';
-import { SMOKE_COVERAGE_REGISTRY } from '../smokeCoverage/registry';
+import { discoverNetworkConsumers, extrairNomesDeCheck } from '../../tools/smokeCoverage/discover-network-consumers';
+import { SMOKE_COVERAGE_REGISTRY } from '../../tools/smokeCoverage/registry';
 
 const SERVICE_DIR = path.join(__dirname, '..', 'services');
 

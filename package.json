@@ -15,7 +15,7 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "test:coverage": "jest --coverage",
-    "lint": "eslint src --ext .ts,.tsx",
+    "lint": "eslint src tools --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
     "check:colors": "! grep -rn '\"#' src/components/ src/app/",
     "check:no-ocean": "! grep -rn '\"#1A3A52\"' src/"
