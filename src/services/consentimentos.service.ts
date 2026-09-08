@@ -16,9 +16,12 @@ import { desembrulharPagina } from './api/pagina';
 // RegraDeNegocioException (ValidadorConsentimento.validarVersaoTermo).
 const VERSAO_TERMO_ATUAL = 'v1.0';
 
-// T-2: o contract-map do backend (`INT-01-contract-map.md`, linhas #12/#13) registra
-// divergência de `Page` vs array TAMBÉM aqui, além dos nomes de campo. O helper aceita
-// as duas formas, então esta lista deixa de depender de qual delas o servidor manda.
+// T-2: este endpoint NÃO diverge — medido na fonte (`ConsentimentoBffController:52`,
+// backend-tutor-java @ 3290687), devolve `List<ConsentimentoResponse>`, não `Page`, e o
+// tipo app-facing bate campo a campo desde a TASK-73. O helper fica assim mesmo: ele
+// aceita array nu sem transformar nada, e o custo de a lista deixar de depender do
+// formato é zero. A nota que dizia "Page vs array aqui também"
+// (`KURA_BACKLOG_FIX/progress.md:69`) é ANTERIOR à TASK-73 e envelheceu.
 export const listConsentimentos = () =>
   apiClient.get<PageRaw<ConsentimentoResponse> | ConsentimentoResponse[]>('/api/v1/tutor/consentimentos')
     .then(r => desembrulharPagina(r.data));

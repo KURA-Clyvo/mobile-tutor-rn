@@ -139,3 +139,37 @@ instrumento enxerga import de service em `src/app`.
 **Verificação:** `Test Suites: 47 passed, 47 total` · `Tests: 1 skipped, 269 passed,
 270 total` · `JEST_EXIT=0`; `npx eslint src` 0 linhas, `LINT_EXIT=0`; `npx tsc --noEmit`
 0 linhas, `TSC_EXIT=0`.
+
+## Correção da T-2 — 2026-09-08, depois do clone do backend
+
+`backend-tutor-java` foi clonado em `C:\Users\Pichau\Desktop\kura\backend-tutor-java`
+(`main @ 3290687`), então o que estava escrito por inferência virou medição.
+
+**O que eu tinha afirmado e está errado:** que `consentimentos` era um 5º endpoint divergente.
+**Não é.** `ConsentimentoBffController:52` devolve `List<ConsentimentoResponse>` (não `Page`) e
+`types/api.ts:119-125` bate campo a campo com o DTO Java desde a TASK-73. A fonte que me levou
+a isso (`KURA_BACKLOG_FIX/progress.md:69`) é anterior àquela task. O comentário do service foi
+corrigido; o helper continua lá, porque aceitar array nu não transforma nada.
+
+**O que se confirmou:** `TutorBffController:63` -> `Page<PetResponse>`;
+`AgendamentoBffController:50` -> `Page<AgendamentoResponse>`; `:97` -> `Page<TimelineEventoResponse>`.
+O envelope era real nos três.
+
+**O que falta da T-2, agora com os nomes reais** (`AgendamentoResponse.java`):
+`idAgendamento`->`id`, `dtAgendamento`->`dtInicio`, `observacoes`->`dsMotivo` (renomes simples);
+`status` e `tipo` precisam de tabela de tradução (o Java tem `INTENCAO`/`REALIZADO`/
+`NAO_COMPARECEU`, que o app não conhece); e `pet.nmEspecie`, `pet.nmRaca`, `nmClinica`,
+`nmVeterinario` **não existem no DTO** — só `idPet`/`nmPet`, `idClinica`, `idVeterinario`.
+`nrVersion` **está exposto**, então a T-7 tem o que precisa.
+
+`PetResponse.java` traz `idPet, nmPet, nmEspecie, nmRaca, sgSexo, dtNascimento, sgPorte`; não
+traz `nmClinica`, `dsStatusGeral`, `nrAlertasAtivos`, `nrConsultas`, `chips`.
+
+**Segue parado de propósito:** escrever os mappers agora fixaria no app um estado vazio que
+pode ser desfeito em ~4 linhas do lado Java (`fromEntity` já tem `a.getPet()`/`a.getClinica()`
+na mão). A decisão é do Felipe, e está no adendo de
+`WorkSpace-VsClaude/KURA_BACKLOG_SPRINT3_JAVA.md`.
+
+**`MB-06` medida:** `grep -rn "PutMapping" src/main/java/.../bff/api/` -> **0**; controle
+positivo `AgendamentoController:99` **tem** o `@PutMapping("/{id}")`. A T-7 continua bloqueada
+nisso.
