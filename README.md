@@ -2,25 +2,95 @@
 
 App mobile para tutores de pets — FIAP Challenge 2026 · Clyvo Vet.
 
-## Link Vídeo Youtube
- https://youtu.be/F62_LPbJORQ
+## O problema
 
+Uma clínica veterinária de bairro administra a operação inteira em três lugares que não
+conversam entre si: a **agenda** num caderno ou planilha, o **prontuário** em fichas de papel, e
+a **comunicação com o tutor** no WhatsApp. O custo disso cai quase todo em cima do tutor:
+
+- ele não sabe quando a vacina do pet vence, porque essa data só existe na ficha da clínica;
+- para marcar uma consulta ele depende de alguém responder a mensagem no horário comercial;
+- o histórico clínico do animal — o que foi diagnosticado, o que foi prescrito, quando foi o
+  último retorno — some quando ele troca de clínica, ou quando a ficha se perde;
+- quando um pet tem doença crônica, o acompanhamento vira memória de quem foi na consulta.
+
+Para a clínica, o mesmo problema aparece como falta a consulta, retorno que ninguém cobra e
+tempo de recepção gasto respondendo "que dia é mesmo a consulta do Bóbi?".
+
+## A solução
+
+**KURA** é um ecossistema de dois aplicativos e duas APIs sobre um banco Oracle compartilhado:
+
+| Peça | O que faz |
+|---|---|
+| **`mobile-tutor-rn`** *(este repo)* | O app do tutor: pets, carteira de vacinas, histórico clínico, agendamento e consentimentos LGPD |
+| `mobile-clinica-rn` | O app da clínica: agenda do dia, prontuário, atendimento |
+| `backend-tutor-java` | BFF do tutor (Spring Boot 3, `/v1/tutor/**`) — autentica por JWT e expõe só o que é do tutor logado |
+| `backend-clinica-dotnet` | API da clínica (.NET), dona do cadastro clínico e da teleconsulta |
+| **Luna** | Triagem por IA no WhatsApp, para o primeiro contato fora do horário |
+
+**Este app resolve o lado do tutor.** Ele dá ao tutor, no celular, o que hoje só existe na
+clínica: a lista dos seus pets com o estado de saúde de cada um, as vacinas que estão vencendo,
+a linha do tempo de consultas, a solicitação de agendamento sem depender de alguém responder
+mensagem, e o controle explícito sobre o uso dos próprios dados (LGPD) — com direito a revogar
+o que já foi aceito.
+
+Duas fronteiras que valem entender antes de ler o código:
+
+- **O app do tutor nunca fala com o `.NET` diretamente.** Os dois JWTs são independentes e a
+  arquitetura não permite HTTP direto entre as APIs. O que o `.NET` escreve chega ao tutor
+  porque o Java lê a mesma tabela — é assim que a URL da sala de teleconsulta aparece aqui.
+- **O agendamento nasce como solicitação**, não como horário confirmado. Quem confirma é a
+  clínica, pelo app dela.
+
+## Tecnologias
+
+| Camada | Ferramenta | Versão |
+|---|---|---|
+| Runtime | React Native | 0.81.5 |
+| Plataforma | Expo SDK | 54 |
+| Navegação | expo-router (file-based, 4 abas) | 6.0.23 |
+| Estado de servidor | TanStack Query | 5.100.10 |
+| Estado de sessão | Zustand (persist sobre AsyncStorage) | 5.0.13 |
+| Formulários | react-hook-form + Zod | 7.75.0 · 4.4.3 |
+| HTTP | Axios (interceptors de auth e de erro) | 1.16.1 |
+| Linguagem | TypeScript (`strict`) | 5.3 |
+| Testes | Jest + @testing-library/react-native | — |
+
+Sem UI kit de terceiros: os componentes de `src/components/primitives/` são próprios, sobre os
+tokens de `src/theme/`.
 
 ## Setup
 1. `nvm use` (Node 20)
 2. `npm install`
-3. `cp .env.example .env` (preencher variáveis)
+3. `cp .env.example .env`
 4. `npm run start`
+
+O `.env.example` já vem com `EXPO_PUBLIC_USE_MOCKS=true`: o app sobe e é navegável **sem
+backend nenhum**, com dados de demonstração. Para apontar para a API real, troque para `false` e
+preencha `EXPO_PUBLIC_API_BASE_URL` com a URL do `backend-tutor-java`.
 
 ## Env vars
 | Variável | Descrição |
 |---|---|
-| EXPO_PUBLIC_API_BASE_URL | Java Spring Boot backend |
-| EXPO_PUBLIC_USE_MOCKS | `true` para usar mocks locais |
+| `EXPO_PUBLIC_API_BASE_URL` | URL do BFF (`backend-tutor-java`, Spring Boot) |
+| `EXPO_PUBLIC_USE_MOCKS` | `true` roda com dados locais, sem rede |
 
-As duas variáveis da Luna (`EXPO_PUBLIC_LUNA_BASE_URL`, `EXPO_PUBLIC_LUNA_API_KEY`) saíram
-junto com o `lunaClient`: o serviço não tem integração neste app e nada as lia. Voltam com
-a integração — ver "Limitações v1" abaixo.
+## Arquitetura em uma tela
+
+```
+src/app/          rotas (expo-router) — 12 telas + 7 layouts
+src/hooks/        acesso a dados (TanStack Query) — a UI consome hook, não service
+src/services/     HTTP e camada anticorrupção (o app não fala o dialeto do servidor)
+src/store/        sessão (Zustand + SecureStore) e estado local
+src/components/   primitivos próprios + componentes de domínio
+src/theme/        tokens de cor, tipografia e espaçamento
+```
+
+Três regras dessa divisão são **travadas por teste**, não por convenção:
+`src/__tests__/arquitetura-gate.test.ts` derruba o build se um hook do TanStack Query aparecer
+dentro de `src/app/`, se uma tela importar função de `src/services/`, ou se a ordem de import
+de `notifications.service.ts` (que é load-bearing) for reorganizada.
 
 ## Scripts
 - `npm run start` — Expo dev server
@@ -35,10 +105,13 @@ a integração — ver "Limitações v1" abaixo.
   Antes o README prometia "0 warnings" e nada verificava; agora a build falha se aparecer um.
 - `npm run type-check` — tsc --noEmit (0 erros)
 - `npm run check:colors` / `npm run check:no-ocean` — trava a paleta do app tutor (nenhum
-  hex fora dos tokens; nenhum token `--ocean`, que é contexto clínica)
-- `bash scripts/f09-mutation-proof.sh` — prova de mutação do gate de arquitetura: aplica
-  as 5 regressões que `src/__tests__/arquitetura-gate.test.ts` cobre e verifica que cada
-  uma o derruba. Exige working tree limpa; reverte tudo no fim.
+  hex fora dos tokens; nenhum token `--ocean`, que é contexto clínica). ⚠️ Os dois são
+  scripts POSIX começando com `!`: rodam no Linux/macOS e no CI, mas falham no Windows,
+  onde o `npm run` executa via `cmd.exe`.
+- `bash scripts/f09-mutation-proof.sh` — prova de mutação das **regras 1 a 5** do gate de
+  arquitetura: aplica cada regressão que elas cobrem e verifica que o gate derruba a build.
+  Exige working tree limpa; reverte tudo no fim. As regras 6, 7 e 8 (acrescentadas depois)
+  trazem a própria sentinela dentro de `src/__tests__/arquitetura-gate.test.ts`.
 - `python3 scripts/gerar-assets-de-marca.py` — regera os PNGs de `assets/` (ícone, splash,
   adaptive, favicon) a partir da logomark de `Design KURA/` e dos tokens de
   `src/theme/tokens.ts`. Requer Pillow. Rodar quando um token de cor mudar.
@@ -46,6 +119,15 @@ a integração — ver "Limitações v1" abaixo.
 ## Navegação
 Bottom Tab Bar (4 abas: Pets · Agenda · Saúde · Perfil).
 Sem drawer — drawer é exclusivo do app clínica (Parte A).
+
+As rotas internas (`(tabs)` e `notificacoes`) são declaradas sob `<Stack.Protected>`
+(expo-router 6), com o `guard` ligado ao estado de sessão; `login` e `register` ficam no grupo
+oposto — `register` de propósito, porque é alcançado por deep link de convite, com o tutor
+ainda sem sessão. `src/__tests__/guarda-rotas.test.tsx` renderiza o layout raiz sem sessão e
+afirma que `(tabs)` não monta.
+
+Isto é **controle de acesso na navegação**, não proteção de dado: quem protege o dado é o JWT
+validado pelo BFF a cada requisição.
 
 ## Segurança
 O JWT de sessão fica no **SecureStore** (Keystore no Android, Keychain no iOS), não em
@@ -55,25 +137,6 @@ segredo. Quem já tinha o app instalado é migrado na primeira leitura, sem ser 
 No alvo **web** o SecureStore não existe e o token continua em AsyncStorage — degradar
 foi preferido a quebrar o alvo. Ver `src/store/authSecureStorage.ts`.
 
-## Limitações v1
-1. Slots de agenda mockados — pendente endpoint GET /tutor/agenda/disponivel (Felipe #1)
-2. Cadastro de pet pode não ter endpoint POST /tutor/pets (Felipe #4)
-3. Luna não integrada — nenhuma tela consome o serviço. O `lunaClient` e as env vars
-   existiam sem consumidor e foram removidos; auth scheme (JWT ou API key) segue a
-   confirmar quando a integração entrar (Felipe #3)
-4. GET /tutor/notificacoes pode não estar exposto ainda (Felipe #7)
-5. Push notifications requerem EAS Build em iOS (não funciona no Expo Go desde SDK 53).
-   **Pendente:** `app.json` ainda não tem `extra.eas.projectId`, e sem essa chave
-   `Notifications.getExpoPushTokenAsync()` lança `ERR_NOTIFICATIONS_NO_EXPERIENCE_ID` —
-   nenhum build registra push, nem dev nem loja. Rode `eas init` na raiz (grava a chave
-   sozinho) ou copie o ID do projeto em expo.dev. Enquanto faltar, `getDeviceToken()`
-   devolve `null` e reporta o que fazer no console (antes falhava em silêncio).
-6. Teleconsulta (TASK-11): o botão "Entrar na teleconsulta" (exibido quando
-   `sgTipoConsulta === 'TELEORIENTACAO'` e `dsSalaUrl` já foi criada pela clínica) abre a sala
-   do Daily.co no navegador do aparelho (`Linking.openURL`), não em SDK nativo embutido — mesma
-   decisão do app clínica (ver `mobile-clinica-rn/README.md#teleconsulta`): o SDK
-   `@daily-co/react-native-daily-js` exige dev-build, e `Linking` funciona no Expo Go sem
-   dependências novas. `dsSalaUrl` chega pela própria BFF do tutor
-   (`GET /api/v1/tutor/agendamentos`) — o app tutor nunca chama o .NET diretamente (arquitetura
-   do projeto não permite HTTP direto entre as duas APIs); o Java só lê a coluna que o .NET
-   escreve na tabela `AGENDAMENTO` compartilhada.
+## Limitações conhecidas
+Estão em [`docs/limitacoes-conhecidas.md`](docs/limitacoes-conhecidas.md), cada uma com a
+medição e o comando que a produziu.

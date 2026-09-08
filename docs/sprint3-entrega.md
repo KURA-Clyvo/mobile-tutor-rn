@@ -243,3 +243,69 @@ contra a versão antiga — lá o Set era constante de módulo, então nenhum da
 **Verificação:** `Test Suites: 48 passed, 48 total` · `Tests: 1 skipped, 289 passed, 290 total`
 · `JEST_EXIT=0`; `npx eslint src` 0 linhas, `LINT_EXIT=0`; `npx tsc --noEmit` 0 linhas,
 `TSC_EXIT=0`. Delta: **+9 testes, +1 suíte**.
+
+## T-8 · README — **fechada**
+
+Era 49 linhas, sem descrição do problema, sem descrição da solução e sem seção de tecnologias —
+os três itens que a rubrica pede textualmente.
+
+**Acrescentado no topo:** **O problema** (a clínica de bairro com agenda, prontuário e
+comunicação em três lugares que não conversam, e o custo caindo no tutor), **A solução** (os 5
+componentes do ecossistema, o que este app resolve, e as duas fronteiras que o código respeita:
+o tutor nunca fala com o `.NET`; agendamento nasce como solicitação) e **Tecnologias com
+versão** — todas lidas do `package.json`, não de memória: RN 0.81.5, Expo SDK 54, expo-router
+6.0.23, TanStack Query 5.100.10, Zustand 5.0.13, react-hook-form 7.75.0, Zod 4.4.3, Axios
+1.16.1, TypeScript 5.3 (`strict: true`, `tsconfig.json:4`).
+
+**Removido:**
+
+- **O link do vídeo** (`youtu.be/F62_LPbJORQ`), anterior à Sprint 3. `grep -n "youtu" README.md`
+  → 0.
+- **A seção "Limitações v1" inteira** — ela entregava ao avaliador a redação da penalidade VI
+  ("Slots de agenda mockados", "pode não ter endpoint POST", "pode não estar exposto ainda").
+  `grep -n "Limitações v1\|pode não" README.md` → 0; controle positivo: `grep -c "Limitações
+  conhecidas"` → 1.
+
+**Cada um dos 6 itens foi reconciliado com o código antes de sumir ou mudar de lugar:**
+
+| Item v1 | Destino | Medição |
+|---|---|---|
+| 1. Slots mockados | **apagado** — resolvido pela T-6 | `INDISPONIVEIS` não existe mais como código |
+| 2. "pode não ter POST /pets" | virou fato em `docs/` | `grep -rn "PostMapping" TutorBffController.java` → **0**; controle positivo: `AgendamentoBffController:62` tem |
+| 3. Luna não integrada | `docs/` | segue verdade |
+| 4. "GET /notificacoes pode não estar exposto" | **apagado** — está exposto | `NotificacaoBffController:44`, `@GetMapping` |
+| 5. Push sem `extra.eas.projectId` | `docs/` | `grep -n "eas\|projectId" app.json` → **0** |
+| 6. Teleconsulta por `Linking` | `docs/` | é decisão, não pendência |
+
+Mais um item novo em `docs/limitacoes-conhecidas.md`: a divergência de nomes de campo que a T-2
+não fechou, e o limite do "ocupado" da agenda (é a agenda deste tutor, não a disponibilidade da
+clínica).
+
+**Duas afirmações do texto novo foram atenuadas por não terem prova de runtime:** a seção de
+navegação diz o que está **declarado** (`Stack.Protected` com o guard na sessão) e o que o teste
+**afirma** (`guarda-rotas.test.tsx` renderiza sem sessão e checa que `(tabs)` não monta) — não
+"link direto cai no login", que ninguém executou num aparelho. E diz explicitamente que é
+controle de acesso na navegação, **não** proteção de dado.
+
+**Correções factuais no que já existia:** o script `f09-mutation-proof.sh` cobre as regras 1–5;
+com o gate agora em 8 regras, a frase "as 5 regressões que o gate cobre" ficaria falsa. E
+`check:colors`/`check:no-ocean` ganharam o aviso de que são scripts POSIX que falham no Windows
+(`npm run` executa via `cmd.exe`) — o README prometia um comando que não roda na máquina onde
+está sendo lido.
+
+**Verificação:** `Test Suites: 48 passed, 48 total` · `Tests: 1 skipped, 289 passed, 290 total`
+· `JEST_EXIT=0`.
+
+## T-7 · CRUD — **item B já estava pronto; item A bloqueado**
+
+Medido antes de implementar: **revogar consentimento já está inteiro** —
+`consentimentos.service.ts::revogar` (POST com `aceito:'N'`, insert-only por LGPD, decisão da
+TASK-31), `useRevogar` com `invalidateQueries(['consentimentos'])`, e a tela
+`perfil/consentimentos.tsx:49-56` com confirmação via `useDialog` antes de revogar. Nada a
+fazer.
+
+**Item A (remarcar agendamento) continua bloqueado no Java:** `grep -rn "PutMapping"
+.../bff/api/` → **0**. O `nrVersion` que o `PUT` exige **já está exposto** em
+`AgendamentoResponse`, então do lado do app falta só a chamada — mas construir service, hook e
+botão contra um endpoint que responde 404 seria escrever código que promete o que o sistema não
+faz.
