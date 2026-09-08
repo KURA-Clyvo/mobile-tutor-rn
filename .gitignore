@@ -22,3 +22,8 @@ coverage/
 
 expo-env.d.ts
 # @end expo-cli
+# Copias de trabalho dos documentos de planejamento (originais vivem no repo
+# WorkSpace-VsClaude, em "Guilherme Sola (FrontEnd)/"). Ficam de fora porque
+# copia de documento apodrece: este projeto ja perdeu tempo com um snapshot
+# que divergiu do original e continuou sendo lido como se fosse a fonte.
+backlog/
