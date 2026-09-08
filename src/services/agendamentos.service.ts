@@ -1,8 +1,20 @@
 import { apiClient } from './api/client';
-import type { AgendamentoTutorResponse, SolicitarAgendamentoRequest, SolicitarAgendamentoResponse, CancelarAgendamentoResponse, AgendamentoRequestJava } from '../types/api';
+import type { AgendamentoTutorResponse, SolicitarAgendamentoRequest, SolicitarAgendamentoResponse, CancelarAgendamentoResponse, AgendamentoRequestJava, PageRaw } from '../types/api';
+import { desembrulharPagina } from './api/pagina';
 
+// T-2: `GET /v1/tutor/agendamentos` devolve `Page<AgendamentoResponse>` no Java
+// (envelope `{content, totalElements}`) e array no mock — `desembrulharPagina`
+// aceita as duas formas. Ver o comentário do helper para o porquê de ele existir.
+//
+// 🔴 Pendente e NÃO resolvido aqui: os nomes de campo de `AgendamentoResponse`
+// (`idAgendamento`/`dtAgendamento`/`tipo`/`status`/`nrVersion`) divergem do tipo
+// app-facing (`id`/`dtInicio`/`sgTipoConsulta`/`sgStatus`), e o Java pode não ter
+// `pet.nmRaca`/`nmClinica`/`dsMotivo`, que `AgendamentoItem.tsx` renderiza. O mapper
+// de lista só pode ser escrito com o DTO real na mão — `AgendamentoResponse.java` não
+// está nesta máquina, e campo inventado aqui viraria dado falso na tela.
 export const listAgendamentos    = () =>
-  apiClient.get<AgendamentoTutorResponse[]>('/api/v1/tutor/agendamentos').then(r => r.data);
+  apiClient.get<PageRaw<AgendamentoTutorResponse> | AgendamentoTutorResponse[]>('/api/v1/tutor/agendamentos')
+    .then(r => desembrulharPagina(r.data));
 
 // TASK-74b (FIX_7): camada anti-corrupção, mesmo padrão de `consentimentos.service.ts`
 // (TASK-73) e `auth.service.ts` (TASK-55/61) — a tela (`agenda/novo.tsx`) e o tipo

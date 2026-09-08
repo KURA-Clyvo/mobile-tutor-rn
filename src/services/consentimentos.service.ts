@@ -1,5 +1,6 @@
 import { apiClient } from './api/client';
-import type { ConsentimentoResponse, ConsentimentoRequest, TipoConsentimentoApi } from '../types/api';
+import type { ConsentimentoResponse, ConsentimentoRequest, TipoConsentimentoApi, PageRaw } from '../types/api';
+import { desembrulharPagina } from './api/pagina';
 
 // TASK-73 (FIX_7): camada anti-corrupção, mesmo padrão de auth.service.ts (TASK-55/
 // 61) — a tela (consentimentos.tsx) continua falando só em `tipo`/idempotency key,
@@ -15,8 +16,12 @@ import type { ConsentimentoResponse, ConsentimentoRequest, TipoConsentimentoApi 
 // RegraDeNegocioException (ValidadorConsentimento.validarVersaoTermo).
 const VERSAO_TERMO_ATUAL = 'v1.0';
 
+// T-2: o contract-map do backend (`INT-01-contract-map.md`, linhas #12/#13) registra
+// divergência de `Page` vs array TAMBÉM aqui, além dos nomes de campo. O helper aceita
+// as duas formas, então esta lista deixa de depender de qual delas o servidor manda.
 export const listConsentimentos = () =>
-  apiClient.get<ConsentimentoResponse[]>('/api/v1/tutor/consentimentos').then(r => r.data);
+  apiClient.get<PageRaw<ConsentimentoResponse> | ConsentimentoResponse[]>('/api/v1/tutor/consentimentos')
+    .then(r => desembrulharPagina(r.data));
 
 export const assinar = (tipo: TipoConsentimentoApi, idempotencyKey: string) =>
   apiClient.post<ConsentimentoResponse>('/api/v1/tutor/consentimentos',

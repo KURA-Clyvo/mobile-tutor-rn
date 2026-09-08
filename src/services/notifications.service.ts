@@ -16,6 +16,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { Router } from 'expo-router';
 import type { PageRaw, NotificacaoRaw, MarcarLidaResponse, RegisterPushTokenRequest } from '../types/api';
 import { mapNotificacaoDto } from '../utils/mappers';
+import { desembrulharPagina } from './api/pagina';
 
 // ─── In-app notification history ─────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ import { mapNotificacaoDto } from '../utils/mappers';
 // é .NET owned — leitura via Page, mapeada para o shape esperado pela tela.
 export const getNotificacoes = () =>
   apiClient.get<PageRaw<NotificacaoRaw>>('/api/v1/tutor/notificacoes')
-    .then(r => r.data.content.map(mapNotificacaoDto));
+    .then(r => desembrulharPagina(r.data).map(mapNotificacaoDto));
 
 // TASK-31: decisão travada — sem PATCH marcar-lida no backend (NOTIFICACAO é
 // .NET owned; Java nunca escreve nela). "Lida" vira estado local, só na sessão
