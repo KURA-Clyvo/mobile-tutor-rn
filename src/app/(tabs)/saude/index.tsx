@@ -1,15 +1,13 @@
 import { View, Text, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useQueries } from '@tanstack/react-query';
 import { useTheme } from '@theme/index';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KCard }   from '@components/primitives/KCard';
 import { AlertaBanner } from '../../../components/domain/AlertaBanner';
 import { VacinaItem }   from '../../../components/domain/VacinaItem';
 import { usePets }      from '../../../hooks/usePets';
-import { getVacinas }   from '../../../services/vacinas.service';
-import type { VacinaTutorResponse } from '../../../types/api';
+import { useVacinasDosPets } from '../../../hooks/useVacinasDosPets';
 
 export default function SaudeScreen() {
   const { colors, fonts, fontSize } = useTheme();
@@ -17,31 +15,20 @@ export default function SaudeScreen() {
   const router = useRouter();
   const { data: pets = [], isLoading: petsLoading, refetch: refetchPets } = usePets();
 
-  const vacinasResults = useQueries({
-    queries: pets.map(pet => ({
-      queryKey: ['pets', pet.id, 'vacinas'],
-      queryFn:  () => getVacinas(pet.id),
-      staleTime: 60_000,
-      enabled:  pet.id > 0,
-    })),
-  });
+  const { vacinas: vacinasPorPet, isLoading: vacinasLoading, refetch: refetchVacinas } = useVacinasDosPets(pets);
 
-  const isLoading = petsLoading || vacinasResults.some(r => r.isLoading);
+  const isLoading = petsLoading || vacinasLoading;
 
   const onRefresh = () => {
     refetchPets();
-    vacinasResults.forEach(r => r.refetch());
+    refetchVacinas();
   };
 
   const alertas = pets.filter(p => p.alertasAtivos > 0);
 
-  const vacinaAlerts: { pet: typeof pets[0]; vacina: VacinaTutorResponse }[] = [];
-  pets.forEach((pet, idx) => {
-    const list = vacinasResults[idx]?.data ?? [];
-    list
-      .filter(v => v.sgStatus !== 'EM_DIA')
-      .forEach(v => vacinaAlerts.push({ pet, vacina: v }));
-  });
+  const vacinaAlerts = vacinasPorPet.flatMap(({ pet, vacinas }) =>
+    vacinas.filter(v => v.sgStatus !== 'EM_DIA').map(vacina => ({ pet, vacina })),
+  );
 
   const totalAlertas = alertas.length + vacinaAlerts.length;
   const allClear     = alertas.length === 0 && vacinaAlerts.length === 0 && !isLoading;

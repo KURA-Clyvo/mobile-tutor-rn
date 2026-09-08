@@ -61,3 +61,38 @@ este projeto já pagou várias vezes. **Bloqueado aguardando os DTOs reais.**
 
 Nota: a divergência de consentimentos (#12/#13) **não** aparece na tabela de T-2 do backlog —
 é um 5º endpoint afetado.
+
+## T-3 · `useQueries` fora da camada de UI — **fechada**
+
+`(tabs)/saude/index.tsx` montava um `useQueries` na própria tela, com `queryKey`/`queryFn`
+escritos ali — o único dos 8 hooks de dados do app fora de `src/hooks/`.
+
+**Feito:** `src/hooks/useVacinasDosPets.ts` (genérico em `P extends {id:number}`, devolve
+`{vacinas, isLoading, refetch}` com uma linha `{pet, vacinas}` por pet, na ordem recebida).
+A tela deixou de importar `useQueries` **e** `vacinas.service` — quem fala com a camada de
+dados é o hook. `queryKey` mantida idêntica à de `usePetVacinas` (`['pets', id, 'vacinas']`)
+de propósito: as duas telas leem o mesmo recurso e compartilham cache.
+
+**Prova, com controle positivo:**
+
+- `grep -rn "useQuery\|useMutation\|useQueries" src/app src/components` → **0 linhas**
+  (`APP_HITS=1`, o exit-code de "nenhuma ocorrência" do grep).
+- Mesmo grep em `src/hooks/*.ts` → **30 ocorrências em 8 arquivos** — o instrumento enxerga.
+
+**Mordida do pareamento pet ↔ vacina:** trocando `resultados[i]` por `resultados[i + 1]` no
+hook, `useVacinasDosPets.test.ts` dá `Tests: 1 failed, 4 passed, 5 total`, `MORDIDA_EXIT=1`.
+Hook restaurado em seguida. Esse caso **não** era coberto por `SaudeScreen.test.tsx`, que
+mocka `useQueries` devolvendo `data: []` para os dois pets — índice trocado passaria verde lá.
+
+**Verificação:** `Test Suites: 47 passed, 47 total` · `Tests: 1 skipped, 269 passed, 270 total`
+· `JEST_EXIT=0`; `npx eslint src` 0 linhas, `LINT_EXIT=0`; `npx tsc --noEmit` 0 linhas,
+`TSC_EXIT=0`. Delta sobre T-2: **+5 testes, +1 suíte** — só o arquivo novo.
+
+## Comunicação com a trilha Java — 2026-09-08
+
+O bloqueio de T-2 (nomes de campo) foi escrito como aviso no topo de
+`WorkSpace-VsClaude/KURA_BACKLOG_SPRINT3_JAVA.md` (§ "SEGUNDO AVISO DA MESMA TRILHA VIZINHA"),
+para o agente daquela trilha ler com o Felipe: o que já está resolvido no app (envelope), o que
+trava (os 3 DTOs + contract-map, que não existem nesta máquina), e a decisão de produto —
+se `AgendamentoResponse` não traz nome do pet/clínica/motivo, ou o Java enriquece o DTO ou o
+card da agenda passa a estado vazio. Nenhum arquivo de `backend-tutor-java` foi tocado.
