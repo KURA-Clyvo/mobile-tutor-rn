@@ -65,6 +65,8 @@ function SplashContent() {
 function RootLayoutInner() {
   const router = useRouter();
   const { isDark } = useTheme();
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+  const logado = isAuthenticated();
 
   useEffect(() => {
     const handleUrl = (url: string) => {
@@ -101,7 +103,35 @@ function RootLayoutInner() {
           acompanha o edge-to-edge que o SDK 54 já impõe por padrão no Android
           (medido: sem ele as 4 telas de aba já ficavam sob a status bar). */}
       <StatusBar style={isDark ? 'light' : 'dark'} translucent />
-      <Stack screenOptions={{ headerShown: false }} />
+      {/* T-1: as telas internas nao tinham guarda nenhuma — `(tabs)/_layout.tsx`
+          era so <Tabs> com 4 <Tabs.Screen>, e o unico redirecionamento vivia em
+          `index.tsx`, que e a rota de ENTRADA. Um deep link direto para
+          /(tabs)/pets entrava sem sessao.
+
+          `Stack.Protected` (expo-router 6, `views/Protected.d.ts`) tira as telas
+          da arvore de rotas quando o guard e falso — elas deixam de existir para
+          o roteador, em vez de existirem e redirecionarem. Efeito colateral que
+          vale mais que a guarda em si: o router tambem DESCARTA as entradas de
+          historico dessas telas, entao "voltar depois do logout" para de
+          funcionar de graca.
+
+          `register` fica no grupo publico DE PROPOSITO: ele e alcancado por deep
+          link de convite, com o tutor ainda sem sessao (ver o `parseInviteLink`
+          logo acima). No grupo protegido, o onboarding inteiro quebraria.
+
+          ⚠️ Isto e controle de acesso na NAVEGACAO, nao seguranca — quem protege
+          o dado e o JWT exigido pelo backend. */}
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Protected guard={logado}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="notificacoes" />
+        </Stack.Protected>
+
+        <Stack.Protected guard={!logado}>
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+        </Stack.Protected>
+      </Stack>
     </>
   );
 }
