@@ -1,11 +1,11 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { useNotificacoesLidasStore } from '../store/notificacoesLidasStore';
 import type { NotificacaoTutorResponse } from '../types/api';
 import {
   getNotificacoes, marcarLida, marcarTodasLidas,
-  getPermissionStatus, getDeviceToken, registerDeviceToken,
+  getPermissionStatus, requestPermission, getDeviceToken, registerDeviceToken,
 } from '../services/notifications.service';
 
 export function useNotifications() {
@@ -94,4 +94,51 @@ export function useMarcarTodasLidas() {
       marcarVarias(doServidor.map(n => n.id));
     },
   });
+}
+
+/**
+ * T-4 — permissão de push do dispositivo, fora da camada de UI.
+ *
+ * `perfil/index.tsx` chamava `getPermissionStatus`/`requestPermission`/`getDeviceToken`/
+ * `registerDeviceToken` do service direto, com o `useEffect` de leitura inicial escrito
+ * na tela. A tela continua dona do que MOSTRA (o switch, os diálogos); este hook é dono
+ * de falar com o dispositivo e com o servidor.
+ *
+ * TASK-70 preservada: a fonte da verdade é a permissão real do SO, consultada sem
+ * popup quando a tela abre — nunca uma preferência local independente do que o
+ * dispositivo concedeu. E o app não pode revogar permissão do SO: `reconferir()` existe
+ * para o caso de desligar o switch, em que o único caminho honesto é reler o estado real.
+ */
+export function usePermissaoNotificacoes() {
+  const token = useAuthStore(s => s.token);
+  const [ativado, setAtivado] = useState(false);
+
+  useEffect(() => {
+    let montado = true;
+    void getPermissionStatus().then(concedida => { if (montado) setAtivado(concedida); });
+    return () => { montado = false; };
+  }, []);
+
+  /** Reconsulta o SO e devolve o estado real, sem disparar prompt. */
+  const reconferir = useCallback(async () => {
+    const concedida = await getPermissionStatus();
+    setAtivado(concedida);
+    return concedida;
+  }, []);
+
+  /**
+   * Pede a permissão (prompt do SO) e, se concedida, registra o token no servidor.
+   * Sem sessão não registra: `idTutor` é derivado do JWT, então o endpoint devolveria
+   * 401 — mesma defesa que estava na tela.
+   */
+  const pedir = useCallback(async () => {
+    const concedida = await requestPermission();
+    setAtivado(concedida);
+    if (!concedida || !token) return concedida;
+    const deviceToken = await getDeviceToken();
+    if (deviceToken) await registerDeviceToken(deviceToken);
+    return concedida;
+  }, [token]);
+
+  return { ativado, pedir, reconferir };
 }

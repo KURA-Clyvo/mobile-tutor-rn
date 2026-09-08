@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, Switch, ScrollView, StyleSheet, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -9,13 +9,8 @@ import { KButton } from '@components/primitives/KButton';
 import { KCard }   from '@components/primitives/KCard';
 import { useDialog } from '@components/primitives/KDialog';
 import { useAuthStore } from '../../../store/authStore';
-import { queryClient  } from '../../../services/queryClient';
-import {
-  getPermissionStatus,
-  requestPermission,
-  getDeviceToken,
-  registerDeviceToken,
-} from '../../../services/notifications.service';
+import { useLogout } from '../../../hooks/useAuth';
+import { usePermissaoNotificacoes } from '../../../hooks/useNotifications';
 
 export default function PerfilScreen() {
   const { colors, fonts, fontSize } = useTheme();
@@ -24,19 +19,13 @@ export default function PerfilScreen() {
   const isDark       = useTheme().isDark;
   const router       = useRouter();
   const tutor        = useAuthStore(s => s.tutor);
-  const clearSession = useAuthStore(s => s.clearSession);
+  const logout       = useLogout();
   const { alerta, confirmar } = useDialog();
   const [aboutVisible, setAboutVisible] = useState(false);
-  // TASK-70: fonte da verdade é a permissão real do SO, consultada sem popup
-  // (getPermissionStatus) quando a tela abre — não um `false` fixo nem uma
+  // TASK-70 (movida para `usePermissaoNotificacoes` na T-4): a fonte da verdade é a
+  // permissão real do SO, lida sem popup quando a tela abre — não um `false` fixo nem
   // preferência local independente do que o dispositivo de fato concedeu.
-  const [notifEnabled, setNotifEnabled] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    getPermissionStatus().then(granted => { if (mounted) setNotifEnabled(granted); });
-    return () => { mounted = false; };
-  }, []);
+  const { ativado: notifEnabled, pedir: pedirPermissao, reconferir: reconferirPermissao } = usePermissaoNotificacoes();
 
   const initials = (() => {
     if (!tutor?.nmTutor) return '?';
@@ -56,8 +45,7 @@ export default function PerfilScreen() {
       destrutivo: true,
     });
     if (!confirmado) return;
-    queryClient.clear();
-    clearSession();
+    logout();
     router.replace('/login');
   };
 
@@ -66,8 +54,7 @@ export default function PerfilScreen() {
       // O app não pode revogar a permissão do SO — só o dispositivo pode.
       // Reconsulta o estado real em vez de aceitar `false` do toque: se a
       // permissão continuar concedida, o switch volta a refletir a verdade.
-      const stillGranted = await getPermissionStatus();
-      setNotifEnabled(stillGranted);
+      const stillGranted = await reconferirPermissao();
       if (stillGranted) {
         await alerta(
           'Não é possível desativar por aqui',
@@ -77,19 +64,13 @@ export default function PerfilScreen() {
       return;
     }
 
-    const granted = await requestPermission();
-    setNotifEnabled(granted);
+    // `pedirPermissao` já cuida do registro do device token no servidor quando a
+    // permissão é concedida — inclusive da defesa de não tentar sem sessão (o
+    // endpoint deriva `idTutor` do JWT e devolveria 401).
+    const granted = await pedirPermissao();
     if (!granted) {
       await alerta('Permissão negada', 'Ative as notificações nas configurações do dispositivo.');
-      return;
     }
-
-    // Defesa equivalente à do endpoint: sem tutor autenticado não há JWT, e o
-    // servidor devolveria 401 (idTutor é derivado do token). Não tenta.
-    if (!tutor) return;
-
-    const token = await getDeviceToken();
-    if (token) await registerDeviceToken(token);
   };
 
   return (

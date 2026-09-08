@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
 
@@ -26,10 +27,16 @@ jest.mock('../store/authStore', () => ({
 // TASK-F06: a tela usa `useDialog()` (KDialog substituiu Alert.alert), que
 // exige o KDialogProvider na árvore — mesma ordem da raiz (_layout.tsx:
 // ThemeProvider > KDialogProvider).
+// T-4: a tela passou a usar `useLogin()`/`useRegistrar()` (useMutation), então a
+// árvore precisa de um QueryClientProvider — na MESMA ordem da raiz (_layout.tsx:
+// PersistQueryClientProvider > ThemeProvider > KDialogProvider). `retry: 0` no
+// client evita que um teste de erro espere backoff.
 const W = ({ children }: any) => (
-  <ThemeProvider>
-    <KDialogProvider>{children}</KDialogProvider>
-  </ThemeProvider>
+  <QueryClientProvider client={new QueryClient({ defaultOptions: { mutations: { retry: 0 }, queries: { retry: 0 } } })}>
+    <ThemeProvider>
+      <KDialogProvider>{children}</KDialogProvider>
+    </ThemeProvider>
+  </QueryClientProvider>
 );
 
 describe('LoginScreen', () => {

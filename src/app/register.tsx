@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -10,7 +10,7 @@ import { KTextField }    from '@components/primitives/KTextField';
 import { KIcon }         from '@components/primitives/KIcon';
 import { useDialog }     from '@components/primitives/KDialog';
 import { useAuthStore }  from '../store/authStore';
-import { register, isVersaoTermoDesatualizadaError } from '../services/auth.service';
+import { useRegistrar, mensagemDeErroDeRegistro } from '../hooks/useAuth';
 import { registerSchema, type RegisterFormData } from '../utils/validators';
 import { useVoltar } from '../hooks/useVoltar';
 
@@ -28,7 +28,7 @@ export default function RegisterScreen() {
   const voltar   = useVoltar('/login');
   const setSession = useAuthStore(s => s.setSession);
   const { alerta } = useDialog();
-  const [loading, setLoading] = useState(false);
+  const { mutate: registrar, isPending } = useRegistrar();
 
   const { token: inviteToken, clinicaId } = useLocalSearchParams<{ token?: string; clinicaId?: string }>();
   const hasInvite = !!inviteToken;
@@ -55,41 +55,28 @@ export default function RegisterScreen() {
       await alerta('Convite necessário', 'O cadastro requer um link de convite da clínica.');
       return;
     }
-    setLoading(true);
-    try {
-      const res = await register({
-        inviteToken:          inviteToken!,
-        nmTutor:              data.nmTutor,
-        dsSenha:              data.dsSenha,
-        dsTelefone:           data.dsTelefone,
-        aceiteLembretes:      data.aceiteLembretes,
-        aceiteTeleorientacao: data.aceiteTeleorientacao,
-      });
-      setSession(res.accessToken, res.expiresAt, {
-        id:         res.idTutor,
-        nmTutor:    data.nmTutor,
-        dsEmail:    data.dsEmail,
-        dsTelefone: data.dsTelefone,
-        dtCadastro: new Date().toISOString(),
-      });
-      router.replace('/(tabs)/pets');
-    } catch (err: any) {
-      const status = err?.status;
-      const msg =
-        status === 401 ? 'Convite expirado ou já utilizado.' :
-        status === 409 ? 'E-mail já cadastrado. Faça login.' :
-        // TASK-61 (fix round): versão do termo LGPD desatualizada no cliente — só
-        // resolve atualizando o app (ver nota em auth.service.ts). Mensagem
-        // acionável em vez do genérico abaixo.
-        isVersaoTermoDesatualizadaError(err) ? 'Uma nova versão do aplicativo é necessária para concluir o cadastro. Atualize o app na loja e tente novamente.' :
-        'Erro ao criar conta. Tente novamente.';
-      // TASK-F06: `void` de propósito — o `finally` abaixo desliga o loading do
-      // botão e não pode esperar o tutor fechar o diálogo (o Alert nativo era
-      // fire-and-forget).
-      void alerta('Atenção', msg);
-    } finally {
-      setLoading(false);
-    }
+    registrar({
+      inviteToken:          inviteToken!,
+      nmTutor:              data.nmTutor,
+      dsSenha:              data.dsSenha,
+      dsTelefone:           data.dsTelefone,
+      aceiteLembretes:      data.aceiteLembretes,
+      aceiteTeleorientacao: data.aceiteTeleorientacao,
+    }, {
+      onSuccess: res => {
+        setSession(res.accessToken, res.expiresAt, {
+          id:         res.idTutor,
+          nmTutor:    data.nmTutor,
+          dsEmail:    data.dsEmail,
+          dsTelefone: data.dsTelefone,
+          dtCadastro: new Date().toISOString(),
+        });
+        router.replace('/(tabs)/pets');
+      },
+      // TASK-F06: `void` de propósito — o botão volta do estado de carregamento
+      // sozinho (`isPending`) e não pode esperar o tutor fechar o diálogo.
+      onError: err => { void alerta('Atenção', mensagemDeErroDeRegistro(err)); },
+    });
   };
 
   const c = theme.colors;
@@ -233,7 +220,7 @@ export default function RegisterScreen() {
         <KButton
           variant="primary"
           block
-          loading={loading}
+          loading={isPending}
           onPress={handleSubmit(onSubmit)}
           iconRight={<KIcon name="arrowR" size={16} color={c.textOnPrimary} style={{ marginLeft: 6 }} />}
           style={{ marginTop: 8 }}

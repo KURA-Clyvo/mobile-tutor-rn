@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -10,7 +10,7 @@ import { KTextField }  from '@components/primitives/KTextField';
 import { KIcon }       from '@components/primitives/KIcon';
 import { useDialog }   from '@components/primitives/KDialog';
 import { useAuthStore }  from '../store/authStore';
-import { login }         from '../services/auth.service';
+import { useLogin, mensagemDeErroDeLogin } from '../hooks/useAuth';
 import { loginSchema, type LoginFormData } from '../utils/validators';
 
 export default function LoginScreen() {
@@ -19,30 +19,23 @@ export default function LoginScreen() {
   const insets  = useSafeAreaInsets();
   const setSession = useAuthStore(s => s.setSession);
   const { alerta } = useDialog();
-  const [loading, setLoading] = useState(false);
+  const { mutate: entrar, isPending } = useLogin();
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { dsEmail: '', dsSenha: '' },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
-    setLoading(true);
-    try {
-      const res = await login({ dsEmail: data.dsEmail, dsSenha: data.dsSenha });
-      setSession(res.accessToken, res.expiresAt, res.tutor);
-      router.replace('/(tabs)/pets');
-    } catch (err: any) {
-      const msg = err?.status === 401
-        ? 'E-mail ou senha incorretos'
-        : 'Erro de conexão. Verifique sua internet.';
-      // TASK-F06: `void` de propósito — o `finally` abaixo desliga o loading do
-      // botão e não pode esperar o tutor fechar o diálogo (o Alert nativo era
-      // fire-and-forget).
-      void alerta('Atenção', msg);
-    } finally {
-      setLoading(false);
-    }
+  const onSubmit = (data: LoginFormData) => {
+    entrar({ dsEmail: data.dsEmail, dsSenha: data.dsSenha }, {
+      onSuccess: res => {
+        setSession(res.accessToken, res.expiresAt, res.tutor);
+        router.replace('/(tabs)/pets');
+      },
+      // TASK-F06: `void` de propósito — o botão volta do estado de carregamento
+      // sozinho (`isPending`) e não pode esperar o tutor fechar o diálogo.
+      onError: err => { void alerta('Atenção', mensagemDeErroDeLogin(err)); },
+    });
   };
 
   const c = theme.colors;
@@ -127,7 +120,7 @@ export default function LoginScreen() {
           <KButton
             variant="primary"
             block
-            loading={loading}
+            loading={isPending}
             onPress={handleSubmit(onSubmit)}
             iconRight={<KIcon name="arrowR" size={16} color={c.textOnPrimary} style={{ marginLeft: 6 }} />}
           >

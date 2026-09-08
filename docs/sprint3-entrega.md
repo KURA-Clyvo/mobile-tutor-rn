@@ -96,3 +96,46 @@ para o agente daquela trilha ler com o Felipe: o que já está resolvido no app 
 trava (os 3 DTOs + contract-map, que não existem nesta máquina), e a decisão de produto —
 se `AgendamentoResponse` não traz nome do pet/clínica/motivo, ou o Java enriquece o DTO ou o
 card da agenda passa a estado vazio. Nenhum arquivo de `backend-tutor-java` foi tocado.
+
+## T-4 · Chamada de serviço fora das telas — **fechada**
+
+Quatro telas importavam função de serviço direto: `login.tsx:13` (`login`),
+`register.tsx:13` (`register`, `isVersaoTermoDesatualizadaError`), `saude/index.tsx:12`
+(`getVacinas` — saiu junto com a T-3) e `perfil/index.tsx:12,18` (`queryClient` e as 4
+funções de push).
+
+**Feito:**
+
+- `src/hooks/useAuth.ts` — `useLogin()`/`useRegistrar()` (`useMutation`), mais
+  `mensagemDeErroDeLogin`/`mensagemDeErroDeRegistro` (a tradução de erro veio junto porque
+  depende de `isVersaoTermoDesatualizadaError`, do service) e `useLogout()` (limpa a cache
+  e derruba a sessão; a navegação fica na tela).
+- `usePermissaoNotificacoes()` em `useNotifications.ts` — a leitura sem popup no mount, o
+  pedido de permissão e o registro do device token, incluindo a defesa de não registrar sem
+  sessão. A TASK-70 (fonte da verdade = permissão real do SO) está preservada.
+- As 3 telas perderam o `useState(loading)` e o `try/catch`: agora usam `isPending` do
+  `useMutation`, que é a mesma fonte do resto do app.
+
+**Achado durante a migração:** `mutationFn: login` (sem lambda) fazia o TanStack v5 chamar
+o service com **dois** argumentos — as variáveis e um contexto interno
+(`{client, meta, mutationKey}`). Pego por `LoginScreen.test.tsx`, que afirma o payload
+exato (`Received: {"client": {}, "meta": undefined, "mutationKey": undefined}` como 2º
+argumento). Corrigido no hook, não no teste: `mutationFn: req => login(req)` trava a
+aridade em 1. Hoje é inócuo — `login`/`register` ignoram argumento extra —, mas o dia em
+que um deles ganhar 2º parâmetro (headers, `AbortSignal`) ele nasceria com lixo do
+react-query dentro.
+
+**Efeito colateral necessário:** `LoginScreen.test.tsx` e `RegisterScreen.test.tsx`
+ganharam `QueryClientProvider` no wrapper, na mesma ordem da raiz
+(`PersistQueryClientProvider > ThemeProvider > KDialogProvider`, `_layout.tsx:166-177`) —
+as telas agora usam `useMutation` e no app real já rodam dentro desse provider.
+
+**Prova, com controle positivo:** `grep -rn "from '.*services/" src/app` → **2 linhas, as
+duas em `_layout.tsx`**: `setupHandlers` (registro de listener de push no boot, excluído
+por decisão registrada) e `queryClient`/`asyncStoragePersister` (o provider da raiz, que só
+pode morar ali). Nenhuma tela. O grep achando essas 2 é o próprio controle positivo — o
+instrumento enxerga import de service em `src/app`.
+
+**Verificação:** `Test Suites: 47 passed, 47 total` · `Tests: 1 skipped, 269 passed,
+270 total` · `JEST_EXIT=0`; `npx eslint src` 0 linhas, `LINT_EXIT=0`; `npx tsc --noEmit`
+0 linhas, `TSC_EXIT=0`.
