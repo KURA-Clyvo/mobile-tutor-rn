@@ -165,14 +165,46 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
   // a service function devolve). Executados aqui, não só lidos, por disciplina do
   // método (item 5 da TASK-65: "não classificar por leitura").
   describe('pass-throughs (baixo risco, executados para confirmar)', () => {
+    // T-2: `Array.isArray` era tudo o que este teste afirmava sobre as duas listas —
+    // e por isso ele passou verde enquanto `listPets` e `listAgendamentos` liam o
+    // envelope `Page<T>` como se fosse array. Um array de objetos corrompidos
+    // (`id: undefined`) é um array. Agora as asserções descem ao campo.
     it('login / listPets / listAgendamentos / listConsentimentos executam sem lançar', async () => {
       const loginRes = await login({ dsEmail: 'a@b.com', dsSenha: 'x' });
       expect(typeof loginRes.accessToken).toBe('string');
 
       const pets = await listPets();
       expect(Array.isArray(pets)).toBe(true);
+      expect(pets.length).toBeGreaterThan(0);
+      for (const p of pets) {
+        // `id` (não `idPet`): prova que `mapPetListaDto` rodou de fato.
+        expect(typeof p.id).toBe('number');
+        expect(Number.isNaN(p.id)).toBe(false);
+        expect(typeof p.nmPet).toBe('string');
+        expect(typeof p.nmEspecie).toBe('string');
+        expect(typeof p.nmRaca).toBe('string');
+        expect(['M', 'F']).toContain(p.sgSexo);
+        // Ausentes de propósito: `PetResponse.java` não tem nenhum dos dois. Se um dia
+        // aparecerem preenchidos aqui, ou o servidor mudou ou alguém inventou valor.
+        expect(p.dsStatusGeral).toBeUndefined();
+        expect(p.chips).toBeUndefined();
+      }
+
       const ags = await listAgendamentos();
       expect(Array.isArray(ags)).toBe(true);
+      expect(ags.length).toBeGreaterThan(0);
+      for (const a of ags) {
+        expect(typeof a.id).toBe('number');
+        expect(typeof a.pet.nmPet).toBe('string');
+        expect(Number.isNaN(new Date(a.dtInicio).getTime())).toBe(false);
+        // Os valores traduzidos: nada de `INTENCAO`/`REALIZADO` vazando para a UI.
+        expect(['SOLICITADO', 'AGENDADO', 'CONFIRMADO', 'CANCELADO', 'CONCLUIDO']).toContain(a.sgStatus);
+        expect(['RETORNO', 'ROTINA', 'URGENCIA', 'TELEORIENTACAO']).toContain(a.sgTipoConsulta);
+      }
+      // A tradução de status é exercitada dos dois lados: o mock tem uma linha
+      // `INTENCAO` e uma `REALIZADO`, que não existem no vocabulário do app.
+      expect(ags.map(a => a.sgStatus)).toEqual(expect.arrayContaining(['SOLICITADO', 'CONCLUIDO']));
+
       const cons = await listConsentimentos();
       expect(Array.isArray(cons)).toBe(true);
     });

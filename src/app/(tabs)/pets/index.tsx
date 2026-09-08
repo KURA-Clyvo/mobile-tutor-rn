@@ -14,6 +14,15 @@ import { useAuthStore }      from '../../../store/authStore';
 import { greetingPT }        from '../../../utils/date';
 import type { PetDomain } from '../../../types/domain';
 
+// T-2: `alertasAtivos` pode não vir (não existe em `PetResponse` — é dado de IoT,
+// do backend .NET). Este banner só é renderizado para pets URGENTE, e "0 alertas"
+// num banner de urgência confundiria mais que ajudaria: sem o número, a frase fica
+// genérica em vez de falsa.
+function pluralAlertas(n: number | undefined): string {
+  if (n == null) return 'Atenção necessária';
+  return `${n} alerta${n > 1 ? 's' : ''} ativo${n > 1 ? 's' : ''}`;
+}
+
 export default function MeusPetsScreen() {
   const { colors, fonts, fontSize } = useTheme();
   const insets  = useSafeAreaInsets();
@@ -24,7 +33,7 @@ export default function MeusPetsScreen() {
   const { data: notifs = [] } = useNotifications();
   const naoLidas        = notifs.filter(n => !n.flLida).length;
   const urgentes        = pets.filter(p => p.statusGeral === 'URGENTE');
-  const nAlertas        = pets.reduce((acc, p) => acc + p.alertasAtivos, 0);
+  const nAlertas        = pets.reduce((acc, p) => acc + (p.alertasAtivos ?? 0), 0);
   const primeiroNome    = tutor?.nmTutor.split(' ')[0] ?? 'Tutor';
 
   const renderItem = useCallback(({ item }: { item: PetDomain }) => (
@@ -80,7 +89,7 @@ export default function MeusPetsScreen() {
               <AlertaBanner
                 key={p.id}
                 title={`${p.nome} · atenção necessária`}
-                subtitle={`${p.alertasAtivos} alerta${p.alertasAtivos > 1 ? 's' : ''} ativo${p.alertasAtivos > 1 ? 's' : ''}`}
+                subtitle={pluralAlertas(p.alertasAtivos)}
                 onPress={() => router.push(`/(tabs)/pets/${p.id}`)}
               />
             ))}

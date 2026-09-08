@@ -309,3 +309,59 @@ fazer.
 `AgendamentoResponse`, então do lado do app falta só a chamada — mas construir service, hook e
 botão contra um endpoint que responde 404 seria escrever código que promete o que o sistema não
 faz.
+
+## T-2 · Nomes de campo — **fechada** (08/09, com os DTOs em mãos)
+
+A trilha Java respondeu com os 3 DTOs transcritos campo a campo, mais os valores de enum que o
+`…` do backlog escondia, e **travou os nomes** dos campos que a `SJ3-10` vai acrescentar:
+`nmEspecie`, `nmRaca`, `nmClinica`, **no nível raiz** de `AgendamentoResponse` (não aninhados em
+`pet`). Com isso o mapper pôde ser escrito inteiro de uma vez, sem segunda rodada.
+
+**Feito:**
+
+- `types/api.ts`: `PetListaRaw` (7 campos) e `AgendamentoRaw` (17), transcritos do Java.
+- `utils/mappers.ts`: `mapPetListaDto` e `mapAgendamentoDto`, com as duas tabelas de tradução
+  de **valor** — `status` (`INTENCAO`→`SOLICITADO`, `REALIZADO`/`NAO_COMPARECEU`→`CONCLUIDO`) e
+  `tipo` (o inverso do `mapTipoParaJava` que já existia).
+- Os services passam a devolver o tipo app-facing traduzido. **Nenhuma tela mudou de fluxo.**
+
+**O que ficou ausente, e por quê:** `dsStatusGeral`, `nrAlertasAtivos` e `chips` **não existem
+em lugar nenhum do Java** — `nrAlertasAtivos` é alerta de IoT, dado do backend `.NET`. Viraram
+opcionais em `PetTutorResponse` e `PetDomain`, e as telas degradam: o card mostra `—` em STATUS
+em vez de "Tudo certo", que seria uma afirmação sobre a saúde do pet que ninguém apurou;
+`usePets` ordena pet sem status **no fim**, não no meio, porque o topo é de quem tem urgência
+conhecida.
+
+**`nmVeterinario`: respondido que NÃO é preciso.** Medido antes de responder —
+`grep -rn "nmVeterinario" src/app src/components/domain/AgendamentoItem.tsx` → **0**. O card da
+agenda nunca o renderizou. Os dois lugares que o usam (`ConsultasTab`, `VacinaItem`) vêm de
+outros DTOs e já o tratam como opcional, escondendo a linha. Ele exigiria `@ManyToOne` novo numa
+entidade compartilhada com o `.NET`, a 4 dias da entrega — e não é preciso.
+
+**O achado desta rodada:** trocar o service **sem** trocar o mock deixaria a suíte verde com o
+modo mock quebrado. Os mocks de pets e agendamentos devolviam o shape app-facing, então o mapper
+receberia `id` onde espera `idPet`. Corrigido junto: os dois mocks passaram a devolver
+`Page<T>` com o shape **cru** do Java, mesma disciplina da TASK-65 em `getPetById`.
+
+**Por que ninguém tinha visto:** `mock-contract-audit.test.ts` afirmava só
+`expect(Array.isArray(pets)).toBe(true)` para as duas listas — e **um array de objetos
+corrompidos é um array**. As asserções agora descem ao campo (`typeof p.id === 'number'`, os 5
+valores possíveis de `sgStatus`, e a ausência declarada de `dsStatusGeral`/`chips`).
+
+**Mordida:** com os mocks crus e os 2 services revertidos a `6cf5bc9`, a auditoria de mock dá
+`Tests: 1 failed, 11 passed, 12 total`, `MORDIDA_EXIT=1`, com `typeof p.id` → `"undefined"` —
+literalmente o bug que apareceria no dia em que o mock fosse desligado.
+
+**Consequência assumida no modo demonstração:** a lista de pets deixa de mostrar chips e status,
+porque o servidor real também não os manda. É a mesma tela que o avaliador veria contra a API de
+verdade — um mock mais rico que o servidor é exatamente o que escondeu este contrato por 6
+ciclos.
+
+**Verificação:** `Test Suites: 48 passed, 48 total` · `Tests: 1 skipped, 297 passed, 298 total`
+· `JEST_EXIT=0`; `npx eslint src` 0 linhas, `LINT_EXIT=0`; `npx tsc --noEmit` 0 linhas,
+`TSC_EXIT=0`. Delta: **+8 testes**.
+
+**Processo:** o aviso desta trilha no `KURA_BACKLOG_SPRINT3_JAVA.md` estava em commit local e
+nunca chegou ao `origin` — a trilha Java mediu isso (`grep -c "SEGUNDO AVISO"` no `origin` → 0).
+Commitado, rebaseado sobre a resposta deles (conflito resolvido mantendo os dois lados, pergunta
+antes da resposta) e pushado: `2f55db8`. Confirmado no `origin`: `grep -c` → 4.

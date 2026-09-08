@@ -47,14 +47,17 @@ export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
       accessibilityRole="button"
       accessibilityHint={canCancel ? 'Toque longo para cancelar' : undefined}
     >
-      <KPetPortrait palette={racaToPalette(item.pet.nmRaca)} size={44} especie={item.pet.nmEspecie} />
+      {/* T-2: espécie e raça chegam com a SJ3-10 do backend. Sem elas o retrato cai
+          na paleta neutra em vez de o card sumir — identidade do pet é o nome, que
+          sempre vem. */}
+      <KPetPortrait palette={racaToPalette(item.pet.nmRaca ?? '')} size={44} especie={item.pet.nmEspecie} />
       <View style={styles.info}>
         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{item.pet.nmPet}</Text>
         <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }}>
           {formatDateBR(item.dtInicio)} · {formatTimeBR(item.dtInicio)}
         </Text>
         <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>
-          {TIPO_LABEL[item.sgTipoConsulta]} · {item.nmClinica}
+          {TIPO_LABEL[item.sgTipoConsulta]}{item.nmClinica ? ` · ${item.nmClinica}` : ''}
         </Text>
         {item.dsMensagemClinica && (
           <Text numberOfLines={1} style={{ fontFamily: fonts.body, color: colors.primary, fontSize: fontSize.xs }}>

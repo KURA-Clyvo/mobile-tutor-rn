@@ -13,12 +13,23 @@ export interface RegisterTutorResponse { idTutor: number; accessToken: string; e
 export interface TutorMe { id: number; nmTutor: string; dsEmail: string; dsTelefone: string; dtCadastro: string; }
 
 // ─── Pets ─────────────────────────────────────────────────────
+// T-2: os campos abaixo viraram OPCIONAIS porque o servidor real não os tem —
+// medido em `PetResponse.java` (7 campos: idPet, nmPet, nmEspecie, nmRaca, sgSexo,
+// dtNascimento, sgPorte). `nmClinica`/`nrConsultas` existem só no DTO de DETALHE;
+// `dsStatusGeral` e `chips` não existem em lugar nenhum do Java, e `nrAlertasAtivos`
+// é alerta de IoT, que é dado do backend .NET — não é campo que falta num DTO, é
+// dado que este backend não possui.
+//
+// Opcional aqui NÃO é frouxidão: é o que permite a tela ocultar a seção em vez de
+// exibir um valor inventado. `dsStatusGeral: 'OK'` por padrão diria ao tutor
+// "tudo certo" sobre um pet cujo estado ninguém calculou.
 export interface PetTutorResponse {
   id: number; nmPet: string; nmEspecie: string; nmRaca: string; dtNascimento: string;
-  sgSexo: 'M' | 'F'; sgPorte: 'P' | 'M' | 'G' | 'GG'; nmClinica: string;
-  dsStatusGeral: 'OK' | 'ALERTA' | 'URGENTE'; nrAlertasAtivos: number; nrConsultas: number;
+  sgSexo: 'M' | 'F'; sgPorte: 'P' | 'M' | 'G' | 'GG';
+  nmClinica?: string;
+  dsStatusGeral?: 'OK' | 'ALERTA' | 'URGENTE'; nrAlertasAtivos?: number; nrConsultas?: number;
   dtUltimaConsulta?: string; dtProximoAgendamento?: string;
-  chips: { tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }[];
+  chips?: { tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }[];
   condicoes?: { label: string; tone: 'amber' | 'clay'; desde?: string; observacao?: string }[];
 }
 export interface PetTutorDetailResponse extends PetTutorResponse {
@@ -58,12 +69,22 @@ export interface VacinaStatusResponse {
 }
 
 // ─── Agendamentos ─────────────────────────────────────────────
+// T-2: `nmEspecie`/`nmRaca` do pet e `nmClinica` são OPCIONAIS — a `SJ3-10` do
+// backend vai acrescentá-los a `AgendamentoResponse` (nomes já travados, no nível
+// raiz do objeto), e até lá o servidor não os manda. `nmVeterinario` foi
+// explicitamente deixado FORA daquela task: `Agendamento` tem `@Column Long
+// idVeterinario`, sem `@ManyToOne`, então ele não sai de `@EntityGraph` — exigiria
+// mapeamento novo numa entidade compartilhada com o .NET. Nenhuma tela deste app o
+// renderiza (medido: `grep -rn nmVeterinario src/app` → 0).
 export interface AgendamentoTutorResponse {
-  id: number; dtInicio: string; nrDuracaoMinutos: number;
+  id: number; dtInicio: string; nrDuracaoMinutos?: number;
   sgStatus: 'SOLICITADO' | 'AGENDADO' | 'CONFIRMADO' | 'CANCELADO' | 'CONCLUIDO';
   sgTipoConsulta: 'RETORNO' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
-  pet: { id: number; nmPet: string; nmEspecie: string; nmRaca: string };
-  nmClinica: string; dsMotivo: string; nmVeterinario?: string; dsMensagemClinica?: string;
+  pet: { id: number; nmPet: string; nmEspecie?: string; nmRaca?: string };
+  nmClinica?: string; dsMotivo?: string; nmVeterinario?: string; dsMensagemClinica?: string;
+  // `nrVersion` do optimistic locking do Java — viaja do GET até o PUT de remarcar
+  // (409 em conflito). Opcional porque o mock não o produz.
+  nrVersion?: number;
   // Sala de teleconsulta (Daily.co), preenchida pelo backend-clinica-dotnet — null até o
   // veterinário iniciar a chamada (ver TASK-10/TASK-11). Só relevante quando
   // sgTipoConsulta === 'TELEORIENTACAO'.
@@ -168,6 +189,37 @@ export interface PageRaw<T> {
   number: number;
   size: number;
 }
+// ─── Shapes CRUS do BFF Java (T-2) ────────────────────────────
+// Transcritos de `backend-tutor-java @ 3290687`, campo a campo. Os `record` do Java
+// são serializados pelo Jackson com o nome do componente, então estes nomes são os
+// que chegam no JSON.
+
+/** `PetResponse.java` — item de `Page<PetResponse>` em `GET /v1/tutor/pets`. 7 campos, só. */
+export interface PetListaRaw {
+  idPet: number; nmPet: string; nmEspecie: string;
+  /** `"SRD"` literal quando a raça é nula no banco — não vem `null`. */
+  nmRaca: string;
+  sgSexo: 'M' | 'F'; dtNascimento: string; sgPorte: 'P' | 'M' | 'G';
+}
+
+/**
+ * `AgendamentoResponse.java` — item de `Page<AgendamentoResponse>` em
+ * `GET /v1/tutor/agendamentos`. Os 3 campos opcionais no fim chegam com a `SJ3-10`;
+ * o app já os lê para não precisar de uma segunda rodada quando o backend subir.
+ */
+export interface AgendamentoRaw {
+  idAgendamento: number; idTutor: number; idPet: number; nmPet: string;
+  idClinica: number; idVeterinario: number | null;
+  dtAgendamento: string; nrDuracaoMinutos: number | null;
+  tipo: 'CONSULTA' | 'RETORNO' | 'VACINA' | 'EXAME' | 'PROCEDIMENTO' | 'TELEORIENTACAO' | string;
+  /** Pode vir `null`: o `fromEntity` do Java guarda contra `stStatus` nulo. */
+  status: 'INTENCAO' | 'AGENDADO' | 'CONFIRMADO' | 'REALIZADO' | 'CANCELADO' | 'NAO_COMPARECEU' | string | null;
+  origem: string | null; observacoes: string | null;
+  dtCriacao: string | null; dtConfirmacao: string | null; dtCancelamento: string | null;
+  nrVersion: number | null; dsSalaUrl: string | null;
+  nmEspecie?: string | null; nmRaca?: string | null; nmClinica?: string | null;
+}
+
 export interface PetDetalheRaw {
   idPet: number; nmPet: string; nmEspecie: string; nmRaca: string;
   sgSexo: 'M' | 'F'; dtNascimento: string; sgPorte: 'P' | 'M' | 'G';

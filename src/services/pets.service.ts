@@ -1,20 +1,15 @@
 import { apiClient } from './api/client';
-import type { PetTutorResponse, PetDetalheRaw, PageRaw } from '../types/api';
-import { mapPetDetailDto } from '../utils/mappers';
+import type { PetListaRaw, PetDetalheRaw, PageRaw } from '../types/api';
+import { mapPetDetailDto, mapPetListaDto } from '../utils/mappers';
 import { desembrulharPagina } from './api/pagina';
 
-// T-2: o Java devolve `Page<PetResponse>` aqui (envelope `{content, totalElements}`),
-// não array — o mock devolve array. `desembrulharPagina` aceita as duas formas, então
-// o `.map()` de `usePets` continua recebendo lista nos dois modos.
-//
-// 🔴 Pendente e NÃO resolvido nesta camada: os NOMES dos campos de `PetResponse`
-// (Java) também divergem de `PetTutorResponse` (app) — está documentado em
-// `backend-tutor-java/docs/INT-01-contract-map.md` (linha #3), repositório que não
-// está nesta máquina. Nenhum mapper de lista foi escrito aqui de propósito: inventar
-// nome de campo sem a fonte é o mesmo erro que já custou ciclos neste projeto.
+// T-2: duas divergências, as duas tratadas aqui. O envelope `Page<T>` sai em
+// `desembrulharPagina`; os nomes de campo (`idPet` -> `id`) saem em `mapPetListaDto`.
+// `PetResponse` tem 7 campos e só — `nmClinica`, `dsStatusGeral`, `nrAlertasAtivos`,
+// `nrConsultas` e `chips` não existem nele, e o mapper os deixa ausentes.
 export const listPets = () =>
-  apiClient.get<PageRaw<PetTutorResponse> | PetTutorResponse[]>('/api/v1/tutor/pets')
-    .then(r => desembrulharPagina(r.data));
+  apiClient.get<PageRaw<PetListaRaw> | PetListaRaw[]>('/api/v1/tutor/pets')
+    .then(r => desembrulharPagina(r.data).map(mapPetListaDto));
 
 // TASK-31: GET /pets/{id} agora é real (era stub 501). Java retorna um DTO
 // enxuto (PetDetalheRaw) — mapPetDetailDto adapta para o shape que a tela espera,

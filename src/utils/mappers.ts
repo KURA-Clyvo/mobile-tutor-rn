@@ -1,5 +1,6 @@
 import type {
   PetTutorResponse, PetTutorDetailResponse, PetDetalheRaw,
+  PetListaRaw, AgendamentoRaw, AgendamentoTutorResponse,
   TimelineTutorEventResponse, TimelineTutorEventDetailResponse, TimelineEventoRaw,
   VacinaTutorResponse, VacinaVencendoRaw, VacinaStatusResponse, VacinaStatusRaw,
   NotificacaoTutorResponse, NotificacaoRaw,
@@ -106,5 +107,92 @@ export function mapNotificacaoDto(raw: NotificacaoRaw): NotificacaoTutorResponse
     dsMensagem: raw.dsMensagem,
     dtEnvio: raw.dtCriacao,
     flLida: raw.flLida,
+  };
+}
+
+// ─── T-2 — listas paginadas: Java cru → shape app-facing ──────────────────────
+// Fonte: `backend-tutor-java @ 3290687`, DTOs lidos campo a campo (transcrição em
+// `src/types/api.ts`). Envelope `Page<T>` fica com `desembrulharPagina`; aqui é só
+// tradução de NOME e de VALOR — as duas divergências são independentes.
+
+/** Item de `GET /v1/tutor/pets` (`PetResponse`) → o shape que as telas consomem. */
+export function mapPetListaDto(raw: PetListaRaw): PetTutorResponse {
+  return {
+    id: raw.idPet,
+    nmPet: raw.nmPet,
+    nmEspecie: raw.nmEspecie,
+    nmRaca: raw.nmRaca,
+    dtNascimento: raw.dtNascimento,
+    sgSexo: raw.sgSexo,
+    sgPorte: raw.sgPorte,
+    // nmClinica, dsStatusGeral, nrAlertasAtivos, nrConsultas, chips e condicoes NÃO
+    // existem em `PetResponse` — ficam ausentes, nunca preenchidos com valor de
+    // enfeite. `dsStatusGeral: 'OK'` diria "tudo certo" sobre um pet cujo estado
+    // ninguém calculou, e `nrAlertasAtivos` é dado de IoT, que mora no backend .NET.
+  };
+}
+
+/**
+ * `status` do Java → `sgStatus` do app. As duas listas NÃO são a mesma:
+ * o Java tem `INTENCAO`/`REALIZADO`/`NAO_COMPARECEU`, que o app não conhece, e o app
+ * tem `SOLICITADO`/`CONCLUIDO`, que o Java não emite. A tradução mora aqui, no app, por
+ * decisão da trilha Java: renomear valor no Java quebraria o Swagger e os testes de lá.
+ *
+ * `NAO_COMPARECEU` cai em `CONCLUIDO` porque, do ponto de vista do tutor, é um
+ * agendamento que já passou e não vai acontecer de novo — não é cancelamento (que ele
+ * mesmo poderia ter feito) nem compromisso futuro. É a aproximação menos errada com os
+ * 5 valores que a UI tem hoje.
+ */
+const STATUS_JAVA_PARA_APP: Record<string, AgendamentoTutorResponse['sgStatus']> = {
+  INTENCAO:       'SOLICITADO',
+  AGENDADO:       'AGENDADO',
+  CONFIRMADO:     'CONFIRMADO',
+  REALIZADO:      'CONCLUIDO',
+  CANCELADO:      'CANCELADO',
+  NAO_COMPARECEU: 'CONCLUIDO',
+};
+
+/**
+ * `tipo` do Java → `sgTipoConsulta` do app. É o inverso do `mapTipoParaJava` de
+ * `agendamentos.service.ts`, e a volta é lossy de propósito: `ROTINA` e `URGENCIA`
+ * viajam como `CONSULTA`, então tudo que volta como `CONSULTA` vira `ROTINA`. A
+ * urgência não se perde para o tutor — ela vive no prefixo `[URGENTE]` de
+ * `observacoes`, que é o que a tela mostra como motivo.
+ *
+ * `VACINA`, `EXAME` e `PROCEDIMENTO` existem no Java e não têm equivalente na UI do
+ * tutor (que só oferece presencial e teleorientação); caem em `ROTINA`, o rótulo
+ * neutro, em vez de sumirem da lista.
+ */
+const TIPO_JAVA_PARA_APP: Record<string, AgendamentoTutorResponse['sgTipoConsulta']> = {
+  CONSULTA:       'ROTINA',
+  RETORNO:        'RETORNO',
+  TELEORIENTACAO: 'TELEORIENTACAO',
+  VACINA:         'ROTINA',
+  EXAME:          'ROTINA',
+  PROCEDIMENTO:   'ROTINA',
+};
+
+/** Item de `GET /v1/tutor/agendamentos` (`AgendamentoResponse`) → shape app-facing. */
+export function mapAgendamentoDto(raw: AgendamentoRaw): AgendamentoTutorResponse {
+  return {
+    id:        raw.idAgendamento,
+    dtInicio:  raw.dtAgendamento,
+    sgStatus:  STATUS_JAVA_PARA_APP[raw.status ?? ''] ?? 'SOLICITADO',
+    sgTipoConsulta: TIPO_JAVA_PARA_APP[raw.tipo] ?? 'ROTINA',
+    pet: {
+      id:    raw.idPet,
+      nmPet: raw.nmPet,
+      // Chegam com a SJ3-10 do backend; até lá a linha secundária do card fica vazia.
+      ...(raw.nmEspecie ? { nmEspecie: raw.nmEspecie } : {}),
+      ...(raw.nmRaca    ? { nmRaca:    raw.nmRaca    } : {}),
+    },
+    ...(raw.nrDuracaoMinutos != null ? { nrDuracaoMinutos: raw.nrDuracaoMinutos } : {}),
+    ...(raw.nmClinica  ? { nmClinica:  raw.nmClinica  } : {}),
+    ...(raw.observacoes ? { dsMotivo:  raw.observacoes } : {}),
+    ...(raw.dsSalaUrl  ? { dsSalaUrl:  raw.dsSalaUrl  } : {}),
+    ...(raw.nrVersion != null ? { nrVersion: raw.nrVersion } : {}),
+    // `nmVeterinario` NÃO é mapeado: não existe em `AgendamentoResponse` e ficou fora
+    // da SJ3-10 (a entidade não tem associação com Veterinario, só `Long
+    // idVeterinario`). Nenhuma tela deste app o renderiza.
   };
 }

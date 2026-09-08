@@ -1,5 +1,5 @@
 import type {
-  PetTutorResponse, PetDetalheRaw, PageRaw, TimelineEventoRaw,
+  PetTutorResponse, PetDetalheRaw, PageRaw, TimelineEventoRaw, PetListaRaw,
 } from '../types/api';
 
 export const PETS: PetTutorResponse[] = [
@@ -28,7 +28,29 @@ export const PETS: PetTutorResponse[] = [
   },
 ];
 
-export async function list(): Promise<PetTutorResponse[]> { return PETS; }
+// T-2: devolve o shape RAW do Java (`Page<PetResponse>` — `idPet`, e SÓ os 7 campos
+// que `PetResponse.java` tem), não mais o app-facing `PetTutorResponse[]`. Mesma
+// disciplina da TASK-65 em `byId()`: o mock simula a fronteira HTTP, então ele tem
+// que ser tão pobre quanto o servidor real — senão o modo mock valida um contrato
+// que não existe e a quebra só aparece quando o mock é desligado.
+//
+// Consequência assumida: no modo demonstração a lista de pets não mostra status nem
+// chips, porque o servidor real também não os manda. É a mesma tela que o avaliador
+// veria contra a API de verdade.
+export async function list(): Promise<PageRaw<PetListaRaw>> {
+  const content: PetListaRaw[] = PETS.map(p => ({
+    idPet: p.id,
+    nmPet: p.nmPet,
+    nmEspecie: p.nmEspecie,
+    // `PetResponse.fromEntity` devolve a string literal 'SRD' quando a raça é nula —
+    // nunca `null`. O mock reproduz isso.
+    nmRaca: p.nmRaca || 'SRD',
+    sgSexo: p.sgSexo,
+    dtNascimento: p.dtNascimento,
+    sgPorte: p.sgPorte === 'GG' ? 'G' : p.sgPorte,
+  }));
+  return { content, totalElements: content.length, totalPages: 1, number: 0, size: content.length };
+}
 
 // TASK-65 (FIX_5): devolve o shape RAW do Java (PetDetalheRaw — idPet, sgPorte
 // restrito a P/M/G, nmVeterinarioResponsavel), que é o que getPetById()/
@@ -51,9 +73,11 @@ export async function byId(config: { url?: string }): Promise<PetDetalheRaw> {
     // PetDetalheRaw não tem 'GG' (só P/M/G) — nenhum item de PETS usa 'GG' hoje,
     // mas o fallback documenta a decisão em vez de deixar um cast silencioso.
     sgPorte: found.sgPorte === 'GG' ? 'G' : found.sgPorte,
-    nmClinica: found.nmClinica,
+    // O DTO de DETALHE do Java tem estes dois (diferente do da lista), então o mock
+    // não pode devolvê-los ausentes — ele simula a fronteira HTTP daquele endpoint.
+    nmClinica: found.nmClinica ?? 'Clínica KURA Pinheiros',
     nmVeterinarioResponsavel: null,
-    nrConsultas: found.nrConsultas,
+    nrConsultas: found.nrConsultas ?? 0,
   };
 }
 

@@ -1,13 +1,47 @@
 import type { InternalAxiosRequestConfig } from 'axios';
-import type { AgendamentoTutorResponse, CancelarAgendamentoResponse } from '../types/api';
-export async function list(): Promise<AgendamentoTutorResponse[]> {
-  return [
-    { id: 1, dtInicio: new Date(Date.now() + 2 * 86400_000).toISOString(), nrDuracaoMinutos: 30, sgStatus: 'SOLICITADO', sgTipoConsulta: 'RETORNO', pet: { id: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador' }, nmClinica: 'Clínica KURA Pinheiros', dsMotivo: 'Retorno pós-consulta' },
-    { id: 2, dtInicio: new Date(Date.now() + 7 * 86400_000).toISOString(), nrDuracaoMinutos: 60, sgStatus: 'CONFIRMADO', sgTipoConsulta: 'ROTINA', pet: { id: 2, nmPet: 'Luna', nmEspecie: 'Gato', nmRaca: 'Siamesa' }, nmClinica: 'Clínica KURA Pinheiros', dsMotivo: 'Check-up anual', nmVeterinario: 'Dra. Ana Ferreira' },
-    { id: 4, dtInicio: new Date(Date.now() + 1 * 86400_000).toISOString(), nrDuracaoMinutos: 30, sgStatus: 'CONFIRMADO', sgTipoConsulta: 'TELEORIENTACAO', pet: { id: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador' }, nmClinica: 'Clínica KURA Pinheiros', dsMotivo: 'Teleorientação de rotina', nmVeterinario: 'Dra. Ana Ferreira', dsSalaUrl: 'https://kura.daily.co/room-4' },
-    { id: 3, dtInicio: new Date(Date.now() - 15 * 86400_000).toISOString(), nrDuracaoMinutos: 30, sgStatus: 'CONCLUIDO', sgTipoConsulta: 'ROTINA', pet: { id: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador' }, nmClinica: 'Clínica KURA Pinheiros', dsMotivo: 'Vacina V10' },
-  ];
+import type { AgendamentoRaw, PageRaw, CancelarAgendamentoResponse } from '../types/api';
+// T-2: shape RAW do Java (`Page<AgendamentoResponse>` — `idAgendamento`, `status`,
+// `tipo`, `observacoes`), não mais o app-facing. A tradução de nome e de valor é do
+// `mapAgendamentoDto`; o mock existe para exercitá-la, não para pulá-la.
+//
+// `nmEspecie`/`nmRaca`/`nmClinica` entram porque a SJ3-10 do backend os acrescenta a
+// `AgendamentoResponse`, com estes nomes, no nível raiz — decisão travada pela trilha
+// Java em 08/09. `nmVeterinario` NÃO entra: ficou fora daquela task de propósito
+// (a entidade só tem `Long idVeterinario`, sem associação).
+const CLINICA = 'Clínica KURA Pinheiros';
+
+function linha(over: Partial<AgendamentoRaw> & Pick<AgendamentoRaw, 'idAgendamento' | 'idPet' | 'nmPet' | 'dtAgendamento' | 'tipo' | 'status'>): AgendamentoRaw {
+  return {
+    idTutor: 1, idClinica: 1, idVeterinario: null,
+    nrDuracaoMinutos: 30, origem: 'APP', observacoes: null,
+    dtCriacao: new Date().toISOString(), dtConfirmacao: null, dtCancelamento: null,
+    nrVersion: 0, dsSalaUrl: null, nmClinica: CLINICA,
+    nmEspecie: null, nmRaca: null,
+    ...over,
+  };
 }
+
+export async function list(): Promise<PageRaw<AgendamentoRaw>> {
+  const content: AgendamentoRaw[] = [
+    linha({ idAgendamento: 1, idPet: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador',
+            dtAgendamento: new Date(Date.now() + 2 * 86400_000).toISOString(),
+            tipo: 'RETORNO', status: 'INTENCAO', observacoes: 'Retorno pós-consulta' }),
+    linha({ idAgendamento: 2, idPet: 2, nmPet: 'Luna', nmEspecie: 'Gato', nmRaca: 'Siamesa',
+            dtAgendamento: new Date(Date.now() + 7 * 86400_000).toISOString(),
+            tipo: 'CONSULTA', status: 'CONFIRMADO', nrDuracaoMinutos: 60,
+            observacoes: 'Check-up anual' }),
+    linha({ idAgendamento: 4, idPet: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador',
+            dtAgendamento: new Date(Date.now() + 1 * 86400_000).toISOString(),
+            tipo: 'TELEORIENTACAO', status: 'CONFIRMADO',
+            observacoes: 'Teleorientação de rotina',
+            dsSalaUrl: 'https://kura.daily.co/room-4' }),
+    linha({ idAgendamento: 3, idPet: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador',
+            dtAgendamento: new Date(Date.now() - 15 * 86400_000).toISOString(),
+            tipo: 'VACINA', status: 'REALIZADO', observacoes: 'Vacina V10' }),
+  ];
+  return { content, totalElements: content.length, totalPages: 1, number: 0, size: content.length };
+}
+
 // TASK-74b (FIX_7): antes desta task `criar()` não recebia `config` e ignorava o
 // corpo inteiro — devolvia sucesso fixo mesmo que `agendamentos.service.ts`
 // mandasse o shape antigo da tela (`dtPreferida`/`sgTipoConsulta`/`dsMotivo`, que

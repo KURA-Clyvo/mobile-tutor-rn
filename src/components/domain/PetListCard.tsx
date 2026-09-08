@@ -17,16 +17,20 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
   const { colors, fonts, fontSize, radius } = useTheme();
 
   const palette = racaToPalette(pet.raca);
-  const hasLunaChip = pet.chips.some(c => c.label.includes('✨'));
+  const hasLunaChip = pet.chips?.some(c => c.label.includes('✨')) ?? false;
   const tier = hasLunaChip ? 'detected' : 'emoji';
   const lunaEmoji = hasLunaChip ? '✨' : undefined;
   const condicaoPrincipal = pet.condicoes?.[0];
 
-  const statusLabel = { OK: 'Tudo certo', ALERTA: 'Atenção', URGENTE: 'Urgente' }[pet.statusGeral];
+  // T-2: sem status apurado, a célula mostra '—'. O rótulo 'Tudo certo' é uma
+  // afirmação sobre a saúde do pet — não pode ser o default de "não sei".
+  const statusLabel = pet.statusGeral
+    ? { OK: 'Tudo certo', ALERTA: 'Atenção', URGENTE: 'Urgente' }[pet.statusGeral]
+    : '—';
 
   const stats: StatCell[] = [
     { label: 'PRÓXIMO', value: pet.dtProximoAgendamento ? formatDateShortBR(pet.dtProximoAgendamento) : '—' },
-    { label: 'STATUS',  value: statusLabel, alert: pet.statusGeral !== 'OK' },
+    { label: 'STATUS',  value: statusLabel, alert: !!pet.statusGeral && pet.statusGeral !== 'OK' },
   ];
 
   return (
@@ -38,7 +42,7 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
         pressed && { opacity: 0.8 },
       ]}
       accessibilityRole="button"
-      accessibilityLabel={`${pet.nome}, ${pet.especie}, ${pet.statusGeral}`}
+      accessibilityLabel={`${pet.nome}, ${pet.especie}${pet.statusGeral ? `, ${pet.statusGeral}` : ''}`}
     >
       <View style={styles.topRow}>
         <KPetPortrait palette={palette} size={56} tier={tier} badge={lunaEmoji} especie={pet.especie} />

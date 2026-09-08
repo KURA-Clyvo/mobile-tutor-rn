@@ -24,7 +24,7 @@ export default function SaudeScreen() {
     refetchVacinas();
   };
 
-  const alertas = pets.filter(p => p.alertasAtivos > 0);
+  const alertas = pets.filter(p => (p.alertasAtivos ?? 0) > 0);
 
   const vacinaAlerts = vacinasPorPet.flatMap(({ pet, vacinas }) =>
     vacinas.filter(v => v.sgStatus !== 'EM_DIA').map(vacina => ({ pet, vacina })),
@@ -70,8 +70,8 @@ export default function SaudeScreen() {
             {alertas.map(p => (
               <AlertaBanner
                 key={p.id}
-                title={`${p.nome} · ${p.alertasAtivos} alerta${p.alertasAtivos > 1 ? 's' : ''}`}
-                subtitle={`Status: ${p.statusGeral} · ${p.nmClinica}`}
+                title={`${p.nome} · ${p.alertasAtivos ?? 0} alerta${(p.alertasAtivos ?? 0) > 1 ? 's' : ''}`}
+                subtitle={[p.statusGeral && `Status: ${p.statusGeral}`, p.nmClinica].filter(Boolean).join(' · ')}
                 onPress={() => router.push(`/(tabs)/pets/${p.id}`)}
               />
             ))}
