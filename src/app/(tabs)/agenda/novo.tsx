@@ -10,14 +10,14 @@ import { useDialog }  from '@components/primitives/KDialog';
 import { usePets }    from '../../../hooks/usePets';
 import { useSolicitarAgendamento } from '../../../hooks/useAgendamentos';
 import { useVoltar } from '../../../hooks/useVoltar';
+import { useHorariosOcupados, horarioJaPassou } from '../../../hooks/useHorariosOcupados';
+import { GRADE_HORARIOS_PADRAO } from '../../../constants/agenda';
 import { addDays, formatDateBR } from '../../../utils/date';
 import type { SolicitarAgendamentoRequest } from '../../../types/api';
 
 type TipoConsulta = 'RETORNO' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
 
-const SLOTS = ['09:00','09:30','10:00','10:30','11:00','11:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
 const DIAS_SEMANA = ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
-const INDISPONIVEIS = new Set(['10:00','11:30','14:00','16:30']);
 
 export default function NovoAgendamentoScreen() {
   const { colors, fonts, fontSize, radius } = useTheme();
@@ -40,6 +40,11 @@ export default function NovoAgendamentoScreen() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const days  = Array.from({ length: 7 }, (_, i) => addDays(today, i));
   const selectedPet = pets.find(p => p.id === selectedPetId);
+
+  // T-6: os horários tomados saem dos agendamentos que a API já devolve — antes
+  // eram 4 horários fixos escritos nesta tela. Ver o limite declarado no hook: isto
+  // é a agenda DESTE tutor, não a disponibilidade da clínica.
+  const { ocupados } = useHorariosOcupados(days[selectedDay]);
 
   const dtPreferida = useMemo(() => {
     if (!selectedSlot) return null;
@@ -184,8 +189,8 @@ export default function NovoAgendamentoScreen() {
         {/* Slots grid 4 colunas */}
         <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>HORÁRIO</Text>
         <View style={styles.slotsGrid}>
-          {SLOTS.map(slot => {
-            const unavailable = INDISPONIVEIS.has(slot);
+          {GRADE_HORARIOS_PADRAO.map(slot => {
+            const unavailable = ocupados.has(slot) || horarioJaPassou(days[selectedDay], slot);
             const active      = selectedSlot === slot;
             return (
               <Pressable

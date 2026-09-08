@@ -207,3 +207,39 @@ em seguida (`git status` limpo antes do commit).
 **Verificação:** `Test Suites: 47 passed, 47 total` · `Tests: 1 skipped, 280 passed, 281 total`
 · `JEST_EXIT=0`; `npx eslint src` 0 linhas, `LINT_EXIT=0`; `npx tsc --noEmit` 0 linhas,
 `TSC_EXIT=0`. Delta: **+11 testes** no mesmo arquivo de gate (26 casos, era 15).
+
+## T-6 · Horários da agenda vindos de dado real — **fechada**
+
+`agenda/novo.tsx` declarava `SLOTS` (16 horários) e
+`INDISPONIVEIS = new Set(['10:00','11:30','14:00','16:30'])` — horários que o tutor via como
+ocupados sem que nada tivesse sido consultado, no fluxo principal do app. E um horário que ele
+mesmo acabara de marcar continuava aparecendo livre.
+
+**Feito:**
+
+- `src/constants/agenda.ts` — `GRADE_HORARIOS_PADRAO`, com o comentário dizendo que é
+  **horário comercial da clínica, não disponibilidade**.
+- `src/hooks/useHorariosOcupados.ts` — cruza a grade com os agendamentos do dia vindos do
+  `GET /v1/tutor/agendamentos`. Mesma `queryKey ['agendamentos']` que as mutações já
+  invalidam, então marcar um horário o tira da grade **sem reiniciar o app**. Cancelado
+  devolve o horário para a grade.
+- `horarioJaPassou()` no mesmo hook: horário de hoje já vencido sai da oferta. O Java valida
+  `dtAgendamento` com `@Future` (`AgendamentoRequest`), então oferecer passado era **400
+  garantido** — o tutor levava erro genérico por uma escolha que a própria tela permitiu.
+
+**Limite declarado, no código:** o app só enxerga os agendamentos **deste tutor**. Isto não é a
+agenda da clínica — não existe endpoint de disponibilidade hoje, e inventar "livre" que o
+servidor não sustenta seria pior que o Set fixo removido.
+
+**Prova:** `grep -rn "INDISPONIVEIS" src/` → **3 linhas, todas comentário** (`constants/agenda.ts:11`,
+`useHorariosOcupados.ts:17,26`, explicando o que foi removido); **0 como código**. Não vou
+reportar isso como "0 ocorrências": o comando literal do backlog devolve 3, e quem repetir tem
+que achar o mesmo número que eu achei. Controle positivo: `grep -rn "GRADE_HORARIOS_PADRAO" src/`
+→ 4 linhas, incluindo o uso real em `novo.tsx:192`.
+
+**Mordida do bug original:** o teste "um agendamento novo muda a grade" falha por construção
+contra a versão antiga — lá o Set era constante de módulo, então nenhum dado mudava a grade.
+
+**Verificação:** `Test Suites: 48 passed, 48 total` · `Tests: 1 skipped, 289 passed, 290 total`
+· `JEST_EXIT=0`; `npx eslint src` 0 linhas, `LINT_EXIT=0`; `npx tsc --noEmit` 0 linhas,
+`TSC_EXIT=0`. Delta: **+9 testes, +1 suíte**.
