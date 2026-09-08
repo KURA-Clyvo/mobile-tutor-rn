@@ -173,3 +173,37 @@ na mão). A decisão é do Felipe, e está no adendo de
 **`MB-06` medida:** `grep -rn "PutMapping" src/main/java/.../bff/api/` -> **0**; controle
 positivo `AgendamentoController:99` **tem** o `@PutMapping("/{id}")`. A T-7 continua bloqueada
 nisso.
+
+## T-5 · Gate de arquitetura, regras 6, 7 e 8 — **fechada**
+
+`arquitetura-gate.test.ts` foi de 5 para 8 regras, todas derivadas da AST (não de `grep`) e
+todas com **sentinela própria** — o padrão que o arquivo já tinha.
+
+- **Regra 6** — nenhum `useQuery`/`useQueries`/`useMutation`/`useInfiniteQuery` em `src/app/`
+  ou `src/components/`. Detecta a **chamada e o import**, porque cada um sozinho tem buraco.
+  `useQueryClient` fica de fora de propósito: não busca nem muta dado, e um `grep` de texto o
+  pegaria junto por ser prefixo — a AST compara o identificador inteiro, e a sentinela prova.
+- **Regra 7** — a UI não importa **função** de `src/services/`; `import type` e
+  `import { type X }` são permitidos. Allowlist de 3 símbolos, todos em `_layout.tsx`
+  (`setupHandlers`, `queryClient`, `asyncStoragePersister`), cada um com a razão escrita e
+  verificada por um teste que exige razão > 30 caracteres e arquivo existente.
+- **Regra 8** — a ordem de import de `notifications.service.ts` é load-bearing: o silenciador
+  de avisos do Expo Go tem que ser o **primeiro** import, antes de `expo-notifications`. Nada
+  automatizado protegia isso; um organize-imports quebraria o fix **com a suíte verde**. A
+  regra também afirma que aquele arquivo continua sendo o **único** importador de
+  `expo-notifications` — se aparecer um segundo, ela deixa de cobrir o caminho real e precisa
+  ser ampliada.
+
+**Controle positivo em cada regra de varredura:** as regras 6 e 7 afirmam que o mesmo detector
+**acha** o padrão onde ele deve estar (>= 10 usos de hook e >= 8 imports de service em
+`src/hooks/`). Sem isso, "0 violações" seria afirmação sobre a cegueira do instrumento.
+
+**Mordida contra código real, não só sintético:** injetando `import { useQuery }` + chamada e
+`import { getVacinas }` em `(tabs)/saude/index.tsx`, e trocando a ordem dos 2 primeiros imports
+de `notifications.service.ts`, o gate dá `Tests: 3 failed, 23 passed, 26 total`,
+`MORDIDA_EXIT=1`, apontando arquivo e linha de cada uma das 5 violações. Arquivos restaurados
+em seguida (`git status` limpo antes do commit).
+
+**Verificação:** `Test Suites: 47 passed, 47 total` · `Tests: 1 skipped, 280 passed, 281 total`
+· `JEST_EXIT=0`; `npx eslint src` 0 linhas, `LINT_EXIT=0`; `npx tsc --noEmit` 0 linhas,
+`TSC_EXIT=0`. Delta: **+11 testes** no mesmo arquivo de gate (26 casos, era 15).

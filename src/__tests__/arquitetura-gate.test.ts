@@ -413,3 +413,261 @@ describe('GATE F09 - regra 5 - toda aba tem seu proprio _layout.tsx', () => {
     expect(nomesDeAbasDeclarados(parsear('f.tsx', fonte))).toEqual(['real']);
   });
 });
+
+// ---------------------------------------------------------------------------
+// REGRA 6 (T-5) — nenhum hook do TanStack Query dentro de src/app/ ou src/components/
+// Derivação: varredura recursiva das duas pastas, AST. Detecta a CHAMADA
+// (`useQuery({...})`) e o IMPORT nomeado de '@tanstack/react-query' — as duas,
+// porque cada uma sozinha tem um buraco: só-chamada perde um alias renomeado no
+// import, e só-import perde um re-export interno.
+//
+// A regra que a T-3 fechou: `(tabs)/saude/index.tsx` montava um `useQueries` na
+// própria tela, com queryKey e queryFn escritos ali. O critério da disciplina pede
+// hooks de TanStack Query isolados da camada de UI.
+//
+// `useQueryClient` NÃO entra na lista de propósito: ele não busca nem muta dado,
+// só alcança o client já montado. Um `grep` de texto por "useQuery" pegaria ele
+// junto (é prefixo); a AST compara o identificador inteiro, e a sentinela prova.
+// ---------------------------------------------------------------------------
+const HOOKS_DE_DADOS = new Set(['useQuery', 'useQueries', 'useMutation', 'useInfiniteQuery']);
+const DIR_COMPONENTS = path.join(DIR_SRC, 'components');
+
+function usosDeHookDeDados(sf: ts.SourceFile): { linha: number; oque: string }[] {
+  const achados: { linha: number; oque: string }[] = [];
+  for (const stmt of sf.statements) {
+    if (!ts.isImportDeclaration(stmt)) continue;
+    if (!ts.isStringLiteral(stmt.moduleSpecifier)) continue;
+    if (stmt.moduleSpecifier.text !== '@tanstack/react-query') continue;
+    const bindings = stmt.importClause?.namedBindings;
+    if (bindings && ts.isNamedImports(bindings)) {
+      for (const el of bindings.elements) {
+        const original = (el.propertyName ?? el.name).text;
+        if (HOOKS_DE_DADOS.has(original)) {
+          achados.push({ linha: linhaDe(sf, el), oque: 'import de `' + original + '`' });
+        }
+      }
+    }
+  }
+  visitar(sf, (no) => {
+    if (!ts.isCallExpression(no)) return;
+    if (!ts.isIdentifier(no.expression)) return;
+    if (!HOOKS_DE_DADOS.has(no.expression.text)) return;
+    achados.push({ linha: linhaDe(sf, no), oque: 'chamada a `' + no.expression.text + '(...)`' });
+  });
+  return achados;
+}
+
+describe('GATE F09 - regra 6 - hooks do TanStack Query ficam fora da camada de UI', () => {
+  const ui = [...listarRecursivo(DIR_APP, ['.ts', '.tsx']), ...listarRecursivo(DIR_COMPONENTS, ['.ts', '.tsx'])];
+
+  it('a varredura cobre as duas pastas de UI', () => {
+    expect(ui.some((a) => rel(a).startsWith('src/app/'))).toBe(true);
+    expect(ui.some((a) => rel(a).startsWith('src/components/'))).toBe(true);
+    expect(ui.length).toBeGreaterThanOrEqual(25);
+  });
+
+  it('o instrumento acha os hooks onde eles DEVEM estar (controle positivo)', () => {
+    // Se este numero cair para 0, o detector parou de enxergar - e o teste de
+    // cima passaria verde por cegueira, nao por conformidade.
+    const emHooks = listarRecursivo(path.join(DIR_SRC, 'hooks'), ['.ts'])
+      .flatMap((a) => usosDeHookDeDados(parsear(a)));
+    expect(emHooks.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it('nenhuma tela ou componente usa useQuery/useQueries/useMutation', () => {
+    const violacoes: string[] = [];
+    for (const arquivo of ui) {
+      for (const uso of usosDeHookDeDados(parsear(arquivo))) {
+        violacoes.push(`${rel(arquivo)}:${uso.linha} - ${uso.oque}`);
+      }
+    }
+    falhar(
+      'REGRA 6 - hook do TanStack Query dentro da camada de UI',
+      violacoes,
+      'queryKey e queryFn escritas na tela acoplam a UI ao transporte: duas telas que leem o mesmo recurso divergem a chave sem ninguem perceber (cache duplicada, invalidacao que nao alcanca a outra), e a tela deixa de ser testavel sem um QueryClient real. Foi o caso de `(tabs)/saude/index.tsx` ate a T-3.',
+      'crie o hook em `src/hooks/` (ex.: `useVacinasDosPets.ts`) e deixe a tela consumir so o resultado: `const { dados, isLoading, refetch } = useMeuHook(...)`.',
+    );
+  });
+
+  it('sentinela: pega chamada e import reais, ignora comentario/string e nao confunde useQueryClient', () => {
+    const chamada = "import { useQuery } from '@tanstack/react-query';\nexport const f = () => useQuery({ queryKey: ['x'] });";
+    const soComentario = '// antes isso era um useQuery({...}) na tela\nexport const x = 1;';
+    const emString = "export const doc = 'nao use useQuery aqui';";
+    const client = "import { useQueryClient } from '@tanstack/react-query';\nexport const f = () => useQueryClient();";
+    expect(usosDeHookDeDados(parsear('f.ts', chamada))).toHaveLength(2); // o import e a chamada
+    expect(usosDeHookDeDados(parsear('f.ts', soComentario))).toHaveLength(0);
+    expect(usosDeHookDeDados(parsear('f.ts', emString))).toHaveLength(0);
+    expect(usosDeHookDeDados(parsear('f.ts', client))).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REGRA 7 (T-5) — a camada de UI não importa FUNÇÃO de src/services/
+// Import de TIPO é permitido (`import type { X }` e `import { type X }`): tipo
+// some na compilação, não cria acoplamento em runtime, e o app inteiro tipa
+// props contra os DTOs declarados em `types/api`.
+//
+// Derivação: AST das ImportDeclaration de src/app/ e src/components/, casando o
+// especificador contra `services/` (relativo ou pelo alias `@services/`).
+// ---------------------------------------------------------------------------
+const ALLOWLIST_SERVICES: { arquivo: string; simbolo: string; razao: string }[] = [
+  {
+    arquivo: 'src/app/_layout.tsx',
+    simbolo: 'setupHandlers',
+    razao: 'nao e acesso a dados: registra os listeners de notificacao e o canal do Android uma vez no boot. Precisa do QueryClient e do Router da raiz, entao so pode ser chamado do layout raiz - nao existe tela onde caberia melhor.',
+  },
+  {
+    arquivo: 'src/app/_layout.tsx',
+    simbolo: 'queryClient',
+    razao: 'e a instancia que o PersistQueryClientProvider da raiz monta. Nao e funcao de acesso a dados, e o provider so pode viver aqui - todo hook do app depende dele estar acima na arvore.',
+  },
+  {
+    arquivo: 'src/app/_layout.tsx',
+    simbolo: 'asyncStoragePersister',
+    razao: 'mesma razao do queryClient: e config do provider da raiz (persistencia da cache em AsyncStorage), passada como prop no mesmo ponto de montagem.',
+  },
+];
+
+function importsDeFuncaoDeService(sf: ts.SourceFile): { linha: number; simbolo: string }[] {
+  const achados: { linha: number; simbolo: string }[] = [];
+  for (const stmt of sf.statements) {
+    if (!ts.isImportDeclaration(stmt)) continue;
+    if (!ts.isStringLiteral(stmt.moduleSpecifier)) continue;
+    const de = stmt.moduleSpecifier.text;
+    if (!/(^|\/)services\//.test(de) && !de.startsWith('@services/')) continue;
+    const clause = stmt.importClause;
+    if (!clause) continue;                 // `import 'efeito'` — não traz símbolo
+    if (clause.isTypeOnly) continue;       // `import type { X } from ...`
+    if (clause.name) {
+      achados.push({ linha: linhaDe(sf, clause.name), simbolo: clause.name.text });
+    }
+    const bindings = clause.namedBindings;
+    if (!bindings) continue;
+    if (ts.isNamespaceImport(bindings)) {
+      achados.push({ linha: linhaDe(sf, bindings), simbolo: '* as ' + bindings.name.text });
+      continue;
+    }
+    for (const el of bindings.elements) {
+      if (el.isTypeOnly) continue;         // `import { type X }`
+      achados.push({ linha: linhaDe(sf, el), simbolo: (el.propertyName ?? el.name).text });
+    }
+  }
+  return achados;
+}
+
+describe('GATE F09 - regra 7 - a UI nao importa funcao de src/services/', () => {
+  const ui = [...listarRecursivo(DIR_APP, ['.ts', '.tsx']), ...listarRecursivo(DIR_COMPONENTS, ['.ts', '.tsx'])];
+
+  it('o instrumento acha os imports de service onde eles DEVEM estar (controle positivo)', () => {
+    const emHooks = listarRecursivo(path.join(DIR_SRC, 'hooks'), ['.ts'])
+      .flatMap((a) => importsDeFuncaoDeService(parsear(a)));
+    expect(emHooks.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('nenhuma tela ou componente importa funcao de service', () => {
+    const violacoes: string[] = [];
+    for (const arquivo of ui) {
+      const relativo = rel(arquivo);
+      for (const imp of importsDeFuncaoDeService(parsear(arquivo))) {
+        const liberado = ALLOWLIST_SERVICES.some((i) => i.arquivo === relativo && i.simbolo === imp.simbolo);
+        if (liberado) continue;
+        violacoes.push(`${relativo}:${imp.linha} - importa \`${imp.simbolo}\` de src/services/`);
+      }
+    }
+    falhar(
+      'REGRA 7 - funcao de service importada pela camada de UI',
+      violacoes,
+      'a tela chamando o service direto pula a camada de hooks: perde estado de carregamento e de erro padronizados, perde invalidacao de cache, e o acesso a dados fica espalhado por N telas em vez de um lugar. Foi o caso de login/register/saude/perfil ate a T-4.',
+      "crie (ou reaproveite) o hook em `src/hooks/` e importe dele. Se o que voce precisa e so o TIPO, use `import type { X } from ...` - isso e permitido e nao conta como violacao.",
+    );
+  });
+
+  it('todo item da allowlist tem razao escrita e aponta para arquivo que existe', () => {
+    for (const item of ALLOWLIST_SERVICES) {
+      expect(item.razao.trim().length).toBeGreaterThan(30);
+      expect(fs.existsSync(path.join(RAIZ_REPO, item.arquivo))).toBe(true);
+    }
+  });
+
+  it('sentinela: pega funcao e default, ignora import de tipo e side-effect', () => {
+    const funcao = "import { getVacinas } from '../../../services/vacinas.service';";
+    const alias  = "import { queryClient } from '@services/queryClient';";
+    const tipo   = "import type { Pet } from '../../services/pets.service';";
+    const tipoInline = "import { type Pet } from '../../services/pets.service';";
+    const efeito = "import '../../services/algum.fx';";
+    const outroDir = "import { algo } from '../../hooks/useAlgo';";
+    expect(importsDeFuncaoDeService(parsear('f.tsx', funcao))).toHaveLength(1);
+    expect(importsDeFuncaoDeService(parsear('f.tsx', alias))).toHaveLength(1);
+    expect(importsDeFuncaoDeService(parsear('f.tsx', tipo))).toHaveLength(0);
+    expect(importsDeFuncaoDeService(parsear('f.tsx', tipoInline))).toHaveLength(0);
+    expect(importsDeFuncaoDeService(parsear('f.tsx', efeito))).toHaveLength(0);
+    expect(importsDeFuncaoDeService(parsear('f.tsx', outroDir))).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REGRA 8 (T-5) — a ordem de import de notifications.service.ts é load-bearing
+//
+// O filtro de avisos do Expo Go (`silenciarAvisosPushExpoGo.fx`) só alcança os 2
+// avisos de push porque eles são emitidos na AVALIAÇÃO de `expo-notifications`, e
+// imports são avaliados na ordem em que aparecem. Se um formatador ou um "organize
+// imports" reordenar alfabeticamente, o fix morre — em silêncio, com a suite
+// verde, porque nenhum outro teste observa a ordem. Uma versão anterior passou nos
+// testes e falhou em runtime exatamente assim.
+//
+// Esta regra não julga estilo: ela afirma UMA relação de ordem, no único arquivo do
+// app que importa `expo-notifications`.
+// ---------------------------------------------------------------------------
+const SERVICE_NOTIF = 'src/services/notifications.service.ts';
+const FX_SILENCIAR = '../utils/silenciarAvisosPushExpoGo.fx';
+const MODULO_NOTIF = 'expo-notifications';
+
+/** Índices (0-based) do 1º import de cada módulo; -1 quando ausente. */
+function ordemDeImports(sf: ts.SourceFile): { fx: number; notif: number; total: number } {
+  const modulos: string[] = [];
+  for (const stmt of sf.statements) {
+    if (!ts.isImportDeclaration(stmt)) continue;
+    if (!ts.isStringLiteral(stmt.moduleSpecifier)) continue;
+    modulos.push(stmt.moduleSpecifier.text);
+  }
+  return { fx: modulos.indexOf(FX_SILENCIAR), notif: modulos.indexOf(MODULO_NOTIF), total: modulos.length };
+}
+
+describe('GATE F09 - regra 8 - o silenciador de avisos vem antes de expo-notifications', () => {
+  const alvo = path.join(RAIZ_REPO, SERVICE_NOTIF);
+
+  it('o arquivo alvo existe e continua sendo o unico que importa expo-notifications', () => {
+    expect(fs.existsSync(alvo)).toBe(true);
+    const importadores = listarRecursivo(DIR_SRC, ['.ts', '.tsx'])
+      .filter((a) => !rel(a).startsWith(PREFIXO_TESTES))
+      .filter((a) => ordemDeImports(parsear(a)).notif >= 0)
+      .map(rel);
+    // Se aparecer um segundo importador, esta regra deixa de cobrir o caminho
+    // real e precisa ser ampliada - por isso a assercao e de igualdade.
+    expect(importadores).toEqual([SERVICE_NOTIF]);
+  });
+
+  it('o import do silenciador e o PRIMEIRO do arquivo, antes de expo-notifications', () => {
+    const { fx, notif } = ordemDeImports(parsear(alvo));
+    const violacoes: string[] = [];
+    if (fx !== 0) violacoes.push(`${SERVICE_NOTIF} - o silenciador esta na posicao ${fx}, deveria ser a 0`);
+    if (notif >= 0 && fx > notif) violacoes.push(`${SERVICE_NOTIF} - expo-notifications (pos ${notif}) e avaliado ANTES do silenciador (pos ${fx})`);
+    falhar(
+      'REGRA 8 - ordem de import quebrada em notifications.service.ts',
+      violacoes,
+      'os 2 avisos de push do Expo Go sao emitidos na avaliacao de `expo-notifications`, e imports sao avaliados na ordem em que aparecem. Com o silenciador depois, o filtro e instalado tarde demais e os avisos voltam - sem nenhum teste ficar vermelho, porque nada mais observa a ordem.',
+      "devolva o import de '../utils/silenciarAvisosPushExpoGo.fx' para a PRIMEIRA linha de import do arquivo, antes de 'expo-notifications'. Se o seu editor reordenou, desligue o organize-imports automatico neste arquivo.",
+    );
+  });
+
+  it('sentinela: o detector reprova a ordem trocada e aprova a correta', () => {
+    const correto = `import '${FX_SILENCIAR}';\nimport * as N from '${MODULO_NOTIF}';\nexport const x = 1;`;
+    const trocado = `import * as N from '${MODULO_NOTIF}';\nimport '${FX_SILENCIAR}';\nexport const x = 1;`;
+    const semFx = `import * as N from '${MODULO_NOTIF}';\nexport const x = 1;`;
+    expect(ordemDeImports(parsear('f.ts', correto))).toMatchObject({ fx: 0, notif: 1 });
+    const t = ordemDeImports(parsear('f.ts', trocado));
+    expect(t.fx).toBe(1);
+    expect(t.fx > t.notif).toBe(true);
+    expect(ordemDeImports(parsear('f.ts', semFx)).fx).toBe(-1);
+  });
+});
