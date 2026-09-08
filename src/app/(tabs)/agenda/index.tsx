@@ -66,7 +66,23 @@ export default function AgendaScreen() {
         {proximos.length === 0
           ? <EmptySection label="Sem próximos agendamentos" />
           : proximos.map(a => (
-              <AgendamentoItem key={a.id} item={a} onLongPress={() => void handleCancel(a.id)} />
+              <AgendamentoItem
+                key={a.id}
+                item={a}
+                onLongPress={() => void handleCancel(a.id)}
+                // T-7a: a tela de agendamento é reaproveitada em modo "remarcar" —
+                // ela já tem a grade de dias/horários e já sabe quais estão ocupados
+                // (T-6). `nrVersion` viaja como parâmetro porque é ele que o PUT
+                // exige para detectar conflito.
+                onRemarcar={() => router.push({
+                  pathname: '/(tabs)/agenda/novo',
+                  params: {
+                    idPet: String(a.pet.id),
+                    idAgendamento: String(a.id),
+                    nrVersion: String(a.nrVersion ?? ''),
+                  },
+                })}
+              />
             ))
         }
 

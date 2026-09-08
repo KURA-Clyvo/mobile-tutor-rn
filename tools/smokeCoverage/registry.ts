@@ -25,6 +25,13 @@ export const SMOKE_COVERAGE_REGISTRY: Record<string, CoverageEntry> = {
   'agendamentos.service.ts::cancelarAgendamento': {
     coberto: 'tutor/agendamentos (DELETE — cancelar AG2)',
   },
+  // T-7a: o PUT nasceu em 08/09, junto com a SJ3-10 que o expôs no BFF
+  // (`AgendamentoBffController:85`). `smoke-contratos.sh` ainda não tem check para
+  // ele — declarar `coberto` aqui seria alegar cobertura inexistente, que é
+  // exatamente o que este registry existe para impedir.
+  'agendamentos.service.ts::remarcarAgendamento': {
+    naoCoberto: 'PUT tutor/agendamentos/{id} — check ausente em smoke-contratos.sh; exige agendamento criado no mesmo run E o nrVersion lido do GET anterior (o smoke hoje não encadeia leitura->escrita com versão)',
+  },
 
   // auth.service.ts
   'auth.service.ts::login': { coberto: 'tutor/auth/login' },

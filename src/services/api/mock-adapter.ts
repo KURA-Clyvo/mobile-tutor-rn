@@ -33,7 +33,11 @@ const ROUTES: [RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>][] = 
   // diferente (tem o `/{id}` a mais), então nem precisaria checar `c.method`, mas o
   // padrão `\d+$` garante que só DELETE .../agendamentos/{id} casa aqui, nunca
   // .../agendamentos puro.
-  [/\/tutor\/agendamentos\/\d+$/,           (c) => agendaMock.cancelar(c)],
+  // T-7a: PUT (remarcar) e DELETE (cancelar) compartilham a MESMA url. A rota de
+  // agendamentos já foi cega a método uma vez (TASK-65, GET e POST em
+  // `/agendamentos`) e custou um bug que sobreviveu ciclos — aqui o despacho é
+  // explícito desde o primeiro dia.
+  [/\/tutor\/agendamentos\/\d+$/,           (c) => c.method === 'put' ? agendaMock.remarcar(c) : agendaMock.cancelar(c)],
   // TASK-73 (FIX_7): shape cru do Java (ConsentimentoResponse) — antes devolvia
   // {id, sgStatus, dtConsentimento, dsIdempotencyKey}, que não existe no Java real
   // nem no tipo ConsentimentoResponse atual. `assinar()`/`revogar()` batem no MESMO

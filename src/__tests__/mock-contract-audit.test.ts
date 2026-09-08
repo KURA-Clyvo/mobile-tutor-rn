@@ -29,7 +29,7 @@ import { getTimeline, getEventDetail } from '../services/timeline.service';
 import { listPets, getPetById } from '../services/pets.service';
 import { getVacinas, getVacinaStatus } from '../services/vacinas.service';
 import { getNotificacoes, registerDeviceToken } from '../services/notifications.service';
-import { listAgendamentos, solicitarAgendamento, cancelarAgendamento } from '../services/agendamentos.service';
+import { listAgendamentos, solicitarAgendamento, cancelarAgendamento, remarcarAgendamento } from '../services/agendamentos.service';
 import { listConsentimentos, assinar, revogar } from '../services/consentimentos.service';
 import { login } from '../services/auth.service';
 
@@ -207,6 +207,31 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
 
       const cons = await listConsentimentos();
       expect(Array.isArray(cons)).toBe(true);
+    });
+
+    // T-7a: PUT e DELETE compartilham a MESMA url `/tutor/agendamentos/{id}`. A rota
+    // de agendamentos já foi cega a método uma vez (TASK-65) e o bug sobreviveu
+    // ciclos, então o despacho por método é exercitado aqui, não só declarado.
+    it('remarcarAgendamento (PUT) executa contra o mock e devolve o shape do app', async () => {
+      const res = await remarcarAgendamento({
+        id: 4,
+        dtPreferida: new Date(Date.now() + 3 * 86400_000).toISOString(),
+        nrVersion: 0,
+      });
+      expect(res.id).toBe(4);
+      // `nrVersion` volta incrementado — o mock reproduz o @Version do JPA.
+      expect(res.nrVersion).toBe(1);
+      expect(['SOLICITADO', 'AGENDADO', 'CONFIRMADO', 'CANCELADO', 'CONCLUIDO']).toContain(res.sgStatus);
+    });
+
+    // Sentinela do despacho: o DELETE na mesma url continua caindo em `cancelar`.
+    it('PUT e DELETE na mesma url nao se confundem', async () => {
+      const remarcado = await remarcarAgendamento({
+        id: 9, dtPreferida: new Date(Date.now() + 86400_000).toISOString(), nrVersion: 2,
+      });
+      const cancelado = await cancelarAgendamento(9);
+      expect(remarcado.id).toBe(9);
+      expect(cancelado.sgStatus).toBe('CANCELADO');
     });
 
     // TASK-73 (FIX_7): shape atualizado — assinar/revogar agora recebem `tipo`

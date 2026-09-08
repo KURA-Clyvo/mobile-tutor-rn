@@ -72,6 +72,29 @@ export async function criar(config: InternalAxiosRequestConfig): Promise<{ id: n
 // declarado no app não bate com o backend real. Isso é um mismatch de MODO REAL, não de
 // modo mock — o mock aqui espelha o contrato TypeScript já declarado no app (mesma
 // disciplina dos pass-throughs existentes), não o contrato real do Java.
+// T-7a: `PUT /tutor/agendamentos/{id}`. Valida `nrVersion` como o Java valida
+// (`@NotNull` no DTO, e 400 sem ele) — se o app parar de mandar a versão, o modo mock
+// quebra aqui em vez de passar verde e falhar só contra o servidor real. Mesma
+// disciplina do `criar()`, que a TASK-74b instalou depois de o mock complacente
+// mascarar um 400 permanente por 6 ciclos.
+export async function remarcar(config: InternalAxiosRequestConfig): Promise<AgendamentoRaw> {
+  const body = typeof config.data === 'string' ? JSON.parse(config.data || '{}') : (config.data ?? {});
+  if (body.nrVersion == null) {
+    throw new Error('[MockAdapter] agendamentos.mock.remarcar: `nrVersion` é obrigatório no PUT (AgendamentoUpdateRequest, @NotNull) — sem ele o Java devolve 400.');
+  }
+  if (!body.dtAgendamento) {
+    throw new Error('[MockAdapter] agendamentos.mock.remarcar: `dtAgendamento` ausente — remarcar sem data nova não muda nada.');
+  }
+  const match = config.url?.match(/\/tutor\/agendamentos\/(\d+)$/);
+  const id = match ? Number(match[1]) : 0;
+  // O Java devolve o agendamento salvo, com `nrVersion` incrementado pelo @Version.
+  return linha({
+    idAgendamento: id, idPet: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador',
+    dtAgendamento: String(body.dtAgendamento), tipo: 'CONSULTA', status: 'AGENDADO',
+    nrVersion: Number(body.nrVersion) + 1,
+  });
+}
+
 export async function cancelar(config: InternalAxiosRequestConfig): Promise<CancelarAgendamentoResponse> {
   const match = config.url?.match(/\/tutor\/agendamentos\/(\d+)$/);
   const id = match ? Number(match[1]) : 0;

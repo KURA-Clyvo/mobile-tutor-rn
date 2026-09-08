@@ -24,12 +24,19 @@ const TIPO_LABEL: Record<AgendamentoTutorResponse['sgTipoConsulta'], string> = {
 interface AgendamentoItemProps {
   item:         AgendamentoTutorResponse;
   onLongPress?: () => void;
+  /** T-7a: só é passado para agendamento que ainda pode ser remarcado. */
+  onRemarcar?:  () => void;
 }
 
-export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
+export function AgendamentoItem({ item, onLongPress, onRemarcar }: AgendamentoItemProps) {
   const { colors, fonts, fontSize, radius } = useTheme();
   const chip      = STATUS_CHIP[item.sgStatus];
   const canCancel = item.sgStatus === 'SOLICITADO' || item.sgStatus === 'AGENDADO';
+  // T-7a: remarcar exige `nrVersion` (optimistic lock do Java). Sem ele o PUT
+  // devolveria 400, então o botão não aparece — melhor não oferecer que oferecer e
+  // falhar. O mock e o servidor real mandam; um agendamento vindo de cache antiga
+  // pode não ter.
+  const podeRemarcar = !!onRemarcar && canCancel && item.nrVersion != null;
   const podeEntrarNaTeleconsulta =
     item.sgTipoConsulta === 'TELEORIENTACAO' &&
     item.sgStatus !== 'CANCELADO' &&
@@ -63,6 +70,17 @@ export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
           <Text numberOfLines={1} style={{ fontFamily: fonts.body, color: colors.primary, fontSize: fontSize.xs }}>
             {item.dsMensagemClinica}
           </Text>
+        )}
+        {podeRemarcar && (
+          <KButton
+            variant="secondary"
+            size="sm"
+            style={styles.teleBtn}
+            onPress={onRemarcar}
+            accessibilityLabel={`Remarcar agendamento de ${item.pet.nmPet}`}
+          >
+            Remarcar
+          </KButton>
         )}
         {podeEntrarNaTeleconsulta && (
           <KButton

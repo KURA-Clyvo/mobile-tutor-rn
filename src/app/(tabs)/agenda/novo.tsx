@@ -8,7 +8,7 @@ import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait
 import { KIcon }      from '@components/primitives/KIcon';
 import { useDialog }  from '@components/primitives/KDialog';
 import { usePets }    from '../../../hooks/usePets';
-import { useSolicitarAgendamento } from '../../../hooks/useAgendamentos';
+import { useSolicitarAgendamento, useRemarcarAgendamento, mensagemDeErroDeRemarcar } from '../../../hooks/useAgendamentos';
 import { useVoltar } from '../../../hooks/useVoltar';
 import { useHorariosOcupados, horarioJaPassou } from '../../../hooks/useHorariosOcupados';
 import { GRADE_HORARIOS_PADRAO } from '../../../constants/agenda';
@@ -26,10 +26,20 @@ export default function NovoAgendamentoScreen() {
   // histórico (ex.: deep link direto pra "novo agendamento").
   const voltar  = useVoltar('/(tabs)/agenda');
   const { alerta, mostrar } = useDialog();
-  const { idPet: idPetParam, tipo: tipoParam } = useLocalSearchParams<{ idPet?: string; tipo?: string }>();
+  // T-7a: os 2 parâmetros extras põem a tela em modo "remarcar" — mesma grade de
+  // dias e horários, outro verbo no fim. `nrVersion` vem junto porque é o optimistic
+  // lock que o PUT exige; ele é lido no momento em que a lista foi carregada, e é
+  // exatamente por isso que o 409 existe e precisa de mensagem própria.
+  const { idPet: idPetParam, tipo: tipoParam, idAgendamento: idAgendamentoParam, nrVersion: nrVersionParam } =
+    useLocalSearchParams<{ idPet?: string; tipo?: string; idAgendamento?: string; nrVersion?: string }>();
+  const idAgendamento = idAgendamentoParam ? parseInt(idAgendamentoParam, 10) : null;
+  const nrVersion     = nrVersionParam ? parseInt(nrVersionParam, 10) : null;
+  const remarcando    = idAgendamento != null && nrVersion != null && !Number.isNaN(nrVersion);
 
   const { data: pets = [] } = usePets();
-  const { mutateAsync: solicitar, isPending } = useSolicitarAgendamento();
+  const { mutateAsync: solicitar, isPending: solicitando } = useSolicitarAgendamento();
+  const { mutateAsync: remarcar,  isPending: remarcando_ }  = useRemarcarAgendamento();
+  const isPending = solicitando || remarcando_;
 
   const [selectedPetId] = useState<number>(idPetParam ? parseInt(idPetParam, 10) : (pets[0]?.id ?? 0));
   const [tipo,          setTipo]          = useState<TipoConsulta>((tipoParam as TipoConsulta) ?? 'ROTINA');
@@ -59,6 +69,25 @@ export default function NovoAgendamentoScreen() {
       await alerta('Atenção', 'Selecione o pet, uma data e um horário.');
       return;
     }
+
+    // T-7a: remarcar muda a hora e só. O domínio do Java ignora campo nulo
+    // (`Agendamento.atualizar`), então motivo e tipo do agendamento original ficam
+    // preservados — por isso este caminho não exige o motivo de novo.
+    if (remarcando) {
+      try {
+        await remarcar({ id: idAgendamento!, dtPreferida, nrVersion: nrVersion! });
+        const acao = await mostrar({
+          titulo:   'Agendamento remarcado!',
+          mensagem: 'A clínica foi avisada da nova data.',
+          acoes:    [{ label: 'OK' }],
+        });
+        if (acao === 'OK') voltar();
+      } catch (err) {
+        await alerta('Atenção', mensagemDeErroDeRemarcar(err));
+      }
+      return;
+    }
+
     if (!motivo.trim()) {
       await alerta('Atenção', 'Descreva o motivo da consulta.');
       return;
@@ -104,7 +133,7 @@ export default function NovoAgendamentoScreen() {
           <KIcon name="close" size={18} color={colors.text} />
         </Pressable>
         <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1.2 }}>
-          PASSO 2 DE 3
+          {remarcando ? 'REMARCAR' : 'PASSO 2 DE 3'}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -112,7 +141,7 @@ export default function NovoAgendamentoScreen() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {/* Title */}
         <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 30, lineHeight: 36, marginBottom: 20 }}>
-          {'Agendar para '}
+          {remarcando ? 'Novo horário para ' : 'Agendar para '}
           <Text style={{ fontStyle: 'italic', color: colors.primary }}>{selectedPet?.nome ?? '…'}.</Text>
         </Text>
 
@@ -219,7 +248,11 @@ export default function NovoAgendamentoScreen() {
           })}
         </View>
 
-        {/* Motivo */}
+        {/* Motivo — some ao remarcar: o PUT não o envia, e o domínio do Java preserva
+            o motivo original (campo nulo é ignorado). Pedir de novo sugeriria que
+            deixar em branco apagaria o que já estava lá. */}
+        {!remarcando && (
+        <>
         <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>MOTIVO</Text>
         <TextInput
           value={motivo}
@@ -231,6 +264,8 @@ export default function NovoAgendamentoScreen() {
           style={[styles.motivoInput, { fontFamily: fonts.body, color: colors.text, backgroundColor: colors.surface, borderColor: colors.borderStrong, borderRadius: radius.md, fontSize: fontSize.sm }]}
           accessibilityLabel="Motivo da consulta"
         />
+        </>
+        )}
 
         {/* Card de resumo */}
         {selectedPet && selectedSlot && (
@@ -241,7 +276,8 @@ export default function NovoAgendamentoScreen() {
               { label: 'DATA',    value: formatDateBR(days[selectedDay]!.toISOString()) },
               { label: 'HORÁRIO', value: selectedSlot },
               { label: 'TIPO',    value: tipo === 'TELEORIENTACAO' ? 'Telemedicina' : 'Presencial' },
-              { label: 'CLÍNICA', value: selectedPet.nmClinica },
+              // T-2: a clínica só entra no resumo se o servidor a tiver mandado.
+              ...(selectedPet.nmClinica ? [{ label: 'CLÍNICA', value: selectedPet.nmClinica }] : []),
             ].map(r => (
               <View key={r.label} style={styles.resumoRow}>
                 <Text style={{ fontFamily: fonts.mono, color: colors.primary, fontSize: 10, letterSpacing: 0.8, width: 72 }}>{r.label}</Text>
@@ -253,11 +289,13 @@ export default function NovoAgendamentoScreen() {
 
         {/* CTA */}
         <KButton variant="primary" block loading={isPending} onPress={handleSubmit} style={{ marginTop: 12 }}>
-          Confirmar agendamento
+          {remarcando ? 'Confirmar novo horário' : 'Confirmar agendamento'}
         </KButton>
 
         <Text style={[styles.nota, { fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }]}>
-          A clínica confirmará o agendamento em até 24h.
+          {remarcando
+            ? 'O motivo e o tipo da consulta continuam os mesmos.'
+            : 'A clínica confirmará o agendamento em até 24h.'}
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>

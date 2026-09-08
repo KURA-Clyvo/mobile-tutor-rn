@@ -365,3 +365,61 @@ ciclos.
 nunca chegou ao `origin` — a trilha Java mediu isso (`grep -c "SEGUNDO AVISO"` no `origin` → 0).
 Commitado, rebaseado sobre a resposta deles (conflito resolvido mantendo os dois lados, pergunta
 antes da resposta) e pushado: `2f55db8`. Confirmado no `origin`: `grep -c` → 4.
+
+## T-7a · Remarcar agendamento — **fechada** (o `U` que faltava)
+
+Destravada no meio da sessão: a `SJ3-10` do backend foi mesclada em `main` (`9d3d4b6` +
+`90b4c25` + `ff6384c`) e trouxe **as duas coisas** — os 3 campos novos em
+`AgendamentoResponse` e o `@PutMapping("/{id}")` no BFF (`AgendamentoBffController:85`), que
+era a `MB-06`. Medido antes de escrever qualquer linha: `grep -rn "PutMapping" .../bff/api/` →
+**1 ocorrência** (era 0 pela manhã).
+
+**⇒ `GET` · `POST` · `PUT` · `DELETE` — os 4 verbos existem em agendamentos.**
+`grep -n "apiClient\.(get|post|put|delete)" src/services/agendamentos.service.ts` → 4 linhas.
+
+**O contrato tem uma armadilha, e ela é o motivo de a camada anticorrupção existir:** o `PUT`
+usa **nomes diferentes do `POST`** para os mesmos conceitos —
+`dsTipoConsulta`/`dsObservacoes` contra `tipo`/`observacoes`. Um `PUT` montado por analogia com
+o `POST` mandaria `tipo`, o Jackson o **ignoraria em silêncio**, e o agendamento seria salvo
+sem a mudança: sem 400, sem crash, sem rastro. Mesmo formato do bug que a TASK-74b corrigiu no
+`POST`.
+
+**O que é enviado, e o que não é:** só `dtAgendamento` + `nrVersion`. `Agendamento.atualizar`
+(domínio, linha 149) **ignora campo nulo**, então tipo e motivo do agendamento original são
+preservados. Mandar string vazia no motivo **apagaria** o que o tutor escreveu ao solicitar —
+por isso a tela esconde o campo MOTIVO no modo remarcar, em vez de pedi-lo de novo.
+
+**Os erros ganharam mensagem humana**, porque cada um pede uma ação diferente do tutor:
+`409` → *"Este horário mudou. Recarregue e tente de novo."* (o optimistic lock disparou: alguém
+mexeu no agendamento entre a leitura e o envio); `422` → *"já foi concluído ou cancelado"*
+(guarda de status final no domínio); `403` → *"não é seu"*.
+
+**UI:** botão **Remarcar** visível no card (o cancelar é toque longo — gesto escondido não se
+narra em vídeo), e a tela de agendamento é reaproveitada em modo remarcar: mesma grade de dias
+e horários, já sabendo quais estão ocupados (T-6). O botão **não aparece** sem `nrVersion` —
+o `PUT` devolveria 400, e é melhor não oferecer que oferecer e falhar.
+
+**Mock:** rota de `PUT` nova, com despacho **explícito por método** — `PUT` e `DELETE`
+compartilham a mesma URL, e a rota de agendamentos já foi cega a método uma vez (TASK-65, `GET`
+e `POST` em `/agendamentos`), com o bug sobrevivendo ciclos. O mock **valida `nrVersion`** como
+o Java valida (`@NotNull`), então um app que pare de mandar a versão quebra no modo mock em vez
+de passar verde e falhar só contra o servidor real.
+
+**Mordida — o `PUT` escrito "por analogia com o POST"** (nomes do POST, sem `nrVersion`, data
+com `Z`): `Tests: 5 failed, 15 passed, 20 total`, `MORDIDA_EXIT=1`, e o mock rejeita com a
+mensagem nomeando o campo que falta.
+
+**Um gate do próprio repo pegou a função nova antes de mim:** `smoke-coverage.test.ts` derruba
+a suíte quando uma função de rede descoberta por AST não tem entrada no registry do
+`smoke-contratos.sh`. Entrada registrada como **`naoCoberto`**, não `coberto` — o script do
+`DevOps-Cloud` não tem check para um `PUT` que nasceu hoje, e alegar cobertura inexistente é
+exatamente o que aquele registry existe para impedir. Resumo impresso: **16 cobertos / 1 não
+coberto / 17 funções de rede**.
+
+**Verificação:** `Test Suites: 49 passed, 49 total` · `Tests: 1 skipped, 306 passed, 307 total`
+· `JEST_EXIT=0`; `npx eslint src tools` 0 linhas, `LINT_EXIT=0`; `npx tsc --noEmit` 0 linhas,
+`TSC_EXIT=0`.
+
+⬜ **O que esta task NÃO provou:** o percurso dos 4 verbos **pela interface**, à mão, num
+aparelho. A prova é de contrato (service × mock × DTO Java), não de runtime — e é isso que o
+vídeo (`T-11`) tem que mostrar.

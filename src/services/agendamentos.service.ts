@@ -1,5 +1,5 @@
 import { apiClient } from './api/client';
-import type { AgendamentoRaw, SolicitarAgendamentoRequest, SolicitarAgendamentoResponse, CancelarAgendamentoResponse, AgendamentoRequestJava, PageRaw } from '../types/api';
+import type { AgendamentoRaw, SolicitarAgendamentoRequest, SolicitarAgendamentoResponse, CancelarAgendamentoResponse, AgendamentoRequestJava, AgendamentoUpdateRequestJava, RemarcarAgendamentoRequest, PageRaw } from '../types/api';
 import { desembrulharPagina } from './api/pagina';
 import { mapAgendamentoDto } from '../utils/mappers';
 
@@ -77,6 +77,29 @@ export const solicitarAgendamento = (req: SolicitarAgendamentoRequest) =>
     tipo:          mapTipoParaJava(req.sgTipoConsulta),
     observacoes:   montarObservacoes(req),
   } satisfies AgendamentoRequestJava).then(r => r.data);
+
+// T-7a — remarcar (o `U` do CRUD de agendamentos). `PUT /v1/tutor/agendamentos/{id}`,
+// exposto no BFF pela SJ3-10 do backend (`AgendamentoBffController:85`).
+//
+// Mesma camada anticorrupção do `solicitarAgendamento`, e ela é ainda mais necessária
+// aqui: o PUT usa nomes DIFERENTES do POST para os mesmos conceitos
+// (`dsTipoConsulta`/`dsObservacoes` × `tipo`/`observacoes`) e a data continua sendo
+// `LocalDateTime` sem fuso — daí o mesmo `paraLocalDateTimeJava`, pelo mesmo motivo
+// (a tela serializa em UTC com `.toISOString()`, e o Jackson descartaria o offset em
+// silêncio, gravando a hora errada).
+//
+// Só data e versão são enviadas: `Agendamento.atualizar` (domínio) ignora campo nulo,
+// então tipo e motivo do agendamento original são preservados. Remarcar é mudar a
+// hora, não reescrever a solicitação.
+//
+// Erros que o chamador precisa distinguir: **409** = alguém mudou o agendamento entre
+// o GET e este PUT (optimistic lock); **422** = status final (REALIZADO/CANCELADO/
+// NAO_COMPARECEU), regra de domínio; **403** = não é do tutor.
+export const remarcarAgendamento = (req: RemarcarAgendamentoRequest) =>
+  apiClient.put<AgendamentoRaw>(`/api/v1/tutor/agendamentos/${req.id}`, {
+    dtAgendamento: paraLocalDateTimeJava(req.dtPreferida),
+    nrVersion:     req.nrVersion,
+  } satisfies AgendamentoUpdateRequestJava).then(r => mapAgendamentoDto(r.data));
 
 export const cancelarAgendamento = (id: number) =>
   apiClient.delete<CancelarAgendamentoResponse>(`/api/v1/tutor/agendamentos/${id}`).then(r => r.data);

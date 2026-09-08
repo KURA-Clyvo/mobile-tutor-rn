@@ -95,6 +95,22 @@ export interface SolicitarAgendamentoRequest {
   dsMotivo: string; dtPreferida: string; dtAlternativa?: string; idClinica?: number;
 }
 export interface SolicitarAgendamentoResponse { id: number; sgStatus: 'SOLICITADO'; dtSolicitacao: string; }
+
+// T-7a: remarcar. `nrVersion` é obrigatório — é o optimistic lock do Java, e ele
+// viaja do GET (via `mapAgendamentoDto`) até aqui. Sem ele o backend devolve 400.
+export interface RemarcarAgendamentoRequest {
+  id: number; dtPreferida: string; nrVersion: number;
+}
+
+// T-7a: shape real de `PUT /v1/tutor/agendamentos/{id}` — `AgendamentoUpdateRequest.java`.
+// ⚠️ Os nomes NÃO são os mesmos do POST: aqui é `dsTipoConsulta`/`dsObservacoes`, lá é
+// `tipo`/`observacoes`. Mesma entidade, dois vocabulários — a tradução mora no service.
+// Campo nulo é IGNORADO pelo domínio (`Agendamento.atualizar` só sobrescreve o que vem
+// não-nulo), então mandar só data + versão remarca sem apagar motivo nem tipo.
+export interface AgendamentoUpdateRequestJava {
+  dtAgendamento?: string; dsTipoConsulta?: string; dsObservacoes?: string;
+  idVeterinario?: number; nrVersion: number;
+}
 export interface CancelarAgendamentoResponse { id: number; sgStatus: 'CANCELADO'; }
 
 // TASK-74b (FIX_7): shape real de POST /v1/tutor/agendamentos — AgendamentoRequest.java
