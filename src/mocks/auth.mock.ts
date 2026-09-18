@@ -1,11 +1,15 @@
-import type { LoginResponse } from '../types/api';
-import type { RegisterInviteApiResponse } from '../services/auth.service';
+import type { LoginApiResponse, RegisterInviteApiResponse } from '../services/auth.service';
 
-export async function login(): Promise<LoginResponse> {
+// Shape cru do BFF Java (antes da camada anti-corrupção de login()), igual ao registerTutor
+// abaixo — ver o comentário de LoginApiResponse em auth.service.ts.
+export async function login(): Promise<LoginApiResponse> {
   return {
-    accessToken: 'mock-jwt-tutor-2026',
-    expiresAt: new Date(Date.now() + 8 * 3600_000).toISOString(),
-    tutor: { id: 1, nmTutor: 'Guilherme Sola', dsEmail: 'gui@kura.com', dsTelefone: '11999990001', dtCadastro: new Date().toISOString() },
+    accessToken:  'mock-jwt-tutor-2026',
+    refreshToken: 'mock-refresh-tutor-2026',
+    tokenType:    'Bearer',
+    expiresIn:    8 * 3600,
+    idConta:      1,
+    nmTutor:      'Guilherme Sola',
   };
 }
 

@@ -1,7 +1,11 @@
 module.exports = function(api) {
   api.cache(true);
   return {
-    presets: ['babel-preset-expo'],
+    // Web: o zustand (middleware) usa `import.meta.env`, e o bundle web do Expo é um
+    // script clássico — sem esta flag o app hospedado morre no carregamento com
+    // "Cannot use 'import.meta' outside a module" (tela branca). Mesmo ajuste do
+    // mobile-clinica-rn (babel.config.js de lá).
+    presets: [['babel-preset-expo', { web: { unstable_transformImportMeta: true } }]],
     plugins: [
       ['module-resolver', {
         root: ['./src'],

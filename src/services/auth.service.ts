@@ -1,9 +1,37 @@
 import { apiClient } from './api/client';
 import type { LoginRequest, LoginResponse, RegisterTutorRequest, RegisterTutorResponse } from '../types/api';
 
+// Shape real de POST /api/v1/auth/login (Java `LoginRequest`/`TokenResponse`), medido contra
+// a API: pede `{email, senha}` e devolve `{accessToken, refreshToken, tokenType, expiresIn,
+// idConta, nmTutor}`. O app mandava `{dsEmail, dsSenha}` (400 na validação) e esperava
+// `{expiresAt, tutor}` — nunca funcionou fora do modo mock, que devolvia o shape app-facing.
+// Mesmo padrão anti-corrupção de register() abaixo; o mock agora devolve este shape cru.
+export interface LoginApiResponse {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
+  idConta: number;
+  nmTutor: string;
+}
+
 export async function login(req: LoginRequest): Promise<LoginResponse> {
-  const res = await apiClient.post<LoginResponse>('/api/v1/auth/login', req);
-  return res.data;
+  const res = await apiClient.post<LoginApiResponse>('/api/v1/auth/login', {
+    email: req.dsEmail,
+    senha: req.dsSenha,
+  });
+  return {
+    accessToken: res.data.accessToken,
+    expiresAt:   new Date(Date.now() + res.data.expiresIn * 1000).toISOString(),
+    // O token não traz telefone/data de cadastro; o e-mail é o que a pessoa digitou.
+    tutor: {
+      id:         res.data.idConta,
+      nmTutor:    res.data.nmTutor,
+      dsEmail:    req.dsEmail,
+      dsTelefone: '',
+      dtCadastro: '',
+    },
+  };
 }
 
 // TASK-55: shape real de POST /api/v1/auth/register-invite (Java `RegisterInviteRequest`/
