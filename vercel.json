@@ -2,11 +2,24 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "npm ci",
-  "buildCommand": "npx expo export -p web",
+  "buildCommand": "npx expo export -p web --clear && mv dist/assets/node_modules dist/assets/nm",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/proxy/tutor/:path*", "destination": "http://kura-alpha-tutor-api.eastus2.azurecontainer.io:8081/:path*" },
-    { "source": "/proxy/luna/:path*", "destination": "http://kura-alpha-luna-ai.eastus2.azurecontainer.io:8000/:path*" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/assets/node_modules/:path*",
+      "destination": "/assets/nm/:path*"
+    },
+    {
+      "source": "/proxy/tutor/:path*",
+      "destination": "http://kura-alpha-tutor-api.eastus2.azurecontainer.io:8081/:path*"
+    },
+    {
+      "source": "/proxy/luna/:path*",
+      "destination": "http://kura-alpha-luna-ai.eastus2.azurecontainer.io:8000/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

@@ -16,12 +16,26 @@ export const lunaClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// A chave KURA_TUTOR_AUTH_TOKEN é a do `persist` do zustand (store/authStore.ts): o
+// valor é o JSON `{"state":{"token":...,"expiresAt":...},"version":0}`, não o token.
+// Até aqui esse JSON inteiro ia como Bearer, e toda chamada autenticada levava 401 fora
+// do modo mock (que nunca passa por aqui).
+export function extrairToken(persistido: string | null): string | null {
+  if (!persistido) return null;
+  try {
+    const dados = JSON.parse(persistido) as { state?: { token?: string | null } };
+    return dados?.state?.token ?? null;
+  } catch {
+    return persistido; // valor cru (token puro), por compatibilidade
+  }
+}
+
 function attachInterceptors(client: typeof apiClient) {
   client.interceptors.request.use(async (config) => {
     if (process.env.EXPO_PUBLIC_USE_MOCKS === 'true') {
       return Promise.reject({ __mock: true, config });
     }
-    const token = await AsyncStorage.getItem('KURA_TUTOR_AUTH_TOKEN');
+    const token = extrairToken(await AsyncStorage.getItem('KURA_TUTOR_AUTH_TOKEN'));
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   });
