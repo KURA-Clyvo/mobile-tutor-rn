@@ -1,8 +1,44 @@
 import { apiClient } from './api/client';
-import type { AgendamentoTutorResponse, SolicitarAgendamentoRequest, SolicitarAgendamentoResponse, CancelarAgendamentoResponse, AgendamentoRequestJava } from '../types/api';
+import type { PageRaw, AgendamentoTutorResponse, SolicitarAgendamentoRequest, SolicitarAgendamentoResponse, CancelarAgendamentoResponse, AgendamentoRequestJava } from '../types/api';
+
+// GET /api/v1/tutor/agendamentos real devolve página do Spring com o `AgendamentoResponse`
+// Java (idAgendamento, dtAgendamento, tipo, status, observacoes...). O app esperava array
+// no shape AgendamentoTutorResponse (`.filter` quebrava a tela logo após o login). Array
+// continua aceito (mock-adapter).
+interface AgendamentoListaRaw {
+  idAgendamento: number; idPet: number; nmPet: string; nmEspecie: string | null;
+  nmRaca: string | null; nmClinica: string | null; dtAgendamento: string;
+  nrDuracaoMinutos: number; tipo: string; status: string; observacoes: string | null;
+  dsSalaUrl: string | null;
+}
+
+const STATUS_JAVA: Record<string, AgendamentoTutorResponse['sgStatus']> = {
+  INTENCAO: 'SOLICITADO', AGENDADO: 'AGENDADO', CONFIRMADO: 'CONFIRMADO',
+  REALIZADO: 'CONCLUIDO', CANCELADO: 'CANCELADO', NAO_COMPARECEU: 'CANCELADO',
+};
+
+export function mapListaAgendamentos(
+  data: AgendamentoTutorResponse[] | PageRaw<AgendamentoListaRaw>,
+): AgendamentoTutorResponse[] {
+  if (Array.isArray(data)) return data;
+  return data.content.map((a) => ({
+    id: a.idAgendamento,
+    dtInicio: a.dtAgendamento,
+    nrDuracaoMinutos: a.nrDuracaoMinutos,
+    sgStatus: STATUS_JAVA[a.status] ?? 'AGENDADO',
+    sgTipoConsulta:
+      a.tipo === 'TELEORIENTACAO' ? 'TELEORIENTACAO' : a.tipo === 'RETORNO' ? 'RETORNO' : 'ROTINA',
+    pet: { id: a.idPet, nmPet: a.nmPet, nmEspecie: a.nmEspecie ?? '', nmRaca: a.nmRaca ?? '' },
+    nmClinica: a.nmClinica ?? '',
+    dsMotivo: a.observacoes ?? '',
+    dsSalaUrl: a.dsSalaUrl,
+  }));
+}
 
 export const listAgendamentos    = () =>
-  apiClient.get<AgendamentoTutorResponse[]>('/api/v1/tutor/agendamentos').then(r => r.data);
+  apiClient
+    .get<AgendamentoTutorResponse[] | PageRaw<AgendamentoListaRaw>>('/api/v1/tutor/agendamentos')
+    .then(r => mapListaAgendamentos(r.data));
 
 // TASK-74b (FIX_7): camada anti-corrupção, mesmo padrão de `consentimentos.service.ts`
 // (TASK-73) e `auth.service.ts` (TASK-55/61) — a tela (`agenda/novo.tsx`) e o tipo
