@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci",
+  "buildCommand": "npx expo export -p web",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/proxy/tutor/:path*", "destination": "http://kura-alpha-tutor-api.eastus2.azurecontainer.io:8081/:path*" },
+    { "source": "/proxy/luna/:path*", "destination": "http://kura-alpha-luna-ai.eastus2.azurecontainer.io:8000/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
