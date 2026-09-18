@@ -9,9 +9,10 @@ describe('listas paginadas da API Java', () => {
     const [pet] = mapListaPets(pagina([
       { idPet: 103, nmPet: 'Thor', nmEspecie: 'Cao', nmRaca: 'Labrador', sgSexo: 'M' as const, dtNascimento: '2021-05-10', sgPorte: 'G' as const },
     ]) as never);
-    expect(pet.id).toBe(103);
-    expect(pet.nmPet).toBe('Thor');
-    expect(pet.chips).toEqual([]);
+    expect(pet).toBeDefined();
+    expect(pet?.id).toBe(103);
+    expect(pet?.nmPet).toBe('Thor');
+    expect(pet?.chips).toEqual([]);
   });
 
   it('agendamentos: desembrulha content e traduz status/tipo Java', () => {
@@ -21,7 +22,7 @@ describe('listas paginadas da API Java', () => {
       tipo: 'VACINA', status: 'INTENCAO', observacoes: null, dsSalaUrl: null,
     }]) as never);
     expect(ag).toMatchObject({ id: 5, sgStatus: 'SOLICITADO', sgTipoConsulta: 'ROTINA', dsMotivo: '' });
-    expect(ag.pet.id).toBe(103);
+    expect(ag?.pet.id).toBe(103);
   });
 
   it('array (mock-adapter) passa direto', () => {
