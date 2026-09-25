@@ -76,12 +76,14 @@ export function KPetPortrait({
         {fotoUrl && !erroFoto ? (
           <Image
             testID="k-pet-portrait-foto"
-            source={{ uri: fotoUrl }}
+            // `cacheKey` é campo de `ImageSource` (dentro de `source`), não
+            // prop do componente `<Image>` — mesmo achado de processo do
+            // `KCPetPortrait` da clínica (tsc pegou o erro de tipo).
+            source={{ uri: fotoUrl, cacheKey: derivarCacheKeyFoto(fotoUrl) }}
             style={StyleSheet.absoluteFillObject}
             contentFit="cover"
             transition={200}
             cachePolicy="disk"
-            cacheKey={derivarCacheKeyFoto(fotoUrl)}
             placeholder={{ blurhash: BLURHASH_NEUTRO }}
             placeholderContentFit="cover"
             onError={() => setErroFoto(true)}
