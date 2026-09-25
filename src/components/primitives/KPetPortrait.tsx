@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@theme/index';
+import { derivarCacheKeyFoto } from '../../utils/fotoCache';
 
 export type PetPalette = 'lab' | 'siam' | 'pup';
 type Tier = 'emoji' | 'photo' | 'detected';
@@ -15,6 +17,10 @@ const PALETTES: Record<PetPalette, { base: string; mid: string; top: string; spo
 
 const SPECIES_EMOJI: Record<string, string> = { Cão: '🐶', Gato: '🐱', Coelho: '🐰', Ave: '🦜' };
 
+// FT-08: blurhash neutro (cinza uniforme) mostrado pelo expo-image enquanto
+// a foto real carrega.
+const BLURHASH_NEUTRO = 'L4L4-;~q00~q00Rj9Fxu00xu%MRj';
+
 interface KPetPortraitProps {
   palette:  PetPalette;
   size?:    number;
@@ -22,14 +28,37 @@ interface KPetPortraitProps {
   emoji?:   string;
   badge?:   string;
   especie?: string;
+  /**
+   * FT-08: URL assinada da foto real do pet (Java BFF, FT-05/FT-09 — a
+   * clínica sobe pela FT-07, este app só EXIBE). Com `fotoUrl` (e sem erro
+   * de carregamento) substitui a ilustração por `expo-image` de verdade,
+   * INDEPENDENTE do `tier` — a FT-09 decide o `tier` que acompanha.
+   * `null`/`undefined`/erro no `onError` caem no comportamento de sempre
+   * (ilustração por `tier`).
+   */
+  fotoUrl?: string | null;
+  /**
+   * FT-08: nome do pet, usado só para compor o `accessibilityLabel` nos 2
+   * ramos (com foto e sem foto).
+   */
+  nome?: string;
 }
 
 export function KPetPortrait({
-  palette, size = 56, tier = 'emoji', emoji, badge, especie
+  palette, size = 56, tier = 'emoji', emoji, badge, especie, fotoUrl, nome
 }: KPetPortraitProps) {
   const theme = useTheme();
   const p = PALETTES[palette];
   const r = size / 2;
+
+  // FT-08: erro no carregamento da imagem volta para a ilustração por
+  // `tier` — sem crash, sem espaço em branco. Reseta quando a URL muda
+  // (componente reaproveitado numa lista) para não prender um pet novo no
+  // erro de outro.
+  const [erroFoto, setErroFoto] = useState(false);
+  useEffect(() => {
+    setErroFoto(false);
+  }, [fotoUrl]);
 
   const ringStyle = (tier === 'photo' || tier === 'detected')
     ? { borderWidth: 2, borderColor: theme.colors.primary }  // Sage border
@@ -37,12 +66,27 @@ export function KPetPortrait({
 
   const displayEmoji = emoji ?? (especie ? SPECIES_EMOJI[especie] : '🐾') ?? '🐾';
 
+  const accessibilityLabel = nome ? `Foto de ${nome}` : undefined;
+
   return (
     // Outer container has NO overflow:hidden so badge can visually overflow
-    <View style={[{ width: size, height: size, borderRadius: r }, ringStyle]}>
+    <View accessibilityLabel={accessibilityLabel} style={[{ width: size, height: size, borderRadius: r }, ringStyle]}>
       {/* Inner clipped area — handles rounded corners for content */}
       <View style={[StyleSheet.absoluteFillObject, { borderRadius: r, overflow: 'hidden' }]}>
-        {tier === 'emoji' ? (
+        {fotoUrl && !erroFoto ? (
+          <Image
+            testID="k-pet-portrait-foto"
+            source={{ uri: fotoUrl }}
+            style={StyleSheet.absoluteFillObject}
+            contentFit="cover"
+            transition={200}
+            cachePolicy="disk"
+            cacheKey={derivarCacheKeyFoto(fotoUrl)}
+            placeholder={{ blurhash: BLURHASH_NEUTRO }}
+            placeholderContentFit="cover"
+            onError={() => setErroFoto(true)}
+          />
+        ) : tier === 'emoji' ? (
           <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.colors.primarySoft, alignItems: 'center', justifyContent: 'center' }]}>
             <Text style={{ fontSize: size * 0.45 }}>{displayEmoji}</Text>
           </View>
