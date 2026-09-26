@@ -66,14 +66,33 @@ export function KPetPortrait({
 
   const displayEmoji = emoji ?? (especie ? SPECIES_EMOJI[especie] : '🐾') ?? '🐾';
 
-  const accessibilityLabel = nome ? `Foto de ${nome}` : undefined;
+  const temFoto = Boolean(fotoUrl) && !erroFoto;
+  // FT-08, fix wave G2 (G2-5): o ramo sem foto usa a ilustração por tier —
+  // "Foto de X" seria falso ali (não existe foto nenhuma). "Avatar de X" no
+  // ramo sem foto, "Foto de X" só quando há foto de verdade.
+  const accessibilityLabel = nome ? (temFoto ? `Foto de ${nome}` : `Avatar de ${nome}`) : undefined;
+  // FT-08, fix wave G2 (G2-4): o container com o rótulo precisa ser
+  // `accessible` para o leitor de tela anunciar o avatar UMA VEZ — sem isso,
+  // ele desce nos filhos (`<Image>`/emoji/`<LinearGradient>`) e tenta ler
+  // cada um separadamente. `accessibilityRole="image"` vira `role="img"` no
+  // react-native-web, que é o que faz o `aria-label` valer num elemento
+  // genérico na web. Só definidos quando há rótulo (mesmo motivo do
+  // `accessibilityLabel`: não introduzir prop nova nos usos sem `nome`).
+  const acessivelComoImagem = accessibilityLabel ? true : undefined;
+  const papelDeImagem = accessibilityLabel ? ('image' as const) : undefined;
 
   return (
     // Outer container has NO overflow:hidden so badge can visually overflow
-    <View accessibilityLabel={accessibilityLabel} style={[{ width: size, height: size, borderRadius: r }, ringStyle]}>
+    <View
+      testID="k-pet-portrait"
+      accessible={acessivelComoImagem}
+      accessibilityRole={papelDeImagem}
+      accessibilityLabel={accessibilityLabel}
+      style={[{ width: size, height: size, borderRadius: r }, ringStyle]}
+    >
       {/* Inner clipped area — handles rounded corners for content */}
       <View style={[StyleSheet.absoluteFillObject, { borderRadius: r, overflow: 'hidden' }]}>
-        {fotoUrl && !erroFoto ? (
+        {temFoto ? (
           <Image
             testID="k-pet-portrait-foto"
             // `cacheKey` é campo de `ImageSource` (dentro de `source`), não
@@ -87,6 +106,12 @@ export function KPetPortrait({
             placeholder={{ blurhash: BLURHASH_NEUTRO }}
             placeholderContentFit="cover"
             onError={() => setErroFoto(true)}
+            // FT-08, fix wave G2 (G2-4): no `react-native-web` isto vira o
+            // `alt` do `<img>` (`ImageWrapper.tsx`). No nativo, `alt` e
+            // `accessibilityLabel` são o MESMO prop final no expo-image
+            // (`ExpoImage.tsx:59,103` — `accessibilityLabel ?? alt`), então
+            // usamos só `accessibilityLabel`, igual ao container.
+            accessibilityLabel={accessibilityLabel}
           />
         ) : tier === 'emoji' ? (
           <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.colors.primarySoft, alignItems: 'center', justifyContent: 'center' }]}>
