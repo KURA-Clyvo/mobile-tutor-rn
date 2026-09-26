@@ -121,7 +121,12 @@ describe('KPetPortrait', () => {
       fireEvent(foto1, 'error', { nativeEvent: { error: 'expirou' } } as never);
       expect(queryByTestId('k-pet-portrait-foto')).toBeNull();
 
-      rerender(<W><KPetPortrait palette="lab" fotoUrl={FOTO_2} /></W>);
+      // `rerender` (RTL) reaplica o `wrapper` (`W`) sozinho — passar
+      // `<W>...</W>` aqui envolveria DUAS vezes, mudando a posição do
+      // `KPetPortrait` na árvore e forçando um remount que resetaria
+      // `erroFoto` por conta própria, mascarando a mordida (medido: sem
+      // isto a mutação NÃO era pega, `EXIT=0` — falso negativo).
+      rerender(<KPetPortrait palette="lab" fotoUrl={FOTO_2} />);
 
       const foto2 = getByTestId('k-pet-portrait-foto');
       expect(foto2.props.source).toEqual([
