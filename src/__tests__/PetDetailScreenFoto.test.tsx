@@ -44,6 +44,18 @@ describe('PetDetailScreen — avatar com foto real no hero (FT-09)', () => {
     });
   });
 
+  // G2 FT-09 (M-1): o título acima ("...e o nome do pet") não tinha
+  // asserção correspondente — sem `nome={pet?.nmPet}`, o KPetPortrait não
+  // gera `accessibilityLabel` nenhum no hero. Mordida: remover
+  // `nome={pet?.nmPet}` em pets/[id]/index.tsx faz este teste falhar.
+  it('o accessibilityLabel do hero usa o nome do pet ("Foto de Bóbi")', async () => {
+    mockPetFixture = { ...basePet, dsFotoUrl: FOTO_1080_URL, dsFotoThumbUrl: FOTO_THUMB_URL };
+    const { getByTestId } = render(<PetDetailScreen />, { wrapper: W });
+    await waitFor(() => {
+      expect(getByTestId('k-pet-portrait').props.accessibilityLabel).toBe(`Foto de ${basePet.nmPet}`);
+    });
+  });
+
   it('sem dsFotoUrl (null), mantém a ilustração no hero', async () => {
     mockPetFixture = { ...basePet, dsFotoUrl: null, dsFotoThumbUrl: null };
     const { queryByTestId, getAllByText } = render(<PetDetailScreen />, { wrapper: W });

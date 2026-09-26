@@ -34,6 +34,17 @@ describe('PetListCard — foto (FT-09)', () => {
     expect(queryByTestId('k-pet-portrait-foto')).toBeNull();
   });
 
+  // G2 FT-09 (M-1): o título acima ("...e o nome ao KPetPortrait") não tinha
+  // asserção correspondente — sem o `nome`, o KPetPortrait não gera
+  // `accessibilityLabel` nenhum, e o leitor de tela perde a identificação
+  // do pet na lista. Mordida: remover `nome={pet.nome}` em PetListCard.tsx
+  // faz este teste falhar (accessibilityLabel vira `undefined`).
+  it('o accessibilityLabel do retrato usa o nome do pet ("Foto de Bóbi")', () => {
+    const pet: PetDomain = { ...petBase, fotoThumbUrl: FOTO_THUMB_URL };
+    const { getByTestId } = render(<PetListCard pet={pet} onPress={jest.fn()} />, { wrapper: W });
+    expect(getByTestId('k-pet-portrait').props.accessibilityLabel).toBe(`Foto de ${pet.nome}`);
+  });
+
   // Mordida: trocar `fotoUrl={pet.fotoThumbUrl}` por qualquer outro campo (ex.:
   // `pet.nmClinica`) em PetListCard.tsx faz este teste falhar — a URI
   // renderizada deixa de bater com o literal esperado.
