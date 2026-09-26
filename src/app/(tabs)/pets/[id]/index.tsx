@@ -64,6 +64,8 @@ export default function PetDetailScreen() {
             size={92}
             tier="detected"
             especie={pet?.nmEspecie}
+            fotoUrl={pet?.dsFotoUrl}
+            nome={pet?.nmPet}
           />
           <View style={styles.heroInfo}>
             <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 26, lineHeight: 30 }}>

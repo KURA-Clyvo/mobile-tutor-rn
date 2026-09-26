@@ -10,6 +10,14 @@ export const PETS: PetTutorResponse[] = [
     dtProximoAgendamento: new Date(Date.now() + 2 * 86400_000).toISOString(),
     chips: [{ tone: 'clay', label: '⚠ Retorno 2d' }, { tone: 'sage', label: 'Vacinado' }],
     condicoes: [{ label: 'Displasia de quadril', tone: 'clay', desde: '2023-05-01', observacao: 'Acompanhamento contínuo, evitar esforço nas patas traseiras.' }],
+    // FT-09 (KURA_BACKLOG_FOTO_PET): a URL abaixo é picsum.photos, NÃO uma URL
+    // assinada real (mesma decisão do G2-6 da FT-08, mobile-clinica-rn — ver
+    // g2-ft08.md) — ela só serve pra resolução visual (256 aqui) da demo em modo
+    // mock, onde não existe `.NET`/Java pra gerar `.../fotos/clinica/{c}/pet/{p}/
+    // {uuid}_{tam}.{ext}?exp=&sig=` de verdade. Um caminho fake no formato real
+    // não carregaria nada (o `onError` do KPetPortrait cairia direto na
+    // ilustração), perdendo o valor de demo visual que o mock existe para dar.
+    dsFotoThumbUrl: 'https://picsum.photos/seed/bobi-tutor/256',
   },
   {
     id: 2, nmPet: 'Luna', nmEspecie: 'Gato', nmRaca: 'Siamesa', dtNascimento: '2019-07-22',
@@ -17,6 +25,9 @@ export const PETS: PetTutorResponse[] = [
     nrAlertasAtivos: 0, nrConsultas: 12,
     dtProximoAgendamento: new Date(Date.now() + 20 * 86400_000).toISOString(),
     chips: [{ tone: 'sage', label: 'Vacinado' }, { tone: 'mute', label: 'Siamesa' }],
+    // Sem foto de propósito — cobre o ramo "ilustração" (pet sem `dsFotoChave`
+    // no .NET) tanto na lista quanto no detalhe.
+    dsFotoThumbUrl: null,
   },
   {
     id: 3, nmPet: 'Thor', nmEspecie: 'Cão', nmRaca: 'SRD', dtNascimento: '2023-01-15',
@@ -25,10 +36,19 @@ export const PETS: PetTutorResponse[] = [
     dtProximoAgendamento: new Date(Date.now() + 5 * 86400_000).toISOString(),
     chips: [{ tone: 'amber', label: '✨ Câmera Luna' }, { tone: 'mute', label: 'Em adaptação' }],
     condicoes: [{ label: 'Alergia alimentar', tone: 'amber', desde: '2024-02-10', observacao: 'Evitar ração com frango. Substituído por dieta hipoalergênica.' }],
+    dsFotoThumbUrl: 'https://picsum.photos/seed/thor-tutor/256',
   },
 ];
 
 export async function list(): Promise<PetTutorResponse[]> { return PETS; }
+
+// FT-09: variante 1080 (detalhe) — a lista (PETS, acima) só carrega a thumb
+// (regra A5); completamos aqui a variante grande só pros pets que já têm
+// `dsFotoThumbUrl` em PETS, pra não duplicar todo o dado de foto num 2º lugar.
+const FOTO_MEDIA_POR_ID: Record<number, string> = {
+  1: 'https://picsum.photos/seed/bobi-tutor/1080',
+  3: 'https://picsum.photos/seed/thor-tutor/1080',
+};
 
 // TASK-65 (FIX_5): devolve o shape RAW do Java (PetDetalheRaw — idPet, sgPorte
 // restrito a P/M/G, nmVeterinarioResponsavel), que é o que getPetById()/
@@ -54,6 +74,11 @@ export async function byId(config: { url?: string }): Promise<PetDetalheRaw> {
     nmClinica: found.nmClinica,
     nmVeterinarioResponsavel: null,
     nrConsultas: found.nrConsultas,
+    // FT-09: detalhe ganha as 2 variantes (regra A5) — thumb reaproveitada de
+    // PETS, 1080 do mapa acima. `?? null` documenta explicitamente o caso sem
+    // foto (found.dsFotoThumbUrl undefined/null vira null, nunca 'undefined').
+    dsFotoUrl: FOTO_MEDIA_POR_ID[found.id] ?? null,
+    dsFotoThumbUrl: found.dsFotoThumbUrl ?? null,
   };
 }
 

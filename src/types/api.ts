@@ -13,6 +13,10 @@ export interface RegisterTutorResponse { idTutor: number; accessToken: string; e
 export interface TutorMe { id: number; nmTutor: string; dsEmail: string; dsTelefone: string; dtCadastro: string; }
 
 // ─── Pets ─────────────────────────────────────────────────────
+// FT-09 (KURA_BACKLOG_FOTO_PET): `dsFotoThumbUrl` fica na interface BASE
+// (não só na de detalhe) porque a LISTA também ganha esse campo — regra A5
+// do backlog: a lista nunca baixa a variante grande (1080), só a thumb
+// (256). `dsFotoUrl` (1080) continua exclusivo do detalhe.
 export interface PetTutorResponse {
   id: number; nmPet: string; nmEspecie: string; nmRaca: string; dtNascimento: string;
   sgSexo: 'M' | 'F'; sgPorte: 'P' | 'M' | 'G' | 'GG'; nmClinica: string;
@@ -20,9 +24,10 @@ export interface PetTutorResponse {
   dtUltimaConsulta?: string; dtProximoAgendamento?: string;
   chips: { tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }[];
   condicoes?: { label: string; tone: 'amber' | 'clay'; desde?: string; observacao?: string }[];
+  dsFotoThumbUrl?: string | null;
 }
 export interface PetTutorDetailResponse extends PetTutorResponse {
-  dsObservacoes?: string; dsFotoUrl?: string; nrPesoKg?: number; nrTemperaturaC?: number; nrFreqCardiacaBpm?: number;
+  dsObservacoes?: string; dsFotoUrl?: string | null; nrPesoKg?: number; nrTemperaturaC?: number; nrFreqCardiacaBpm?: number;
 }
 
 // ─── Timeline (read-only) ─────────────────────────────────────
@@ -168,10 +173,18 @@ export interface PageRaw<T> {
   number: number;
   size: number;
 }
+// FT-09 (KURA_BACKLOG_FOTO_PET) — âncora regra 11: `dsFotoUrl`/`dsFotoThumbUrl`
+// espelham `PetDetalheResponse.java:31,34` (backend-tutor-java `main` `3bfb45f`,
+// FT-05), conferido em 2026-09-25 com
+// `git -C D:/FIAP/KURA/backend-tutor-java show 3bfb45f:src/main/java/br/com/clyvo/kura/tutor/tutor/api/dto/PetDetalheResponse.java`.
+// Os 2 campos vêm SEMPRE presentes no JSON, com `null` quando o pet não tem
+// foto ou a assinatura de URL está desabilitada (GeradorUrlFotoPet.gerarUrl) —
+// por isso o tipo não usa `?`, só `| null`.
 export interface PetDetalheRaw {
   idPet: number; nmPet: string; nmEspecie: string; nmRaca: string;
   sgSexo: 'M' | 'F'; dtNascimento: string; sgPorte: 'P' | 'M' | 'G';
   nmClinica: string; nmVeterinarioResponsavel: string | null; nrConsultas: number;
+  dsFotoUrl: string | null; dsFotoThumbUrl: string | null;
 }
 export interface TimelineEventoRaw {
   idEvento: number; idPet: number; nmPet: string; dtEvento: string;
