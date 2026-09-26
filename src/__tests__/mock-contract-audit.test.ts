@@ -76,6 +76,23 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
       expect(typeof res.nmPet).toBe('string');
       expect(res.nmPet.length).toBeGreaterThan(0);
     });
+
+    // FT-09 (KURA_BACKLOG_FOTO_PET): o mock de detalhe (byId, pets.mock.ts)
+    // devolve PetDetalheRaw com dsFotoUrl/dsFotoThumbUrl SEMPRE presentes
+    // (nunca undefined) — pet 1 (Bóbi) tem foto nos 2, pet 2 (Luna) não tem
+    // nenhuma. Exercita os 2 ramos pelo par service x mock real.
+    it('getPetById (pet com foto) devolve dsFotoUrl e dsFotoThumbUrl distintos, não undefined', async () => {
+      const res = await getPetById(1);
+      expect(typeof res.dsFotoUrl).toBe('string');
+      expect(typeof res.dsFotoThumbUrl).toBe('string');
+      expect(res.dsFotoUrl).not.toBe(res.dsFotoThumbUrl);
+    });
+
+    it('getPetById (pet sem foto) devolve os 2 campos como null, não undefined', async () => {
+      const res = await getPetById(2);
+      expect(res.dsFotoUrl).toBeNull();
+      expect(res.dsFotoThumbUrl).toBeNull();
+    });
   });
 
   describe('vacinas.service', () => {
@@ -171,6 +188,10 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
 
       const pets = await listPets();
       expect(Array.isArray(pets)).toBe(true);
+      // FT-09: pelo menos 1 pet com thumb (Bóbi) e pelo menos 1 sem (Luna) —
+      // os 2 ramos do KPetPortrait/PetListCard precisam de dado real aqui.
+      expect(pets.some(p => typeof p.dsFotoThumbUrl === 'string')).toBe(true);
+      expect(pets.some(p => p.dsFotoThumbUrl === null)).toBe(true);
       const ags = await listAgendamentos();
       expect(Array.isArray(ags)).toBe(true);
       const cons = await listConsentimentos();

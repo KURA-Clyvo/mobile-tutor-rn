@@ -114,7 +114,11 @@ export default function NovoAgendamentoScreen() {
         {/* Pet card */}
         {selectedPet && (
           <View style={[styles.petCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
-            <KPetPortrait palette={racaToPalette(selectedPet.raca)} size={40} especie={selectedPet.especie} />
+            {/* G2 FT-09 (M-4/frente 5): thumb (256) já disponível via usePets() —
+                serve bem em 40px. Sem `nome`: o card já escreve o nome do pet
+                ao lado (linha abaixo), passar `nome` duplicaria a leitura no
+                leitor de tela (accessibilityLabel + Text lido em sequência). */}
+            <KPetPortrait palette={racaToPalette(selectedPet.raca)} size={40} especie={selectedPet.especie} fotoUrl={selectedPet.fotoThumbUrl} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{selectedPet.nome}</Text>
               <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }}>{selectedPet.raca} · {selectedPet.idadeAnos}a</Text>

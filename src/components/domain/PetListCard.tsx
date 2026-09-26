@@ -42,7 +42,10 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
       accessibilityLabel={`${pet.nome}, ${pet.especie}, ${pet.statusGeral}`}
     >
       <View style={styles.topRow}>
-        <KPetPortrait palette={palette} size={56} tier={tier} badge={lunaEmoji} especie={pet.especie} />
+        <KPetPortrait
+          palette={palette} size={56} tier={tier} badge={lunaEmoji} especie={pet.especie}
+          fotoUrl={pet.fotoThumbUrl} nome={pet.nome}
+        />
         <View style={styles.info}>
           <Text numberOfLines={1} style={[styles.nome, { fontFamily: fonts.display, color: colors.text, fontSize: 26 }]}>
             {pet.nome}

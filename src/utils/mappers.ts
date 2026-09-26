@@ -19,6 +19,9 @@ export function mapPetDto(dto: PetTutorResponse): PetDomain {
     nrConsultas: dto.nrConsultas, chips: dto.chips, condicoes: dto.condicoes,
     dtProximoAgendamento: dto.dtProximoAgendamento ? new Date(dto.dtProximoAgendamento) : undefined,
     dtUltimaConsulta: dto.dtUltimaConsulta ? new Date(dto.dtUltimaConsulta) : undefined,
+    // FT-09: só a thumb chega na lista (regra A5) — o detalhe (mapPetDetailDto,
+    // abaixo) é quem propaga a 1080.
+    fotoThumbUrl: dto.dsFotoThumbUrl,
   };
 }
 
@@ -36,6 +39,11 @@ export function mapPetDetailDto(raw: PetDetalheRaw): PetTutorDetailResponse {
     nmClinica: raw.nmClinica,
     dsStatusGeral: 'OK', nrAlertasAtivos: 0, nrConsultas: raw.nrConsultas,
     chips: [],
+    // FT-09 (KURA_BACKLOG_FOTO_PET): o detalhe propaga as 2 variantes — regra
+    // A5 do backlog (só o detalhe baixa a 1080; a lista, em mapPetDto acima,
+    // fica restrita à thumb).
+    dsFotoUrl: raw.dsFotoUrl,
+    dsFotoThumbUrl: raw.dsFotoThumbUrl,
   };
 }
 
