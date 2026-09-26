@@ -3,7 +3,8 @@ import type { PetTutorResponse, PetDetalheRaw, PageRaw } from '../types/api';
 import { mapPetDetailDto } from '../utils/mappers';
 
 // GET /api/v1/tutor/pets real devolve uma página do Spring (`{content:[...]}`) com um DTO
-// enxuto (`idPet`, `nmPet`, `nmEspecie`, `nmRaca`, `sgSexo`, `dtNascimento`, `sgPorte`).
+// enxuto (`idPet`, `nmPet`, `nmEspecie`, `nmRaca`, `sgSexo`, `dtNascimento`, `sgPorte`,
+// `dsFotoThumbUrl` — ver FT-09 logo abaixo).
 // O app esperava um array já no shape de PetTutorResponse e quebrava fora do modo mock.
 // Array continua aceito (é o que o mock-adapter devolve). Campos que a API não tem
 // (chips, clínica, alertas) ficam vazios/neutros — nunca inventados.
