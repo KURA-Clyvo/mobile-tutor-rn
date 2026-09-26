@@ -92,7 +92,11 @@ export function KPetPortrait({
     >
       {/* Inner clipped area — handles rounded corners for content */}
       <View style={[StyleSheet.absoluteFillObject, { borderRadius: r, overflow: 'hidden' }]}>
-        {temFoto ? (
+        {/* `fotoUrl && !erroFoto` (não a variável `temFoto`) de propósito: o
+            tsc só estreita `fotoUrl` pra `string` dentro deste ramo quando a
+            condição usa a variável diretamente — mesmo achado de processo da
+            clínica (`KCPetPortrait.tsx`), pego pelo `type-check`. */}
+        {fotoUrl && !erroFoto ? (
           <Image
             testID="k-pet-portrait-foto"
             // `cacheKey` é campo de `ImageSource` (dentro de `source`), não
