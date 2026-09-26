@@ -11,12 +11,16 @@ export const PETS: PetTutorResponse[] = [
     chips: [{ tone: 'clay', label: '⚠ Retorno 2d' }, { tone: 'sage', label: 'Vacinado' }],
     condicoes: [{ label: 'Displasia de quadril', tone: 'clay', desde: '2023-05-01', observacao: 'Acompanhamento contínuo, evitar esforço nas patas traseiras.' }],
     // FT-09 (KURA_BACKLOG_FOTO_PET): a URL abaixo é picsum.photos, NÃO uma URL
-    // assinada real (mesma decisão do G2-6 da FT-08, mobile-clinica-rn — ver
-    // g2-ft08.md) — ela só serve pra resolução visual (256 aqui) da demo em modo
+    // assinada real — mesmo achado do G2-6 da FT-08 (mobile-clinica-rn — ver
+    // g2-ft08.md, que reprovou um comentário afirmando o contrário), não uma
+    // decisão. Ela só serve pra resolução visual (256 aqui) da demo em modo
     // mock, onde não existe `.NET`/Java pra gerar `.../fotos/clinica/{c}/pet/{p}/
     // {uuid}_{tam}.{ext}?exp=&sig=` de verdade. Um caminho fake no formato real
     // não carregaria nada (o `onError` do KPetPortrait cairia direto na
     // ilustração), perdendo o valor de demo visual que o mock existe para dar.
+    // ⚠️ Consequência que o comentário antigo omitia: SEM internet no dispositivo
+    // de demo, o picsum.photos falha do mesmo jeito (`onError`) e o avatar cai
+    // na ilustração — a demo em modo mock só mostra foto real com rede disponível.
     dsFotoThumbUrl: 'https://picsum.photos/seed/bobi-tutor/256',
   },
   {
