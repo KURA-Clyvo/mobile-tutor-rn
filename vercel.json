@@ -11,11 +11,11 @@
     },
     {
       "source": "/proxy/tutor/:path*",
-      "destination": "http://kura-alpha-tutor-api.eastus2.azurecontainer.io:8081/:path*"
+      "destination": "https://SUBSTITUIR-PELO-TUNEL.trycloudflare.com/tutor/:path*"
     },
     {
       "source": "/proxy/luna/:path*",
-      "destination": "http://kura-alpha-luna-ai.eastus2.azurecontainer.io:8000/:path*"
+      "destination": "https://SUBSTITUIR-PELO-TUNEL.trycloudflare.com/luna/:path*"
     },
     {
       "source": "/(.*)",
