@@ -686,13 +686,20 @@ export function discoverNetworkConsumers(serviceDir: string): ConsumerFn[] {
 
 /**
  * Extrai os nomes de check reais (1º argumento de `chamar`/`chamar_apikey`/
- * `chamar_idempotency`) de um `smoke-contratos.sh` já lido em memória — é o que
- * fecha o laço da metade "coberto: <nome>" do registry contra o script de verdade,
- * em vez de confiar que o nome citado no registry ainda existe.
+ * `chamar_idempotency`/`chamar_upload_foto`/`chamar_mascarando_token`) de um
+ * `smoke-contratos.sh` já lido em memória — é o que fecha o laço da metade
+ * "coberto: <nome>" do registry contra o script de verdade, em vez de confiar que
+ * o nome citado no registry ainda existe.
+ *
+ * REC-05/REC-19: a REC-05 passou a chamar o check `tutor/auth/register-invite` com
+ * `chamar_mascarando_token` (`DevOps-Cloud/scripts/smoke-contratos.sh:542`, `892e885`);
+ * sem reconhecer o helper o gate dava falso vermelho (o check existe). Regex alinhado
+ * ao da clínica: `mobile-clinica-rn/src/smokeCoverage/discover-network-consumers.ts:712`
+ * @ `cf2bd4b` (REC-04). Acrescentar helper novo aqui, nunca substituir a alternação.
  */
 export function extrairNomesDeCheck(conteudoScript: string): Set<string> {
   const nomes = new Set<string>();
-  const regex = /^chamar(?:_apikey|_idempotency)?\s+"((?:[^"\\]|\\.)*)"/gm;
+  const regex = /^chamar(?:_apikey|_idempotency|_upload_foto|_mascarando_token)?\s+"((?:[^"\\]|\\.)*)"/gm;
   let m: RegExpExecArray | null;
   while ((m = regex.exec(conteudoScript)) !== null) {
     const nome = m[1];
