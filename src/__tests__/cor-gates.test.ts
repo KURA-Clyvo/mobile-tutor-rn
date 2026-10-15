@@ -150,7 +150,7 @@ export function violacoesOcean(achados: Achado[], permitido: Permissao[]): strin
   for (const a of achados) {
     const i = permitido.findIndex(p => p.arq === a.arq && a.trecho.includes(p.trecho));
     if (i < 0) orfaos.push(`${a.arq}:${a.linha}  ${a.trecho}  (sem permissão)`);
-    else usado[i]++;
+    else usado[i] = (usado[i] ?? 0) + 1;
   }
   const contagem = permitido
     .map((p, i) => (usado[i] !== p.n ? `${p.arq} "${p.trecho}": esperado ${p.n}, achado ${usado[i]}` : ''))
