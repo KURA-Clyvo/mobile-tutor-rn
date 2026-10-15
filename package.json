@@ -17,8 +17,8 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
-    "check:colors": "! grep -rn '\"#' src/components/ src/app/",
-    "check:no-ocean": "! grep -rn '\"#1A3A52\"' src/"
+    "check:colors": "jest --watchAll=false src/__tests__/cor-gates.test.ts -t \"colors\"",
+    "check:no-ocean": "jest --watchAll=false src/__tests__/cor-gates.test.ts -t \"no-ocean\""
   },
   "dependencies": {
     "@expo-google-fonts/cormorant": "0.2.3",
