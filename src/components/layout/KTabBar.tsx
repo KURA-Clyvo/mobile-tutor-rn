@@ -38,7 +38,7 @@ export function KTabBar({ state, descriptors, navigation, agendaBadgeCount = 0 }
         const meta   = TAB_META[route.name] ?? { label: route.name, icon: 'pets' as IconName };
         const label  = descriptors[route.key]?.options?.title ?? meta.label;
         const active = state.index === index;             // aba ativa vem do navegador, não de pathname
-        const color  = active ? theme.colors.primary : theme.colors.textMute;
+        const color  = active ? theme.colors.primary : theme.colors.textMuteInk;
 
         const onPress = () => {
           // Padrão canônico do @react-navigation/bottom-tabs: emite o evento

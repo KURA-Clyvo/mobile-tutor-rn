@@ -18,13 +18,13 @@ export function KTextField({ label, error, helperText, secureTextEntry, containe
     ? theme.colors.danger
     : focused
     ? theme.colors.borderFocus   // Sage in light mode
-    : theme.colors.borderStrong;
+    : theme.colors.borderControl;
 
   return (
     <View style={[containerStyle]}>
       {/* Label — mono uppercase via JS (not CSS) so RNTL getByText works */}
       <Text
-        style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, letterSpacing: 1.4, color: theme.colors.textMute, marginBottom: 6 }}
+        style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, letterSpacing: 1.4, color: theme.colors.textMuteInk, marginBottom: 6 }}
       >
         {label.toUpperCase()}
       </Text>
@@ -38,7 +38,7 @@ export function KTextField({ label, error, helperText, secureTextEntry, containe
           onFocus={e => { setFocused(true);  inputProps.onFocus?.(e); }}
           onBlur ={e => { setFocused(false); inputProps.onBlur?.(e);  }}
           style={{ flex: 1, paddingVertical: 14, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: theme.fontSize.base }}
-          placeholderTextColor={theme.colors.textMute}
+          placeholderTextColor={theme.colors.textMuteInk}
         />
         {secureTextEntry && (
           <Pressable
@@ -58,7 +58,7 @@ export function KTextField({ label, error, helperText, secureTextEntry, containe
         {error
           ? <Text style={{ fontFamily: theme.fonts.body, fontSize: 12, color: theme.colors.danger }}>{error}</Text>
           : helperText
-          ? <Text style={{ fontFamily: theme.fonts.body, fontSize: 12, color: theme.colors.textMute }}>{helperText}</Text>
+          ? <Text style={{ fontFamily: theme.fonts.body, fontSize: 12, color: theme.colors.textMuteInk }}>{helperText}</Text>
           : null
         }
       </View>

@@ -98,7 +98,7 @@ export default function NovoAgendamentoScreen() {
         <Pressable onPress={() => voltar()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Fechar">
           <KIcon name="close" size={18} color={colors.text} />
         </Pressable>
-        <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1.2 }}>
+        <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1.2 }}>
           PASSO 2 DE 3
         </Text>
         <View style={{ width: 40 }} />
@@ -121,13 +121,13 @@ export default function NovoAgendamentoScreen() {
             <KPetPortrait palette={racaToPalette(selectedPet.raca)} size={40} especie={selectedPet.especie} fotoUrl={selectedPet.fotoThumbUrl} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{selectedPet.nome}</Text>
-              <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }}>{selectedPet.raca} · {selectedPet.idadeAnos}a</Text>
+              <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }}>{selectedPet.raca} · {selectedPet.idadeAnos}a</Text>
             </View>
           </View>
         )}
 
         {/* Tipo */}
-        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>TIPO DE ATENDIMENTO</Text>
+        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>TIPO DE ATENDIMENTO</Text>
         <View style={styles.tipoGrid}>
           {TIPOS.map(t => {
             const active = tipo === t.key;
@@ -144,16 +144,16 @@ export default function NovoAgendamentoScreen() {
                 accessibilityRole="radio"
                 accessibilityState={{ selected: active }}
               >
-                <KIcon name={isTele ? 'saude' : 'pets'} size={22} color={active ? (isTele ? colors.ocean : colors.primary) : colors.textMute} />
+                <KIcon name={isTele ? 'saude' : 'pets'} size={22} color={active ? (isTele ? colors.ocean : colors.primary) : colors.textMuteInk} />
                 <Text style={{ fontFamily: fonts.bodyMedium, color: active ? (isTele ? colors.ocean : colors.primary) : colors.text, fontSize: fontSize.sm }}>{t.label}</Text>
-                <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }}>{t.sub}</Text>
+                <Text style={{ fontFamily: fonts.body, color: active ? colors.textSoft : colors.textMuteInk, fontSize: fontSize.xs }}>{t.sub}</Text>
               </Pressable>
             );
           })}
         </View>
 
         {/* Calendário horizontal 7 dias */}
-        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>DATA</Text>
+        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>DATA</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.calRow}>
           {days.map((day, i) => {
             const active  = selectedDay === i;
@@ -171,13 +171,13 @@ export default function NovoAgendamentoScreen() {
                 accessibilityRole="radio"
                 accessibilityState={{ selected: active }}
               >
-                <Text style={{ fontFamily: fonts.mono, fontSize: 9, color: active ? colors.textOnPrimary : colors.textMute, letterSpacing: 0.8 }}>
+                <Text style={{ fontFamily: fonts.mono, fontSize: 9, color: active ? colors.textOnPrimary : colors.textMuteInk, letterSpacing: 0.8 }}>
                   {DIAS_SEMANA[day.getDay()]}
                 </Text>
                 <Text style={{ fontFamily: fonts.display, fontSize: 22, color: active ? colors.textOnPrimary : colors.text }}>
                   {day.getDate()}
                 </Text>
-                <Text style={{ fontFamily: fonts.mono, fontSize: 9, color: active ? colors.textOnPrimary : colors.textMute }}>
+                <Text style={{ fontFamily: fonts.mono, fontSize: 9, color: active ? colors.textOnPrimary : colors.textMuteInk }}>
                   {day.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
                 </Text>
               </Pressable>
@@ -186,7 +186,7 @@ export default function NovoAgendamentoScreen() {
         </ScrollView>
 
         {/* Slots grid 4 colunas */}
-        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>HORÁRIO</Text>
+        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>HORÁRIO</Text>
         <View style={styles.slotsGrid}>
           {SLOTS.map(slot => {
             const unavailable = INDISPONIVEIS.has(slot);
@@ -219,15 +219,15 @@ export default function NovoAgendamentoScreen() {
         </View>
 
         {/* Motivo */}
-        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>MOTIVO</Text>
+        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>MOTIVO</Text>
         <TextInput
           value={motivo}
           onChangeText={setMotivo}
           multiline
           textAlignVertical="top"
           placeholder="Descreva o motivo da consulta..."
-          placeholderTextColor={colors.textMute}
-          style={[styles.motivoInput, { fontFamily: fonts.body, color: colors.text, backgroundColor: colors.surface, borderColor: colors.borderStrong, borderRadius: radius.md, fontSize: fontSize.sm }]}
+          placeholderTextColor={colors.textMuteInk}
+          style={[styles.motivoInput, { fontFamily: fonts.body, color: colors.text, backgroundColor: colors.surface, borderColor: colors.borderControl, borderRadius: radius.md, fontSize: fontSize.sm }]}
           accessibilityLabel="Motivo da consulta"
         />
 
@@ -255,7 +255,7 @@ export default function NovoAgendamentoScreen() {
           Confirmar agendamento
         </KButton>
 
-        <Text style={[styles.nota, { fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }]}>
+        <Text style={[styles.nota, { fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
           A clínica confirmará o agendamento em até 24h.
         </Text>
       </ScrollView>

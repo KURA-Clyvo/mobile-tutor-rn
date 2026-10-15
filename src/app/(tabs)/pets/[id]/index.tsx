@@ -80,7 +80,7 @@ export default function PetDetailScreen() {
                 <KChip key={i} tone={c.tone}>{c.label}</KChip>
               ))}
             </View>
-            <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>
+            <Text style={{ fontFamily: fonts.mono, color: colors.textSoft, fontSize: 10 }}>
               {pet?.nmClinica}
             </Text>
           </View>
@@ -122,7 +122,7 @@ export default function PetDetailScreen() {
               >
                 <Text style={[styles.tabLabel, {
                   fontFamily: active ? fonts.bodyMedium : fonts.body,
-                  color: active ? colors.primary : colors.textMute,
+                  color: active ? colors.primary : colors.textMuteInk,
                   fontSize: fontSize.sm,
                 }]}>
                   {t.label}
@@ -168,7 +168,7 @@ function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
     <View style={{ gap: 20 }}>
       {(pet?.dtProximoAgendamento || pet?.dtUltimaConsulta) && (
         <>
-          <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
+          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
             01 · PRÓXIMA AÇÃO
           </Text>
           <View style={[styles.apptCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 12 }]}>
@@ -176,7 +176,7 @@ function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
               <View style={styles.apptRow}>
                 <KIcon name="calendar" size={16} color={colors.primary} />
                 <View>
-                  <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>PRÓXIMO</Text>
+                  <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>PRÓXIMO</Text>
                   <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.sm }}>
                     {formatDateBR(pet.dtProximoAgendamento)}
                   </Text>
@@ -185,9 +185,9 @@ function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
             )}
             {pet?.dtUltimaConsulta && (
               <View style={styles.apptRow}>
-                <KIcon name="check" size={16} color={colors.textMute} />
+                <KIcon name="check" size={16} color={colors.textMuteInk} />
                 <View>
-                  <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>ÚLTIMA CONSULTA</Text>
+                  <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>ÚLTIMA CONSULTA</Text>
                   <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm }}>
                     {formatDateBR(pet.dtUltimaConsulta)}
                   </Text>
@@ -200,7 +200,7 @@ function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
 
       {pet?.condicoes && pet.condicoes.length > 0 && (
         <>
-          <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
+          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
             02 · CONDIÇÕES ESPECIAIS
           </Text>
           <View style={{ gap: 10 }}>
@@ -208,7 +208,7 @@ function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
               <View key={i} style={[styles.obsCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 12, gap: 8 }]}>
                 <KConditionChip condicao={c} />
                 {c.desde && (
-                  <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>
+                  <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>
                     DESDE {formatDateBR(c.desde)}
                   </Text>
                 )}
@@ -223,13 +223,13 @@ function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
         </>
       )}
 
-      <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
+      <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
         03 · SINAIS VITAIS
       </Text>
       <View style={styles.vitaisRow}>
         {vitais.map(v => (
           <View key={v.l} style={[styles.vitalBox, { backgroundColor: colors.surface2, borderRadius: 10 }]}>
-            <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>{v.l}</Text>
+            <Text style={{ fontFamily: fonts.mono, color: colors.textSoft, fontSize: 10 }}>{v.l}</Text>
             <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 22 }}>{v.v}</Text>
           </View>
         ))}
@@ -237,7 +237,7 @@ function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
 
       {pet?.dsObservacoes && (
         <>
-          <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
+          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
             04 · OBSERVAÇÕES
           </Text>
           <View style={[styles.obsCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 12 }]}>

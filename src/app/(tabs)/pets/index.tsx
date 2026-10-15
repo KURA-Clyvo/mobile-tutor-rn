@@ -72,7 +72,7 @@ export default function MeusPetsScreen() {
                 {'Meus '}
                 <Text style={{ fontStyle: 'italic', color: colors.primary }}>pets.</Text>
               </Text>
-              <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
+              <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
                 {`${pets.length} PETS · ${nAlertas} ALERTAS`}
               </Text>
             </View>
@@ -93,8 +93,8 @@ export default function MeusPetsScreen() {
         }
         ListEmptyComponent={!isLoading ? (
           <View style={styles.empty}>
-            <KIcon name="pets" size={36} color={colors.textMute} />
-            <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.sm, textAlign: 'center' }}>
+            <KIcon name="pets" size={36} color={colors.textMuteInk} />
+            <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.sm, textAlign: 'center' }}>
               Nenhum pet cadastrado ainda.
             </Text>
             <KButton variant="primary" onPress={() => router.push('/(tabs)/pets/novo' as any)}>

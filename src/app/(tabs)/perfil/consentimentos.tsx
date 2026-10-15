@@ -121,7 +121,7 @@ export default function ConsentimentosScreen() {
                   <Switch
                     value={isAtivo}
                     onValueChange={() => void handleSwitch(tipo, isAtivo)}
-                    trackColor={{ false: colors.border, true: colors.primary }}
+                    trackColor={{ false: colors.borderControl, true: colors.primary }}
                     thumbColor={colors.surface}
                     disabled={assinando || revogando}
                     accessibilityLabel={`Consentimento ${meta.titulo}`}
@@ -158,7 +158,7 @@ export default function ConsentimentosScreen() {
               </Text>
               {!modalLoading && (
                 <Pressable onPress={() => setModalTipo(null)} accessibilityRole="button" accessibilityLabel="Fechar">
-                  <KIcon name="close" size={20} color={colors.textMute} />
+                  <KIcon name="close" size={20} color={colors.textMuteInk} />
                 </Pressable>
               )}
             </View>

@@ -59,7 +59,7 @@ export default function SaudeScreen() {
             {'Saúde dos seus '}
             <Text style={{ fontStyle: 'italic', color: colors.primary }}>pets.</Text>
           </Text>
-          <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
+          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
             {`${pets.length} PETS · ${totalAlertas} ALERTAS`}
           </Text>
         </View>
@@ -78,7 +78,7 @@ export default function SaudeScreen() {
 
         {alertas.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>
+            <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
               {`ALERTAS ATIVOS · ${alertas.length}`}
             </Text>
             {alertas.map(p => (
@@ -105,7 +105,7 @@ export default function SaudeScreen() {
 
         {vacinaAlerts.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>
+            <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
               {`VACINAS · ${vacinaAlerts.length}`}
             </Text>
             {vacinaAlerts.map(({ pet, vacina }) => (
@@ -131,13 +131,13 @@ export default function SaudeScreen() {
         )}
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>
+          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
             DOCUMENTOS
           </Text>
           <KCard>
             <View style={styles.emptyRow}>
-              <KIcon name="download" size={20} color={colors.textMute} />
-              <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.sm }}>
+              <KIcon name="download" size={20} color={colors.textMuteInk} />
+              <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.sm }}>
                 Documentos em breve
               </Text>
             </View>

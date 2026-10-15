@@ -63,7 +63,7 @@ export default function NotificacoesScreen() {
           accessibilityRole="button"
           accessibilityLabel="Marcar todas como lidas"
         >
-          <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, letterSpacing: 0.8, color: naoLidas > 0 ? colors.primary : colors.textMute }}>
+          <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, letterSpacing: 0.8, color: naoLidas > 0 ? colors.primary : colors.textMuteInk }}>
             LER TODAS
           </Text>
         </Pressable>
@@ -90,7 +90,7 @@ export default function NotificacoesScreen() {
               <View style={styles.itemContent}>
                 <View style={styles.itemTop}>
                   <KChip tone={chip.tone}>{chip.label}</KChip>
-                  <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>
+                  <Text style={{ fontFamily: fonts.mono, color: n.flLida ? colors.textMuteInk : colors.textSoft, fontSize: 10 }}>
                     {new Date(n.dtEnvio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 </View>
@@ -101,7 +101,7 @@ export default function NotificacoesScreen() {
                   {n.dsMensagem}
                 </Text>
                 {n.nmPet && (
-                  <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10, letterSpacing: 0.8, marginTop: 4 }}>
+                  <Text style={{ fontFamily: fonts.mono, color: n.flLida ? colors.textMuteInk : colors.textSoft, fontSize: 10, letterSpacing: 0.8, marginTop: 4 }}>
                     {n.nmPet.toUpperCase()}
                   </Text>
                 )}
@@ -111,8 +111,8 @@ export default function NotificacoesScreen() {
         }}
         ListEmptyComponent={!isLoading ? (
           <View style={styles.empty}>
-            <KIcon name="bell" size={32} color={colors.textMute} />
-            <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.sm }}>
+            <KIcon name="bell" size={32} color={colors.textMuteInk} />
+            <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.sm }}>
               Nenhuma notificação ainda.
             </Text>
           </View>
