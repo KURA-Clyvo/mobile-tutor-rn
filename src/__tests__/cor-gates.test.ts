@@ -38,7 +38,7 @@ function achar(rel: string, texto: string, regex: RegExp): Achado[] {
   const out: Achado[] = [];
   for (const m of limpo.matchAll(g)) {
     const linha = limpo.slice(0, m.index).split('\n').length;
-    out.push({ arq: rel, linha, trecho: linhas[linha - 1].trim() });
+    out.push({ arq: rel, linha, trecho: (linhas[linha - 1] ?? '').trim() });
   }
   return out;
 }
