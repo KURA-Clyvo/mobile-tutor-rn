@@ -40,7 +40,7 @@ function SplashContent() {
       <View style={styles.logoArea}>
         <Text style={{ fontFamily: fonts.display, color: colors.primary, fontSize: 76, lineHeight: 80 }}>
           {'Kura'}
-          <Text style={{ color: colors.amber }}>.</Text>
+          <Text style={{ color: colors.amberInk }}>.</Text>
         </Text>
         <Text style={{ fontFamily: fonts.display, fontStyle: 'italic', color: colors.textSoft, fontSize: 22, lineHeight: 28 }}>
           O cuidado registrado.

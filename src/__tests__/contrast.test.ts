@@ -3,9 +3,10 @@
 //
 // ÂNCORA (regra 11 do CLAUDE.md do workspace) — o desenho deste gate (ratio WCAG, truncamento sem
 // arredondar a favor, tabela de pares + USOS com âncora de regex + varredura derivada do código) é
-// cópia adaptada de mobile-clinica-rn/tests/contrast.test.ts, main@773ae66, linhas 1-35 (ratio/truncado),
-// 38-95 (PARES) e 120-175 (USOS e varredura). Conferido em 2026-10-15.
-// Reproduz: git -C ../mobile-clinica-rn show 773ae66:tests/contrast.test.ts | sed -n '1,35p;38,95p'
+// cópia adaptada de mobile-clinica-rn/tests/contrast.test.ts, main@773ae66: ratio/truncado linhas 17-31,
+// PARES 37-91, USOS 139-367, varredura derivada 402-444. Intervalos conferidos em 2026-10-15 (corrigidos
+// após a G2, que mediu PARES 37-108, USOS 139-370, varredura 400-444 contando o `describe` seguinte).
+// Reproduz: git -C ../mobile-clinica-rn show 773ae66:tests/contrast.test.ts | sed -n '17,31p;37,91p;139,367p;402,444p'
 import fs from 'fs';
 import path from 'path';
 import { darkColors, lightColors } from '../theme/tokens';
@@ -59,6 +60,7 @@ const PARES: Par[] = [
   ...par('primary', 'primarySoft'),
   ...par('textOnPrimary', 'primary'),
   ...par('textOnPrimary', 'danger'),
+  ...par('textOnPrimary', 'clayInk'), // KBadge: contagem sobre clayInk (clay do DS reprovaria)
   ...par('danger', 'surface'),
   // borda de controle (campo, checkbox, trilho do switch desligado, botão secundário): 3:1
   ...par('borderControl', 'bg', BORDA),
@@ -104,40 +106,76 @@ function arquivosFonte(dir: string, acc: string[] = []): string[] {
 }
 const rel = (p: string) => path.relative(SRC_DIR, p).split(path.sep).join('/');
 const TSX = arquivosFonte(SRC_DIR);
-const tokens = (expr: string) => [...expr.matchAll(/(?:\bc|colors|theme\.colors)\.(\w+)/g)].map(m => m[1] as string);
+const FONTES = new Map(TSX.map(f => [f, fs.readFileSync(f, 'utf8')] as const));
+const tokens = (expr: string) => [
+  ...[...expr.matchAll(/(?:\bc|colors|theme\.colors)\.(\w+)/g)].map(m => m[1] as string),
+  ...[...expr.matchAll(/(?:\bc|colors|theme\.colors)\[['"](\w+)['"]\]/g)].map(m => m[1] as string),
+];
+const norm = (t: string) => t.replace(/\s+/g, ' ').trim();
+const linhaDe = (src: string, idx: number) => src.slice(0, idx).split('\n').length;
+
+// I-1: o texto é varrido INTEIRO (não linha a linha), então `color:\n colors.textMute` (formato do Prettier) é visto.
+// E um identificador (`color: lineColor`, `color: bCfg.iconColor`) é resolvido pelas atribuições do MESMO arquivo.
+function resolverIdent(src: string, ident: string): string[] {
+  const out: string[] = [];
+  const ultimo = ident.split('.').pop() as string;
+  if (!ident.includes('.')) {
+    for (const m of src.matchAll(new RegExp(`\\b(?:const|let|var)\\s+${ident}\\b[^=;]*=\\s*([^;]*?);`, 'g'))) out.push(...tokens(m[1] as string));
+  }
+  for (const m of src.matchAll(new RegExp(`\\b${ultimo}\\s*:\\s*([^,}]*)`, 'g'))) out.push(...tokens(m[1] as string));
+  return out;
+}
+// `<KIcon ... color=...>` ainda aberto em `idx` (ícone é não-texto, 3:1; o tag pode estar em linha anterior).
+function dentroDeKIcon(src: string, idx: number): boolean {
+  const ini = src.lastIndexOf('<KIcon', idx);
+  if (ini < 0 || idx - ini > 400) return false;
+  const trecho = src.slice(ini, idx);
+  return !trecho.includes('/>') && !trecho.includes('</');
+}
+type Sitio = { tokens: string[]; snippet: string; linha: number; naoResolvido?: string };
+function sitios(src: string, prop: RegExp, soTexto: boolean): Sitio[] {
+  const out: Sitio[] = [];
+  for (const m of src.matchAll(prop)) {
+    const idx = m.index as number;
+    if (soTexto && dentroDeKIcon(src, idx)) continue;
+    const valor = norm(m[1] as string);
+    let tk = tokens(valor);
+    let naoResolvido: string | undefined;
+    if (tk.length === 0 && /^[A-Za-z_]\w*(?:\.\w+)*$/.test(valor) && !/^(string|number|boolean)$/.test(valor)) {
+      tk = resolverIdent(src, valor);
+      if (tk.length === 0) naoResolvido = valor;
+    }
+    out.push({ tokens: tk, snippet: norm(m[0]), linha: linhaDe(src, idx), naoResolvido });
+  }
+  return out;
+}
+const PROP_COR = /(?<![A-Za-z])color[:=]\s*\{?\s*([^,}]*)/g;
+const PROP_FUNDO = /(?:backgroundColor|\bbg)\s*:\s*([^,}]*)/g;
 
 type Uso = { arq: string; linha: number; trecho: string };
 function usosDeCor(prop: RegExp, soTexto: boolean): { token: string; uso: Uso }[] {
   const out: { token: string; uso: Uso }[] = [];
   for (const f of TSX) {
-    fs.readFileSync(f, 'utf8').split(/\r?\n/).forEach((linha, i) => {
-      if (soTexto && /<KIcon/.test(linha)) return; // ícone é não-texto (3:1), fora desta checagem
-      for (const m of linha.matchAll(prop)) {
-        for (const tk of tokens(m[1] as string)) {
-          out.push({ token: tk, uso: { arq: rel(f), linha: i + 1, trecho: linha.trim().slice(0, 90) } });
-        }
-      }
-    });
+    for (const s of sitios(FONTES.get(f) as string, prop, soTexto)) {
+      for (const tk of s.tokens) out.push({ token: tk, uso: { arq: rel(f), linha: s.linha, trecho: s.snippet.slice(0, 90) } });
+    }
   }
   return out;
 }
 
 // Tokens de TEXTO proibidos, derivados de tokens.ts: todo token que tem um gêmeo `<nome>Ink` só serve a
-// preenchimento/grafismo; mais `warning` (alias de amber).
+// preenchimento/grafismo; mais `warning` (alias de amber). Sem exceção por arquivo: o DS ganha, texto usa `*Ink`.
 const PROIBIDOS_COMO_TEXTO = [...Object.keys(lightColors).filter(k => `${k}Ink` in lightColors), 'warning'];
-// Exceções verificadas à mão (texto grande >= 24px: limiar 3:1, e a razão passa).
-const EXCECOES_TEXTO: { arq: string; token: string; motivo: string }[] = [
-  { arq: 'app/_layout.tsx', token: 'amber', motivo: 'ponto do wordmark da abertura, 76px (texto grande, 3:1)' },
-];
+// Identificadores de cor que NÃO vêm de token (parâmetro/propriedade de componente), verificados à mão.
+const NAO_RESOLVIDOS_OK: RegExp[] = [];
 
 describe('varredura: nenhum texto usa token que só serve a preenchimento', () => {
   it('a lista de proibidos é derivada dos tokens (controle: contém textMute, amber, clay)', () => {
     expect(PROIBIDOS_COMO_TEXTO).toEqual(expect.arrayContaining(['textMute', 'amber', 'clay']));
   });
-  it('0 usos de color: <proibido> fora das exceções', () => {
-    const achados = usosDeCor(/(?<![A-Za-z])color[:=]\s*\{?([^,}]*)/g, true)
+  it('0 usos de color: <proibido> (nem em linha seguinte, nem por variável)', () => {
+    const achados = usosDeCor(PROP_COR, true)
       .filter(({ token }) => PROIBIDOS_COMO_TEXTO.includes(token))
-      .filter(({ token, uso }) => !EXCECOES_TEXTO.some(e => e.arq === uso.arq && e.token === token))
       .map(({ token, uso }) => `${uso.arq}:${uso.linha} color usa ${token}: ${uso.trecho}`);
     expect(achados).toEqual([]);
   });
@@ -147,55 +185,153 @@ describe('varredura: nenhum texto usa token que só serve a preenchimento', () =
       .map(({ token, uso }) => `${uso.arq}:${uso.linha} placeholder usa ${token}`);
     expect(achados).toEqual([]);
   });
+  it('todo `color: <identificador>` foi resolvido para tokens (senão a varredura estaria cega a ele)', () => {
+    const nao: string[] = [];
+    for (const f of TSX) for (const st of sitios(FONTES.get(f) as string, PROP_COR, true)) if (st.naoResolvido) nao.push(`${rel(f)}:${st.linha} ${st.snippet}`);
+    expect(nao.filter(x => !NAO_RESOLVIDOS_OK.some(r => r.test(x)))).toEqual([]);
+  });
+});
+
+// Controle positivo das cegueiras que a G2 achou (MB: valor na linha seguinte; MC: cor por variável),
+// com a MESMA função e a MESMA regex da varredura real.
+describe('controle positivo da varredura (I-1)', () => {
+  const proibidos = (src: string) => sitios(src, PROP_COR, true).flatMap(x => x.tokens).filter(t => PROIBIDOS_COMO_TEXTO.includes(t));
+  it('linha única (controle)', () => {
+    expect(proibidos('<Text style={{ color: colors.textMute }} />')).toEqual(['textMute']);
+  });
+  it('MB: valor na linha seguinte (formato do Prettier)', () => {
+    expect(proibidos('<Text style={[ {\n  color:\n    colors.textMute,\n} ]} />')).toEqual(['textMute']);
+  });
+  it('MC: cor por variável local', () => {
+    expect(proibidos("const lineColor = tone === 'a' ? colors.primary : colors.textMute;\n<Text style={{ color: lineColor }} />")).toEqual(['textMute']);
+  });
+  it('MC2: cor por propriedade de objeto local', () => {
+    expect(proibidos('const cfg = { a: { iconColor: colors.clay } };\n<Text style={{ color: cfg.a.iconColor }} />')).toEqual(['clay']);
+  });
+  it('KIcon multilinha continua fora (ícone é 3:1)', () => {
+    expect(proibidos('<KIcon\n  name="x"\n  color={colors.amber}\n/>')).toEqual([]);
+  });
+  it('KIcon fechado antes não esconde o texto seguinte', () => {
+    expect(proibidos('<KIcon name="x" color={colors.primary} />\n<Text style={{ color: colors.amber }} />')).toEqual(['amber']);
+  });
 });
 
 describe('varredura: texto sobre fundo tingido', () => {
   // Texto "de metadado" cruzado com os fundos tingidos que o MESMO arquivo declara. Superconjunto por
-  // construção (o arquivo pode usar o fundo em outro elemento), então cada par que reprova precisa estar
-  // em ESPURIOS, verificado à mão como cruzamento sem elemento real, com o motivo.
+  // construção (o arquivo pode usar o fundo em outro elemento), então cada cruzamento que reprova precisa de
+  // isenção POR OCORRÊNCIA (I-2): para o par (arquivo, token de texto) a isenção fixa os SÍTIOS exatos
+  // `color: <expr>` com a contagem de cada um — um uso novo, ou um uso trocado de lugar (`a ? x : y` invertido),
+  // muda o conjunto de sítios e o teste falha. Cada fundo isento traz o motivo, verificado à mão na fonte.
   const TEXTOS = ['textMuteInk', 'amberInk', 'clayInk', 'danger', 'info'];
   const TINGIDOS = ['primarySoft', 'surface2', 'oceanPale', 'amberPale', 'clayPale', 'bgSunk', 'successBg', 'warningBg', 'dangerBg', 'infoBg'];
-  const ESPURIOS: Record<string, string> = {
-    'app/(tabs)/agenda/novo.tsx|claro|textMuteInk|oceanPale': 'metadado do tipo selecionado usa textSoft (USOS); o resto de textMuteInk está em cartão não selecionado (surface)',
-    'app/(tabs)/agenda/novo.tsx|claro|textMuteInk|primarySoft': 'idem; resumoCard (primarySoft) só tem texto primary/text',
-    'app/(tabs)/pets/novo.tsx|claro|textMuteInk|primarySoft': 'primarySoft só no ícone da foto e na espécie ativa (texto primary 5.06)',
-    'app/(tabs)/pets/novo.tsx|claro|textMuteInk|surface2': 'segmento de sexo (surface2) usa textSoft/textOnPrimary',
-    'app/(tabs)/pets/[id]/index.tsx|claro|textMuteInk|primarySoft': 'hero (primarySoft) usa textSoft (USOS); textMuteInk restante está sobre surface/bg',
-    'app/(tabs)/pets/[id]/index.tsx|claro|textMuteInk|surface2': 'vitalBox (surface2) usa textSoft (USOS)',
-    'app/(tabs)/saude/index.tsx|claro|textMuteInk|primarySoft': 'primarySoft só no círculo do ícone de tudo em dia; cabeçalhos em bg',
-    'app/notificacoes.tsx|claro|textMuteInk|surface2': 'não lida (surface2) usa textSoft (USOS); textMuteInk só na lida (surface)',
-    'app/register.tsx|claro|textMuteInk|primarySoft': 'inviteBanner (primarySoft) só tem texto primary',
-    'app/register.tsx|claro|danger|primarySoft': 'danger é erro de campo em bg; inviteBanner só tem texto primary',
-    'components/domain/ConsultasTab.tsx|claro|textMuteInk|surface2': 'vitalBox (surface2) usa textSoft (USOS)',
-    'components/domain/ConsultasTab.tsx|claro|textMuteInk|primarySoft': 'primarySoft só no ponto da timeline e no chip de retorno (texto primary)',
-    'components/domain/VacinaItem.tsx|claro|textMuteInk|primarySoft': 'primarySoft só no iconBox (ícone) e no botão Agendar (texto primary)',
-    'components/domain/VacinasTab.tsx|claro|textMuteInk|primarySoft': 'banner (bg tingido) usa textSoft/ink; textMuteInk só em cabeçalhos sobre bg',
-    'components/domain/VacinasTab.tsx|claro|textMuteInk|clayPale': 'idem',
-    'components/domain/VacinasTab.tsx|escuro|textMuteInk|amberPale': 'idem',
-    'components/primitives/KChip.tsx|claro|amberInk|primarySoft': 'toneMap: bg e cor pareados por tom (amber só com amberPale, USOS)',
-    'components/primitives/KChip.tsx|claro|amberInk|clayPale': 'idem',
-    'components/primitives/KChip.tsx|claro|amberInk|oceanPale': 'idem',
-    'components/primitives/KChip.tsx|claro|amberInk|surface2': 'idem',
-    'components/primitives/KConditionChip.tsx|claro|amberInk|clayPale': 'toneMap: amber só com amberPale (4.63)',
+  type Isencao = { sitios: Record<string, number>; fundos: Record<string, string> };
+  const ESPURIOS: Record<string, Isencao> = {
+    'app/(tabs)/agenda/novo.tsx|textMuteInk': {
+      sitios: {'color: colors.textMuteInk': 7, 'color: active ? colors.textSoft : colors.textMuteInk': 1, 'color: active ? colors.textOnPrimary : colors.textMuteInk': 2},
+      fundos: {
+        'claro|primarySoft': 'tipo ativo (primarySoft) usa textSoft (sítio ternário); resumoCard (primarySoft) só tem texto primary/text; textMuteInk restante está em surface/bg',
+        'claro|oceanPale': 'idem: oceanPale só no cartão Teleorientação ativo, que usa textSoft',
+      },
+    },
+    'app/(tabs)/pets/novo.tsx|textMuteInk': {
+      sitios: {'color: colors.textMuteInk': 7, 'color: active ? colors.primary : colors.textMuteInk': 1},
+      fundos: {
+        'claro|primarySoft': 'primarySoft só no ícone da foto (KIcon) e na espécie ativa (texto primary); textMuteInk só no estado inativo (surface)',
+        'claro|surface2': 'segmento de sexo (surface2) só tem texto textSoft/textOnPrimary',
+      },
+    },
+    'app/(tabs)/pets/[id]/index.tsx|textMuteInk': {
+      sitios: {'color: active ? colors.primary : colors.textMuteInk': 1, 'color: colors.textMuteInk': 7},
+      fundos: {
+        'claro|primarySoft': 'hero (primarySoft) não contém sítio de textMuteInk; os sítios estão em abas e seções sobre bg',
+        'claro|surface2': 'vitalBox (surface2) só tem texto textSoft/text',
+      },
+    },
+    'app/(tabs)/saude/index.tsx|textMuteInk': {
+      sitios: {'color: colors.textMuteInk': 5},
+      fundos: {
+        'claro|primarySoft': 'primarySoft só no círculo do ícone de tudo em dia (KIcon); cabeçalhos em bg',
+      },
+    },
+    'app/notificacoes.tsx|textMuteInk': {
+      sitios: {'color: naoLidas > 0 ? colors.primary : colors.textMuteInk': 1, 'color: n.flLida ? colors.textMuteInk : colors.textSoft': 2, 'color: colors.textMuteInk': 1},
+      fundos: {
+        'claro|surface2': 'não lida (surface2) usa textSoft nos 2 sítios ternários (hora e pet); textMuteInk só na lida (surface) e no vazio (bg)',
+      },
+    },
+    'app/register.tsx|textMuteInk': {
+      sitios: {'color: c.textMuteInk': 4},
+      fundos: {
+        'claro|primarySoft': 'inviteBanner (primarySoft) só tem texto primary',
+      },
+    },
+    'app/register.tsx|danger': {
+      sitios: {'color: c.danger': 1},
+      fundos: {
+        'claro|primarySoft': 'danger é erro de campo em bg; inviteBanner só tem texto primary',
+      },
+    },
+    'components/domain/ConsultasTab.tsx|textMuteInk': {
+      sitios: {'color: colors.textMuteInk': 8},
+      fundos: {
+        'claro|primarySoft': 'primarySoft só no ponto da timeline (dotBg, sem texto) e no chip de retorno (texto primary)',
+        'claro|surface2': 'vitalBox (surface2) só tem texto textSoft/text',
+        'claro|oceanPale': 'oceanPale só no ponto da timeline (dotBg), sem texto',
+      },
+    },
+    'components/domain/VacinaItem.tsx|textMuteInk': {
+      sitios: {'color: colors.textMuteInk': 3},
+      fundos: {
+        'claro|primarySoft': 'primarySoft só no iconBox (KIcon) e no botão Agendar (texto primary); textMuteInk está sobre surface',
+      },
+    },
+    'components/domain/VacinasTab.tsx|textMuteInk': {
+      sitios: {'color: colors.textMuteInk': 4},
+      fundos: {
+        'claro|primarySoft': 'banner (bg tingido) tem título iconColor e subtítulo textSoft; textMuteInk só em cabeçalhos/vazio sobre bg',
+        'claro|clayPale': 'idem',
+        'escuro|amberPale': 'idem',
+      },
+    },
+    'components/domain/VacinasTab.tsx|amberInk': {
+      sitios: {'color: bCfg.iconColor': 2},
+      fundos: {
+        'claro|primarySoft': 'iconColor é pareado ao bg por status: amberInk só com amberPale (4.63), EM_DIA usa primary',
+        'claro|clayPale': 'idem: VENCIDA usa clayInk, não amberInk',
+      },
+    },
+    'components/primitives/KChip.tsx|amberInk': {
+      sitios: {'color: colors.amberInk': 1},
+      fundos: {
+        'claro|primarySoft': 'toneMap pareia bg e cor por tom: amberInk só com amberPale (USOS)',
+        'claro|surface2': 'idem',
+        'claro|oceanPale': 'idem',
+        'claro|clayPale': 'idem',
+      },
+    },
+    'components/primitives/KConditionChip.tsx|amberInk': {
+      sitios: {'color: colors.amberInk': 1},
+      fundos: {
+        'claro|clayPale': 'toneMap pareia bg e cor por tom: amberInk só com amberPale (4.63)',
+      },
+    },
   };
 
-  const achados: string[] = [];
+  const contagem = (src: string, texto: string) => {
+    const c: Record<string, number> = {};
+    for (const st of sitios(src, PROP_COR, true)) if (st.tokens.includes(texto)) c[st.snippet] = (c[st.snippet] ?? 0) + 1;
+    return c;
+  };
+  const achados: string[] = []; // `arq|tema|texto|fundo`
   for (const f of TSX) {
-    const src = fs.readFileSync(f, 'utf8');
-    const txt = new Set<string>();
-    const fundos = new Set<string>();
-    src.split(/\r?\n/).forEach(l => {
-      if (!/<KIcon/.test(l)) {
-        for (const m of l.matchAll(/(?<![A-Za-z])color[:=]\s*\{?([^,}]*)/g)) tokens(m[1] as string).forEach(t => txt.add(t));
-      }
-      for (const m of l.matchAll(/backgroundColor:\s*([^,}]*)/g)) tokens(m[1] as string).forEach(t => fundos.add(t));
-      for (const m of l.matchAll(/\bbg:\s*([^,}]*)/g)) tokens(m[1] as string).forEach(t => fundos.add(t));
-    });
+    const src = FONTES.get(f) as string;
+    const txt = new Set(sitios(src, PROP_COR, true).flatMap(x => x.tokens));
+    const fundos = new Set(sitios(src, PROP_FUNDO, false).flatMap(x => x.tokens));
     for (const tema of TEMA_NOMES) {
-      for (const a of txt) {
-        if (!TEXTOS.includes(a)) continue;
-        for (const b of fundos) {
-          if (!TINGIDOS.includes(b)) continue;
+      for (const a of TEXTOS) {
+        if (!txt.has(a)) continue;
+        for (const b of TINGIDOS) {
+          if (!fundos.has(b)) continue;
           const A = TEMAS[tema][a];
           const B = TEMAS[tema][b];
           if (!A || !B) continue;
@@ -204,11 +340,46 @@ describe('varredura: texto sobre fundo tingido', () => {
       }
     }
   }
-  it('todo cruzamento texto x fundo tingido < 4.5 está justificado como espúrio', () => {
-    expect(achados.filter(k => !(k in ESPURIOS))).toEqual([]);
+  const isento = (k: string) => {
+    const [arq, tema, texto, fundo] = k.split('|') as [string, string, string, string];
+    return ESPURIOS[`${arq}|${texto}`]?.fundos[`${tema}|${fundo}`] !== undefined;
+  };
+  it('todo cruzamento texto x fundo tingido < 4.5 está isento com motivo', () => {
+    expect(achados.filter(k => !isento(k))).toEqual([]);
   });
-  it('as justificativas não apodrecem (cada espúrio ainda é um cruzamento real)', () => {
-    expect(Object.keys(ESPURIOS).filter(k => !achados.includes(k))).toEqual([]);
+  it('a isenção vale só para os sítios fixados (uso novo ou trocado de lugar falha)', () => {
+    const divergentes: string[] = [];
+    for (const [chave, iso] of Object.entries(ESPURIOS)) {
+      const [arq, texto] = chave.split('|') as [string, string];
+      const f = path.join(SRC_DIR, arq);
+      if (!FONTES.has(f)) { divergentes.push(`${chave}: arquivo não existe`); continue; }
+      const obs = contagem(FONTES.get(f) as string, texto);
+      if (JSON.stringify(Object.entries(obs).sort()) !== JSON.stringify(Object.entries(iso.sitios).sort())) {
+        divergentes.push(`${chave}: sítios observados ${JSON.stringify(obs)} != isentos ${JSON.stringify(iso.sitios)}`);
+      }
+    }
+    expect(divergentes).toEqual([]);
+  });
+  it('as isenções não apodrecem (cada fundo isento ainda é um cruzamento real)', () => {
+    const vivos = new Set(achados);
+    const mortos: string[] = [];
+    for (const [chave, iso] of Object.entries(ESPURIOS)) {
+      const [arq, texto] = chave.split('|') as [string, string];
+      for (const tf of Object.keys(iso.fundos)) {
+        const [tema, fundo] = tf.split('|');
+        if (!vivos.has(`${arq}|${tema}|${texto}|${fundo}`)) mortos.push(`${chave}|${tf}`);
+      }
+    }
+    expect(mortos).toEqual([]);
+  });
+  // Isca (I-2): a MA da G2 — `notificacoes.tsx:93` com textMuteInk no lado que fica sobre surface2 — tem de falhar.
+  it('isca: sítio de texto trocado de lugar dentro de um arquivo isento NÃO passa', () => {
+    const orig = FONTES.get(path.join(SRC_DIR, 'app/notificacoes.tsx')) as string;
+    const trocado = orig.replace(/n\.flLida \? colors\.textMuteInk : colors\.textSoft/, 'n.flLida ? colors.textSoft : colors.textMuteInk');
+    expect(trocado).not.toBe(orig); // o alvo da isca existe
+    const iso = ESPURIOS['app/notificacoes.tsx|textMuteInk'] as Isencao;
+    expect(JSON.stringify(Object.entries(contagem(orig, 'textMuteInk')).sort())).toBe(JSON.stringify(Object.entries(iso.sitios).sort()));
+    expect(JSON.stringify(Object.entries(contagem(trocado, 'textMuteInk')).sort())).not.toBe(JSON.stringify(Object.entries(iso.sitios).sort()));
   });
 });
 

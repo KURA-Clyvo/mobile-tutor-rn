@@ -14,12 +14,12 @@ export function AlertaBanner({ title, subtitle, onPress }: AlertaBannerProps) {
   return (
     <View style={[styles.wrap, {
       backgroundColor: colors.clayPale,
-      borderColor: 'rgba(217,98,74,0.22)',
+      borderColor: colors.chipBorderClay,
       borderRadius: radius.lg,
       borderLeftWidth: 3,
-      borderLeftColor: colors.clay,
+      borderLeftColor: colors.clayInk,
     }]}>
-      <View style={[styles.iconWrap, { backgroundColor: 'rgba(217,98,74,0.15)' }]}>
+      <View style={[styles.iconWrap, { backgroundColor: colors.clayTint }]}>
         <KIcon name="alert" size={16} color={colors.clayInk} />
       </View>
       <View style={styles.content}>

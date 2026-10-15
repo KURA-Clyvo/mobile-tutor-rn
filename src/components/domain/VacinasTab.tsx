@@ -18,8 +18,8 @@ export function VacinasTab({ petId }: { petId: number }) {
 
   const bannerCfg = {
     EM_DIA:  { bg: colors.primarySoft, border: colors.primary, icon: 'check' as const, iconColor: colors.primary, title: 'Vacinação em dia' },
-    ALERTA:  { bg: colors.amberPale,   border: colors.amber,   icon: 'alert' as const, iconColor: colors.amber,   title: 'Vacinas próximas do vencimento' },
-    VENCIDA: { bg: colors.clayPale,    border: colors.clay,    icon: 'alert' as const, iconColor: colors.clay,    title: 'Vacinas vencidas — agende já' },
+    ALERTA:  { bg: colors.amberPale,   border: colors.amberInk, icon: 'alert' as const, iconColor: colors.amberInk,  title: 'Vacinas próximas do vencimento' },
+    VENCIDA: { bg: colors.clayPale,    border: colors.clayInk, icon: 'alert' as const, iconColor: colors.clayInk,   title: 'Vacinas vencidas — agende já' },
   };
   const bCfg = bannerCfg[statusData?.dsStatusGeral ?? 'EM_DIA'];
 

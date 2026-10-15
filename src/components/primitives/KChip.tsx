@@ -10,10 +10,10 @@ export function KChip({ tone = 'sage', dot, children }: KChipProps) {
   const { colors, fonts, fontSize } = useTheme();
 
   const toneMap: Record<Tone, { bg: string; color: string; border: string }> = {
-    sage:  { bg: colors.primarySoft,  color: colors.primary,  border: 'rgba(74,105,68,0.22)'  },
-    amber: { bg: colors.amberPale,    color: colors.amberInk,  border: 'rgba(200,129,13,0.22)' },
-    clay:  { bg: colors.clayPale,     color: colors.clayInk,   border: 'rgba(217,98,74,0.22)'  },
-    ocean: { bg: colors.oceanPale,    color: colors.ocean,    border: 'rgba(26,58,82,0.22)'   },
+    sage:  { bg: colors.primarySoft,  color: colors.primary,  border: colors.chipBorderSage  },
+    amber: { bg: colors.amberPale,    color: colors.amberInk,  border: colors.chipBorderAmber },
+    clay:  { bg: colors.clayPale,     color: colors.clayInk,   border: colors.chipBorderClay  },
+    ocean: { bg: colors.oceanPale,    color: colors.ocean,    border: colors.chipBorderOcean },
     mute:  { bg: colors.surface2,     color: colors.textSoft,    border: colors.border            },
   };
 
