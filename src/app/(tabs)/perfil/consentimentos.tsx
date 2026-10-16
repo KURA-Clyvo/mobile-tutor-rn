@@ -7,6 +7,8 @@ import { KChip }   from '@components/primitives/KChip';
 import { KButton } from '@components/primitives/KButton';
 import { KCard }   from '@components/primitives/KCard';
 import { useDialog } from '@components/primitives/KDialog';
+import { confirmar } from '@components/feedback/confirmar';
+import { useToast } from '@components/feedback/Toast';
 import { QueryState } from '@components/feedback/QueryState';
 import { Skeleton } from '@components/feedback/Skeleton';
 import { useConsentimentos, useAssinar, useRevogar } from '../../../hooks/useConsentimentos';
@@ -23,6 +25,15 @@ function generateUUID(): string {
 // inventados que não existiam no backend (ver constants/lgpd.ts).
 const TIPOS: TipoConsentimento[] = ['TELEORIENTACAO', 'LEMBRETES', 'DADOS_ANONIMOS', 'COMPARTILHAR_SEGURADORA', 'MARKETING'];
 
+// BR-TUT-T05: o diálogo de revogar diz o que muda para o tutor (a consequência), não repete o texto do termo.
+const CONSEQUENCIA_REVOGAR: Record<TipoConsentimento, string> = {
+  TELEORIENTACAO:          'Você deixa de poder fazer teleorientação por vídeo com a clínica.',
+  LEMBRETES:               'Você deixa de receber lembretes de vacina, consultas e comunicados da clínica.',
+  DADOS_ANONIMOS:          'Seus dados deixam de ser usados de forma anonimizada.',
+  COMPARTILHAR_SEGURADORA: 'Seus dados deixam de ser compartilhados com a seguradora.',
+  MARKETING:               'Você deixa de receber ofertas e novidades.',
+};
+
 export default function ConsentimentosScreen() {
   const { colors, fonts, fontSize } = useTheme();
   const insets = useSafeAreaInsets();
@@ -30,7 +41,8 @@ export default function ConsentimentosScreen() {
   // histórico, o back() antigo não fazia nada (sem feedback pro usuário,
   // ver useVoltar.ts) — agora cai na aba pai.
   const voltar = useVoltar('/(tabs)/perfil');
-  const { alerta, confirmar } = useDialog();
+  const { alerta } = useDialog();
+  const toast = useToast();
   const consentimentosQuery = useConsentimentos();
   const lista = consentimentosQuery.data ?? [];
   const { mutateAsync: assinar,  isPending: assinando } = useAssinar();
@@ -46,17 +58,22 @@ export default function ConsentimentosScreen() {
     if (currentlyActive) {
       const c = getStatus(tipo);
       if (!c) return;
-      // TASK-F06: LGPD — revogar é irreversível pelo app, então a confirmação
-      // continua obrigatória. `revogar(...)` só roda com `confirmado === true`;
-      // dispensar o diálogo (back-button, toque fora) resolve false.
+      // LGPD — a confirmação é obrigatória: `revogar(...)` só roda com `confirmado === true`; dispensar o
+      // diálogo (voltar do Android, toque fora) resolve false.
       const confirmado = await confirmar({
         titulo:     'Revogar consentimento?',
-        mensagem:   LGPD_CONSENTIMENTOS[tipo].resumo,
-        cancelar:   'Cancelar',
-        confirmar:  'Revogar',
+        mensagem:   `${CONSEQUENCIA_REVOGAR[tipo]} Você pode aceitar de novo quando quiser.`,
+        verbo:      'Revogar consentimento',
         destrutivo: true,
       });
-      if (confirmado) revogar({ tipo, key: generateUUID() });
+      if (!confirmado) return;
+      // BR-TUT-T05 (F5-M3): o toast só afirma sucesso DEPOIS da resposta do servidor; falha vira toast de erro.
+      try {
+        await revogar({ tipo, key: generateUUID() });
+        toast.show({ tipo: 'sucesso', texto: 'Consentimento revogado' });
+      } catch {
+        toast.show({ tipo: 'erro', texto: 'Não foi possível revogar o consentimento. Tente novamente.' });
+      }
     } else {
       setModalTipo(tipo);
     }
@@ -71,11 +88,10 @@ export default function ConsentimentosScreen() {
         key: generateUUID(), // Idempotency-Key: unique per action
       });
       setModalTipo(null);
+      toast.show({ tipo: 'sucesso', texto: 'Consentimento registrado' });
     } catch {
-      // TASK-F06: `void` de propósito — o `finally` abaixo desliga o spinner do
-      // modal e não pode esperar o tutor fechar o diálogo. Aguardar aqui
-      // deixaria o botão em "loading" enquanto o aviso estivesse na tela,
-      // comportamento que o Alert nativo (fire-and-forget) não tinha.
+      // `void` de propósito (TASK-F06): o `finally` desliga o spinner do modal e não espera o diálogo. Fica
+      // diálogo e não toast porque o modal da tela está aberto e cobriria o toast (BR-TUT-T05).
       void alerta('Erro', 'Não foi possível registrar o consentimento. Tente novamente.');
     } finally {
       setModalLoading(false);
