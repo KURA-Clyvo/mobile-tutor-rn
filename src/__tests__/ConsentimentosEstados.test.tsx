@@ -1,5 +1,6 @@
 // BR-TUT-T03 — Consentimentos: sem a lista do servidor não se sabe o que foi aceito; "Pendente" não pode aparecer no erro.
 import React from 'react';
+import { Switch } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
@@ -33,7 +34,7 @@ describe('Consentimentos — estados', () => {
     const r = render(<ConsentimentosScreen />, { wrapper: W });
     expect(r.getAllByTestId('skeleton').length).toBeGreaterThan(0);
     semStatusDeConsentimento(r);
-    expect(r.UNSAFE_queryAllByType(require('react-native').Switch)).toHaveLength(0);
+    expect(r.UNSAFE_queryAllByType(Switch)).toHaveLength(0);
   });
 
   it('erro sem dado => ErrorState com "Tentar de novo" (refetch), sem "Pendente"', () => {
