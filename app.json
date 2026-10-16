@@ -8,11 +8,6 @@
     "scheme": "kura",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#F8F2E6"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.kura.tutor"
@@ -30,6 +25,19 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#F8F2E6",
+          "dark": {
+            "image": "./assets/splash-icon-dark.png",
+            "backgroundColor": "#14110C"
+          }
+        }
+      ],
       "expo-font",
       [
         "expo-notifications",

@@ -4,13 +4,13 @@ import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
 import { SplashScreen, Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, DeviceEventEmitter } from 'react-native';
+import { DeviceEventEmitter } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import Animated, { useSharedValue, withRepeat, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 import * as Linking from 'expo-linking';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { ThemeProvider, useTheme } from '@theme/index';
 import { KDialogProvider } from '@components/primitives/KDialog';
+import { Abertura } from '@components/brand/Abertura';
 import { queryClient, asyncStoragePersister } from '@services/queryClient';
 import { useAuthStore } from '../store/authStore';
 import { parseInviteLink } from '../utils/invite';
@@ -19,40 +19,15 @@ import { usePushTokenSync } from '../hooks/useNotifications';
 
 SplashScreen.preventAutoHideAsync();
 
-function SplashContent() {
-  const { colors, fonts, isDark } = useTheme();
-  const opacity = useSharedValue(0.3);
-
-  useEffect(() => {
-    opacity.value = withRepeat(withTiming(0.9, { duration: 700 }), -1, true);
-  }, [opacity]);
-
-  const dotStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
-
+// BR-TUT-T02: no arranque (fontes + sessão ainda não prontas) só a Abertura. A barra de status segue o tema
+// (TASK-F07: o app tem claro e escuro, uma barra fixa erraria o contraste num dos dois).
+function AberturaDoArranque() {
+  const { isDark } = useTheme();
   return (
-    <View style={[styles.splash, { backgroundColor: colors.bg }]}>
-      {/* TASK-F07: expo-status-bar era dependência instalada e nunca importada;
-          estilo segue o tema (claro/escuro) em vez de fixo, porque o app tem os
-          dois — barra fixa erraria contraste num deles. */}
+    <>
       <StatusBar style={isDark ? 'light' : 'dark'} translucent />
-      <View style={[styles.orbTR, { backgroundColor: colors.amber, opacity: 0.18 }]} />
-      <View style={[styles.orbBL, { backgroundColor: colors.primary, opacity: 0.18 }]} />
-      <View style={styles.logoArea}>
-        <Text style={{ fontFamily: fonts.display, color: colors.primary, fontSize: 76, lineHeight: 80 }}>
-          {'Kura'}
-          <Text style={{ color: colors.amberInk }}>.</Text>
-        </Text>
-        <Text style={{ fontFamily: fonts.display, fontStyle: 'italic', color: colors.textSoft, fontSize: 22, lineHeight: 28 }}>
-          O cuidado registrado.
-        </Text>
-      </View>
-      <View style={styles.footer}>
-        <Animated.View style={[styles.pulseDot, { backgroundColor: colors.primary }, dotStyle]} />
-        <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10, letterSpacing: 1.5, marginTop: 12 }}>
-          CLYVO VET · V1.0
-        </Text>
-      </View>
-    </View>
+      <Abertura />
+    </>
   );
 }
 
@@ -104,9 +79,10 @@ function RootLayoutInner() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ Cormorant_500Medium, Lexend_400Regular, Lexend_500Medium, JetBrainsMono_400Regular });
+  const [fontsLoaded, fontError] = useFonts({ Cormorant_500Medium, Lexend_400Regular, Lexend_500Medium, JetBrainsMono_400Regular });
   const [storeHydrated, setStoreHydrated] = useState(false);
-  const appReady = fontsLoaded && storeHydrated;
+  // Falha ao carregar fonte não pode prender o arranque: com erro, segue com a fonte do sistema.
+  const appReady = (fontsLoaded || !!fontError) && storeHydrated;
 
   useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => setStoreHydrated(true));
@@ -122,7 +98,9 @@ export default function RootLayout() {
     return (
       <SafeAreaProvider>
         <ThemeProvider>
-          <SplashContent />
+          {/* A abertura (símbolo + 3 patas, <= 600 ms, sem texto) cobre fontes e sessão; sai assim que
+              `appReady`, sem esperar a animação. O 1º quadro é idêntico ao splash nativo. */}
+          <AberturaDoArranque />
         </ThemeProvider>
       </SafeAreaProvider>
     );
@@ -145,12 +123,3 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  splash:   { flex: 1, justifyContent: 'space-between', paddingHorizontal: 40, paddingTop: 120, paddingBottom: 60 },
-  logoArea: { gap: 12 },
-  footer:   { alignItems: 'center' },
-  pulseDot: { width: 8, height: 8, borderRadius: 4 },
-  orbTR:    { position: 'absolute', width: 280, height: 280, borderRadius: 140, top: -80, right: -80 },
-  orbBL:    { position: 'absolute', width: 220, height: 220, borderRadius: 110, bottom: 40, left: -80 },
-});

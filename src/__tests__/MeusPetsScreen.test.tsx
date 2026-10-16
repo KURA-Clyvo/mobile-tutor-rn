@@ -62,4 +62,12 @@ describe('MeusPetsScreen', () => {
       expect(getByText(/Bóbi · atenção/i)).toBeTruthy();
     });
   });
+
+
+  // BR-TUT-T02: o cabeçalho usa o símbolo KuraMark, não o texto "Kura.".
+  it('o cabeçalho mostra o símbolo KURA e não o texto "Kura."', async () => {
+    const { getByRole, queryByText } = render(<MeusPetsScreen />, { wrapper: W });
+    await waitFor(() => expect(getByRole('image', { name: 'KURA' })).toBeTruthy());
+    expect(queryByText('Kura.')).toBeNull();
+  });
 });

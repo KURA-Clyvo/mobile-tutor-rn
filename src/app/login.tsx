@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTheme }    from '@theme/index';
+import { KuraMark } from '@components/brand/KuraMark';
 import { KButton }     from '@components/primitives/KButton';
 import { KTextField }  from '@components/primitives/KTextField';
 import { KIcon }       from '@components/primitives/KIcon';
@@ -62,7 +63,7 @@ export default function LoginScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={[styles.logo, { fontFamily: theme.fonts.display, color: c.primary }]}>Kura.</Text>
+          <KuraMark size={44} variante="sobreNeutro" />
           <Text style={[styles.kicker, { fontFamily: theme.fonts.bodyMedium, color: c.primary, fontSize: theme.fontSize.sm }]}>
             Bem-vindo(a) de volta
           </Text>
@@ -166,7 +167,6 @@ const styles = StyleSheet.create({
   flex:   { flex: 1 },
   inner:  { flexGrow: 1, paddingHorizontal: 32, paddingTop: 64, paddingBottom: 32, justifyContent: 'space-between' },
   header: { gap: 12 },
-  logo:   { fontSize: 36, lineHeight: 40 },
   kicker: { letterSpacing: 0.2 },
   h1:     { fontWeight: '500' },
   sub:    { maxWidth: 280, lineHeight: 20 },

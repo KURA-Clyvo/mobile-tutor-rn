@@ -62,4 +62,11 @@ describe('LoginScreen', () => {
     const { getByText } = render(<LoginScreen />, { wrapper: W });
     expect(getByText('Criar conta')).toBeTruthy();
   });
+
+  // BR-TUT-T02: o texto "Kura." foi substituído pelo símbolo KuraMark (lido como imagem "KURA").
+  it('mostra o símbolo KURA e não o texto "Kura."', () => {
+    const { getByRole, queryByText } = render(<LoginScreen />, { wrapper: W });
+    expect(getByRole('image', { name: 'KURA' })).toBeTruthy();
+    expect(queryByText('Kura.')).toBeNull();
+  });
 });
