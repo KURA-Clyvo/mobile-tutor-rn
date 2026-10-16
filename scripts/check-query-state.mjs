@@ -30,6 +30,8 @@
 //   * desestruturação OU objeto (`const q = useX()`, lendo `q.isError`) em que o erro vence o dado salvo: `isError || !data`,
 //     `if (isError) ...`, `if (isError && <cond sem o dado>)` (ex.: `isError && !isFetching`), `isError ? <X/> : ...`;
 //     a forma objeto vale mesmo quando a query TAMBÉM vai para <QueryState> (retorno antecipado por fora do kit descarta o dado);
+//     vale também para a desestruturação em 2ª instrução a partir do objeto, com ou sem renomeação
+//     (`const { isError: falhou } = q; if (falhou) ...`; reprodução do maestro, sessão 6);
 //   * componente que renderiza o erro (`{isError && <...`, ou `<ErrorState` direto) E um vazio `{x.length === 0 && <...`
 //     sem `!isError` na cadeia (as duas frases coincidiriam; Review Focus §5);
 //   * `useQueries` cujo array não tem o isError de CADA item lido pelo próprio array (`res.some/every/find/map(... isError ...)`,
@@ -289,6 +291,19 @@ function avaliarChamada(t, escopo, hook, idx) {
   }
   const nome = /^(\w+)/.exec(lhs)?.[1];
   if (!nome) return { ok: false, motivo: 'atribuição não reconhecida' };
+  // Reprodução do maestro (BR-TUT-T03, sessão 6): desestruturação em 2ª instrução a partir do objeto
+  // (`const { isError: falhou } = q;`) escapava, porque só `q.isError` era procurado e `q` também ia para <QueryState>.
+  // Cada `{ ... } = <nome>` que lê isError passa pelas mesmas regras; o dado aceito é o `data` da mesma
+  // desestruturação ou `<nome>.data`.
+  for (const d of util.matchAll(new RegExp(String.raw`\b(?:const|let|var)\s*\{([^}]*)\}\s*=\s*${esc(nome)}\s*[;\n]`, 'g'))) {
+    const aliasErro = /\bisError\s*(?::\s*(\w+))?/.exec(d[1]);
+    if (!aliasErro) continue;
+    const erro = aliasErro[1] ?? 'isError';
+    const aliasDado = /\bdata\s*(?::\s*(\w+))?/.exec(d[1]);
+    const problema =
+      erroAntesDoDado(util, erro, aliasDado ?? [null, `${nome}.data`]) ?? erroEVazio(util, erro);
+    if (problema) return { ok: false, motivo: problema };
+  }
   if (new RegExp(String.raw`\b${nome}\.isError\b`).test(util)) {
     // forma OBJETO: a regra "erro antes do dado" vale igual (F3-I1 a/b); o dado é `<nome>.data`. Vale também quando a query
     // TAMBÉM vai para <QueryState>: o retorno antecipado por fora do kit descartaria o dado salvo do mesmo jeito.

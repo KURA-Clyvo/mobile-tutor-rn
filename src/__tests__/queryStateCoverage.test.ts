@@ -297,6 +297,15 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
         /condição composta sem guarda de q\.data/,
       ],
       [
+        // Reprodução do maestro (sessão 6): desestruturação em 2ª instrução a partir do objeto, com renomeação, e o
+        // objeto também indo para <QueryState>. O detector só olhava `q.isError` e aceitava pelo <QueryState>.
+        'a) objeto + desestruturação renomeada depois: `const { isError: falhou } = q; if (falhou) return null`',
+        tela(
+          '  const q = useCoisas();\n  const { isError: falhou } = q;\n  if (falhou) return null;\n  return (\n    <QueryState\n      query={q}\n      empty={<Text>Nenhum</Text>}\n    >\n      {(d) => <L d={d} />}\n    </QueryState>\n  );',
+        ),
+        /isError antes de data/,
+      ],
+      [
         'c) erro E vazio ao mesmo tempo (Review Focus §5)',
         tela(
           '  const { data = [], isError } = useCoisas();\n  return (\n    <>\n      {isError && <ErrorState onRetry={() => 1} />}\n      {data.length === 0 && <Text>Nenhum pet ainda</Text>}\n      {data.length > 0 && <L d={data} />}\n    </>\n  );',
@@ -348,6 +357,10 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
       [
         'useQueries: o erro de cada item entra no agregado e o agregado é usado',
         tela('  const vacinas = useQueries({ queries: [] });\n  const falhou = vacinas.some((r) => r.isError);\n  return falhou ? <Erro /> : <L />;'),
+      ],
+      [
+        'objeto + desestruturação renomeada depois, com guarda do dado renomeado',
+        tela('  const q = useCoisas();\n  const { isError: falhou, data: d } = q;\n  if (falhou && !d) return null;\n  return <QueryState query={q} empty={<Text>N</Text>}>{(x) => <L d={x} />}</QueryState>;'),
       ],
       ['useQueries: `res[0].isError` lido', tela('  const vacinas = useQueries({ queries: [] });\n  return vacinas[0]?.isError ? <Erro /> : <L />;')],
     ];
