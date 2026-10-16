@@ -1,6 +1,8 @@
 // BR-TUT-T06 — Saúde: de quem e quando. Contador = itens desenhados; uma fonte para o estado da vacina e do pet.
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { render, within } from '@testing-library/react-native';
+import { lightColors } from '../theme/tokens';
 import { ThemeProvider } from '../theme/index';
 import SaudeScreen from '../app/(tabs)/saude/index';
 import PetDetailScreen from '../app/(tabs)/pets/[id]/index';
@@ -70,10 +72,14 @@ describe('Saúde — contadores derivam da lista exibida', () => {
     mockPets = { ...base, data: [THOR, MEL] };
     mockVacinas = resp([THOR, MEL]);
     const r = render(<SaudeScreen />, { wrapper: W });
-    expect(r.getAllByTestId('alerta-clay')).toHaveLength(1);
-    expect(r.getAllByTestId('alerta-amber')).toHaveLength(1);
-    expect(r.getByText('Urgente · KURA')).toBeTruthy();
-    expect(r.getByText('Atenção · KURA')).toBeTruthy();
+    expect(within(r.getByTestId('alerta-clay')).getByText('Mel · 2 alertas')).toBeTruthy();
+    expect(within(r.getByTestId('alerta-clay')).getByText('Urgente · KURA')).toBeTruthy();
+    expect(within(r.getByTestId('alerta-amber')).getByText('Thor · 1 alerta')).toBeTruthy();
+    expect(within(r.getByTestId('alerta-amber')).getByText('Atenção · KURA')).toBeTruthy();
+    // vacina: vencida = clay, vencendo = amber (o chip carrega o tom; o texto do rótulo é o que o tutor lê)
+    const cor = (t: string) => StyleSheet.flatten(r.getByText(t).props.style).color;
+    expect(cor('Vencida')).toBe(lightColors.clayInk);
+    expect(cor('Vencendo')).toBe(lightColors.amberInk);
   });
 
   it('cada vacina diz de qual pet é, o nome e quando', () => {
