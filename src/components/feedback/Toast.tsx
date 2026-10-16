@@ -4,7 +4,7 @@ import { useTheme } from '@theme/index';
 import { KIcon, type IconName } from '@components/primitives/KIcon';
 
 // BR-TUT-T05 — retorno não-decisório de uma ação ("Horário solicitado", "Consentimento revogado").
-// Âncora: `mobile-clinica-rn/src/components/feedback/Toast.tsx` (BR-CLI-T02, main@8e721ee), mesma API
+// Fica acima da tab bar (spacing[16]). Âncora: `mobile-clinica-rn/src/components/feedback/Toast.tsx` (BR-CLI-T02, main@8e721ee), mesma API
 // (`useToast().show({tipo, texto})`, canal por módulo). Diferença: tokens/ícones do tutor.
 // O toast NÃO afirma sucesso antes de o servidor responder: quem chama só usa 'sucesso' depois do `await`.
 export type TipoToast = 'sucesso' | 'erro' | 'info';
@@ -78,7 +78,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <>
       {children}
       {toast ? (
-        <View style={[styles.faixa, { left: spacing[4], right: spacing[4], bottom: spacing[6] }]} pointerEvents="none">
+        <View style={[styles.faixa, { left: spacing[4], right: spacing[4], bottom: spacing[16] }]} pointerEvents="none">
           <Animated.View
             style={[
               styles.toast,
