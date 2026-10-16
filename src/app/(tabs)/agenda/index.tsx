@@ -6,22 +6,20 @@ import { useTheme } from '@theme/index';
 import { KButton } from '@components/primitives/KButton';
 import { KIcon }   from '@components/primitives/KIcon';
 import { useDialog } from '@components/primitives/KDialog';
+import { QueryState } from '@components/feedback/QueryState';
+import { Skeleton } from '@components/feedback/Skeleton';
 import { AgendamentoItem } from '../../../components/domain/AgendamentoItem';
 import { useAgendamentos, useCancelarAgendamento } from '../../../hooks/useAgendamentos';
 import { isFuture } from '../../../utils/date';
+import type { AgendamentoTutorResponse } from '../../../types/api';
 
 export default function AgendaScreen() {
-  const { colors, fonts, fontSize } = useTheme();
+  const { colors, fonts } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { data: agendamentos = [], isLoading, refetch } = useAgendamentos();
+  const agendaQuery = useAgendamentos();
   const { mutate: cancelar, isPending: canceling } = useCancelarAgendamento();
   const { confirmar } = useDialog();
-
-  const { proximos, historico } = useMemo(() => ({
-    proximos:  [...agendamentos.filter(a => isFuture(a.dtInicio))].sort((a, b) => new Date(a.dtInicio).getTime() - new Date(b.dtInicio).getTime()),
-    historico: [...agendamentos.filter(a => !isFuture(a.dtInicio))].sort((a, b) => new Date(b.dtInicio).getTime() - new Date(a.dtInicio).getTime()),
-  }), [agendamentos]);
 
   // TASK-F06: era um Alert nativo. A confirmação continua obrigatória —
   // `cancelar(id)` só roda quando o botão destrutivo é tocado.
@@ -58,29 +56,50 @@ export default function AgendaScreen() {
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isLoading || canceling} onRefresh={refetch} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={Boolean(agendaQuery.isRefetching) || canceling} onRefresh={() => void agendaQuery.refetch()} tintColor={colors.primary} />}
       >
-        <Text style={[styles.groupTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
-          {`PRÓXIMOS · ${proximos.length}`}
-        </Text>
-        {proximos.length === 0
-          ? <EmptySection label="Sem próximos agendamentos" />
-          : proximos.map(a => (
-              <AgendamentoItem key={a.id} item={a} onLongPress={() => void handleCancel(a.id)} />
-            ))
-        }
-
-        <Text style={[styles.groupTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, marginTop: 24 }]}>
-          {`HISTÓRICO · ${historico.length}`}
-        </Text>
-        {historico.length === 0
-          ? <EmptySection label="Sem histórico ainda" />
-          : historico.map(a => (
-              <AgendamentoItem key={a.id} item={a} />
-            ))
-        }
+        <QueryState
+          query={agendaQuery}
+          skeleton={<Skeleton variant="card" count={2} />}
+          errorTitle="Não consegui carregar a sua agenda"
+          empty={<EmptySection label="Você ainda não tem agendamentos. Toque em Solicitar para pedir um horário." />}
+        >
+          {agendamentos => <AgendaListas agendamentos={agendamentos} onCancel={id => void handleCancel(id)} />}
+        </QueryState>
       </ScrollView>
     </View>
+  );
+}
+
+function AgendaListas({ agendamentos, onCancel }: { agendamentos: AgendamentoTutorResponse[]; onCancel: (id: number) => void }) {
+  const { colors, fonts, fontSize } = useTheme();
+  const { proximos, historico } = useMemo(() => ({
+    proximos:  [...agendamentos.filter(a => isFuture(a.dtInicio))].sort((a, b) => new Date(a.dtInicio).getTime() - new Date(b.dtInicio).getTime()),
+    historico: [...agendamentos.filter(a => !isFuture(a.dtInicio))].sort((a, b) => new Date(b.dtInicio).getTime() - new Date(a.dtInicio).getTime()),
+  }), [agendamentos]);
+
+  return (
+    <>
+      <Text style={[styles.groupTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
+        {`PRÓXIMOS · ${proximos.length}`}
+      </Text>
+      {proximos.length === 0
+        ? <EmptySection label="Sem próximos agendamentos" />
+        : proximos.map(a => (
+            <AgendamentoItem key={a.id} item={a} onLongPress={() => onCancel(a.id)} />
+          ))
+      }
+
+      <Text style={[styles.groupTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, marginTop: 24 }]}>
+        {`HISTÓRICO · ${historico.length}`}
+      </Text>
+      {historico.length === 0
+        ? <EmptySection label="Sem histórico ainda" />
+        : historico.map(a => (
+            <AgendamentoItem key={a.id} item={a} />
+          ))
+      }
+    </>
   );
 }
 

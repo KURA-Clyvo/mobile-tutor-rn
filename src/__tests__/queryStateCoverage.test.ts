@@ -7,6 +7,11 @@
 // pet, Consentimentos) e as 4 do brief (isError depois do dado em ternário, `if (isError) {` multilinha de Prettier,
 // desestruturação renomeada, `?? 'OK'`); (5) bloco do default `?? 'OK'` sobre dado de servidor, com controle positivo.
 //
+// BR-TUT-T04 (2026-10-16): portado de mobile-clinica-rn `tests/queryStateCoverage.test.ts` @ 080b1aa
+// (`git -C mobile-clinica-rn diff 773ae66 080b1aa -- tests/queryStateCoverage.test.ts`): `exigirPassa` (controle negativo exige a
+// chamada contada) e o bloco "fix wave G2" inteiro (I1-I5, M1, M4 e as reproduções do maestro). Divergência: os controles de useQueries
+// ganharam a guarda de dado da 080b1aa; a contagem do app real é a do tutor (>= 13 chamadas).
+//
 // BR-TUT-T03 — gate 2 (regra v7): roda o detector `scripts/check-query-state.mjs` sobre o app real (telas derivadas de
 // src/app, hooks de dado derivados de src/hooks) e sobre ISCAS (controle positivo: o detector precisa enxergar a violação).
 // Roda por processo filho porque o script é ESM puro (.mjs) e a suíte Jest é CJS.
@@ -50,17 +55,21 @@ function montar(arquivos: Record<string, string | null>): string {
 }
 const montarIsca = (telaSrc: string) => montar({ 'src/app/tela.tsx': telaSrc });
 
-// A lista EXATA que a BR-TUT-T03 deixa para a T04 (e a T07). A T04 troca por `[]` e a T07 tira a linha de agenda/novo.
+// BR-TUT-T04 (porte do G2-M5 da clínica 080b1aa): controle negativo só vale se o detector CONTOU a chamada
+// (um detector nulo também sai 0 sem violação).
+function exigirPassa(dir: string) {
+  const { status, r } = rodar(dir);
+  expect(r.violacoes).toEqual([]);
+  expect(r.chamadas.length).toBeGreaterThanOrEqual(1);
+  expect(r.chamadas.every((c) => c.ok)).toBe(true);
+  expect(status).toBe(0);
+}
+
+// A lista EXATA (BR-TUT-T04): só 2 entradas. `agenda/novo.tsx::usePets` sai na BR-TUT-T07; `useAgendamentoBadgeCount` é PERMANENTE
+// (badge numérico: no erro o número some, não afirma "tudo certo"). Entrada nova é regressão.
 const ALLOWLIST_EXATA = [
   'app/(tabs)/_layout.tsx::useAgendamentoBadgeCount',
-  'app/(tabs)/agenda/index.tsx::useAgendamentos',
   'app/(tabs)/agenda/novo.tsx::usePets',
-  'app/(tabs)/pets/index.tsx::useNotifications',
-  'app/(tabs)/pets/index.tsx::usePets',
-  'app/notificacoes.tsx::useNotifications',
-  'components/domain/ConsultasTab.tsx::usePetTimeline',
-  'components/domain/ConsultasTab.tsx::usePetTimelineEvent',
-  'components/domain/VacinasTab.tsx::usePetVacinas',
 ];
 
 describe('gate: tela que lê dado de servidor trata o erro (check-query-state)', () => {
@@ -77,8 +86,15 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
       expect.arrayContaining(['usePets', 'usePetDetail', 'useConsentimentos', 'useNotifications', 'useAgendamentos', 'usePetVacinas']),
     );
     expect(r.chamadas.length).toBeGreaterThanOrEqual(13);
-    // as 3 telas da BR-TUT-T03 estão entre as chamadas e passam SEM allowlist
+    // as telas da BR-TUT-T03 e as 7 chamadas da BR-TUT-T04 estão entre as chamadas e passam SEM allowlist
     for (const [tela, hook] of [
+      ['app/(tabs)/agenda/index.tsx', 'useAgendamentos'],
+      ['app/(tabs)/pets/index.tsx', 'usePets'],
+      ['app/(tabs)/pets/index.tsx', 'useNotifications'],
+      ['app/notificacoes.tsx', 'useNotifications'],
+      ['components/domain/ConsultasTab.tsx', 'usePetTimeline'],
+      ['components/domain/ConsultasTab.tsx', 'usePetTimelineEvent'],
+      ['components/domain/VacinasTab.tsx', 'usePetVacinas'],
       ['app/(tabs)/saude/index.tsx', 'usePets'],
       ['app/(tabs)/saude/index.tsx', 'useQueries'],
       ['app/(tabs)/pets/[id]/index.tsx', 'usePetDetail'],
@@ -102,12 +118,12 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
 
   it('isca: tela com <QueryState query={q}> passa', () => {
     const dir = montarIsca('export default function T(){ const q = useCoisas(); return <QueryState query={q} empty={null}>{() => null}</QueryState>; }');
-    expect(rodar(dir).status).toBe(0);
+    exigirPassa(dir);
   });
 
   it('isca: isError lido e USADO passa; lido e ignorado reprova', () => {
     const usado = montarIsca('export default function T(){ const { data, isError } = useCoisas(); return isError && data == null ? 1 : 2; }');
-    expect(rodar(usado).status).toBe(0);
+    exigirPassa(usado);
     const ignorado = montarIsca('export default function T(){ const { data, isError } = useCoisas(); return data; }');
     expect(rodar(ignorado).status).toBe(1);
   });
@@ -128,9 +144,9 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
 
   it('controle: isError só quando NÃO há dado, ou ligado à faixa de dados salvos, passa', () => {
     const guarda = montarIsca("export default function T(){ const { data, isError } = useCoisas(); return isError && data == null ? 'erro' : data; }");
-    expect(rodar(guarda).status).toBe(0);
+    exigirPassa(guarda);
     const faixa = montarIsca('export default function T(){ const { data, isError } = useCoisas(); return <>{isError ? <FaixaDadosSalvos/> : null}{data}</>; }');
-    expect(rodar(faixa).status).toBe(0);
+    exigirPassa(faixa);
   });
 
   // As 4 iscas obrigatórias do brief da BR-TUT-T03, no FORMATO que o Prettier e o código real produzem (não one-liners de sonda).
@@ -168,7 +184,7 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
       const ruimTernario = montarIsca('export default function T(){ const { data: vacinas, isError: falhou } = useCoisas(); return falhou ? <Erro/> : <L d={vacinas}/>; }');
       expect(rodar(ruimTernario).status).toBe(1);
       const boa = montarIsca('export default function T(){ const { data: vacinas, isError: falhou } = useCoisas(); return falhou && vacinas == null ? <Erro/> : <L d={vacinas}/>; }');
-      expect(rodar(boa).status).toBe(0);
+      exigirPassa(boa);
       const lidoEIgnorado = montarIsca('export default function T(){ const { data: vacinas, isError: falhou } = useCoisas(); return <L d={vacinas}/>; }');
       expect(rodar(lidoEIgnorado).status).toBe(1);
     });
@@ -355,19 +371,29 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
         tela('  const { data = [], isError } = useCoisas();\n  return (\n    <>\n      {isError && data.length === 0 && <ErrorState onRetry={() => 1} />}\n      {!isError && data.length === 0 && <Text>Nenhum pet ainda</Text>}\n    </>\n  );'),
       ],
       [
-        'useQueries: o erro de cada item entra no agregado e o agregado é usado',
-        tela('  const vacinas = useQueries({ queries: [] });\n  const falhou = vacinas.some((r) => r.isError);\n  return falhou ? <Erro /> : <L />;'),
+        'useQueries: o erro de cada item entra no agregado, COM guarda de dado, e o agregado é usado',
+        tela('  const vacinas = useQueries({ queries: [] });\n  const falhou = vacinas.some((r) => r.isError && r.data == null);\n  return falhou ? <Erro /> : <L />;'),
       ],
       [
         'objeto + desestruturação renomeada depois, com guarda do dado renomeado',
         tela('  const q = useCoisas();\n  const { isError: falhou, data: d } = q;\n  if (falhou && !d) return null;\n  return <QueryState query={q} empty={<Text>N</Text>}>{(x) => <L d={x} />}</QueryState>;'),
       ],
-      ['useQueries: `res[0].isError` lido', tela('  const vacinas = useQueries({ queries: [] });\n  return vacinas[0]?.isError ? <Erro /> : <L />;')],
+      [
+        'useQueries: `res[0].isError` lido, com guarda de dado',
+        tela('  const vacinas = useQueries({ queries: [] });\n  return vacinas[0]?.isError && vacinas[0]?.data == null ? <Erro /> : <L />;'),
+      ],
+      [
+        // padrão da Saúde do tutor: o erro dos itens vira um QueryLike entregue ao kit (o kit decide o que o erro faz ao dado)
+        'useQueries: erro agregado num objeto entregue a <QueryState query>',
+        tela(
+          '  const vacinas = useQueries({ queries: [] });\n  const agregada = {\n    isLoading: false,\n    refetch: () => 1,\n    data: vacinas.map((r) => r.data),\n    isError: vacinas.some((r) => r.isError),\n  };\n  return (\n    <QueryState query={agregada} empty={null}>\n      {() => null}\n    </QueryState>\n  );',
+        ),
+      ],
+      ['if (q.isError && (q.data == null)) aninhado', tela('  const q = useCoisas();\n  if (q.isError && (q.data == null)) {\n    return <Erro />;\n  }\n  return <L d={q.data} />;')],
+      ['`!q.data && q.isError` (guarda antes do erro)', tela('  const q = useCoisas();\n  if (!q.data && q.isError) {\n    return <Erro />;\n  }\n  return <L d={q.data} />;')],
     ];
     it.each(PASSAM_F3)('controle negativo: %s => passa', (_n, src) => {
-      const { status, r } = rodar(montarIsca(src));
-      expect(r.violacoes).toEqual([]);
-      expect(status).toBe(0);
+      exigirPassa(montarIsca(src));
     });
   });
 
@@ -375,17 +401,106 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
     ['componente com isError usado', { 'src/components/Lista.tsx': "export function Lista(){ const { data = [], isError } = useCoisas(); return isError && data.length === 0 ? 'erro' : data; }" }],
     ['hook local com consumidor em QueryState', { 'src/hooks/useCoisa.ts': null, 'src/app/t.tsx': "function useLocal(){ return useQuery({queryKey:['x'],queryFn:async()=>[]}); }\nexport default function T(){ const q = useLocal(); return <QueryState query={q} empty={null}>{() => null}</QueryState>; }" }],
     ['2 componentes, cada um usa o próprio isError', { 'src/app/t.tsx': "function A(){ const { data, isError } = useCoisas(); return isError&&data==null?1:data; }\nfunction B(){ const { data = [], isError } = useCoisas(); return isError&&data.length===0?2:data; }\nexport default function T(){return <><A/><B/></>;}" }],
-    ['useQueries com isError lido', { 'src/app/t.tsx': 'export default function T(){ const rs = useQueries({ queries: [] }); return rs.some((r) => r.isError) ? 1 : 2; }' }],
+    ['useQueries com isError lido, com guarda de dado', { 'src/app/t.tsx': 'export default function T(){ const rs = useQueries({ queries: [] }); return rs.some((r) => r.isError && r.data == null) ? 1 : 2; }' }],
     ['useInfiniteQuery direto em QueryState', { 'src/app/t.tsx': 'export default function T(){ const q = useInfiniteQuery({queryKey:[1]}); return <QueryState query={q} empty={null}>{() => null}</QueryState>; }' }],
     ['petQuery inteiro em <QueryState query={petQuery}> (o formato do perfil do pet novo)', { 'src/app/t.tsx': 'export default function T(){\n  const petQuery = useCoisas();\n  return (\n    <QueryState\n      query={petQuery}\n      empty={null}\n    >\n      {(p) => <X p={p}/>}\n    </QueryState>\n  );\n}' }],
   ];
   it.each(PASSAM)('controle negativo: %s => passa', (_nome, arquivos) => {
-    const { status, r } = rodar(montar(arquivos));
-    expect(r.violacoes).toEqual([]);
-    expect(status).toBe(0);
+    exigirPassa(montar(arquivos));
   });
 
-  it('allowlist EXATA: igual à lista da BR-TUT-T03, razão > 30 caracteres, cada entrada aponta para chamada que existe e as 3 telas da T03 nunca entram', () => {
+  // BR-CLI-DET fix wave da G2 (br-cli-det-revisao.md), portado da clínica 080b1aa para a BR-TUT-T04: cada isca é uma sonda da revisão, no formato multilinha do Prettier, e
+  // o detector herdado (cb36c2a) a aceitava com EXIT 0. Todas DEVEM reprovar com violação nominal.
+  describe('fix wave G2: formas que o detector herdado aceitava', () => {
+    const tela = (corpo: string) => `export default function T() {\n${corpo}\n}`;
+    const ERRO_SEM_DADO = /isError antes de data/;
+    const CASOS_G2: [string, string, RegExp][] = [
+      // G2-I1: a guarda de dado só vale em conjunção com o erro, nunca dentro de `||`
+      ['I1 `!data || isError`', tela('  const { data, isError } = useCoisas();\n  if (!data || isError) {\n    return <ErrorState />;\n  }\n  return <L d={data} />;'), ERRO_SEM_DADO],
+      ['I1 `q.data == null || q.isError`', tela('  const q = useCoisas();\n  if (q.data == null || q.isError) {\n    return <ErrorState />;\n  }\n  return <L d={q.data} />;'), ERRO_SEM_DADO],
+      ['I1 `isError || data?.length === 0`', tela('  const { data, isError } = useCoisas();\n  if (isError || data?.length === 0) {\n    return <ErrorState />;\n  }\n  return <L d={data} />;'), ERRO_SEM_DADO],
+      // Reprodução do maestro (sessão 6): a guarda com a polaridade trocada por negação dupla ainda deixa o erro vencer o dado
+      // (`!!data`, `!(data == null)`, `!(!data)` = "tem dado"); o detector lia o `!` inicial como guarda de ausência.
+      ['maestro `isError && !!data ?`', tela('  const { data, isError } = useCoisas();\n  return isError && !!data ? (\n    <ErrorState />\n  ) : (\n    <L d={data} />\n  );'), ERRO_SEM_DADO],
+      ['maestro `isError && !(data == null) ?`', tela('  const { data, isError } = useCoisas();\n  return isError && !(data == null) ? (\n    <ErrorState />\n  ) : (\n    <L d={data} />\n  );'), ERRO_SEM_DADO],
+      ['maestro `if (q.isError && !(!q.data))`', tela('  const q = useCoisas();\n  if (q.isError && !(!q.data)) {\n    return <ErrorState />;\n  }\n  return <L d={q.data} />;'), ERRO_SEM_DADO],
+      // G2-I2: erro negado
+      ['I2 `!isError ? <L/> : <Erro/>`', tela('  const { data, isError } = useCoisas();\n  return !isError ? (\n    <L d={data} />\n  ) : (\n    <ErrorState />\n  );'), ERRO_SEM_DADO],
+      ['I2 `!q.isError ? <L/> : <Erro/>` (objeto)', tela('  const q = useCoisas();\n  return !q.isError ? (\n    <L d={q.data} />\n  ) : (\n    <ErrorState />\n  );'), ERRO_SEM_DADO],
+      ['I2 `{!isError && <L d={data}/>}` esconde o dado salvo', tela('  const { data, isError } = useCoisas();\n  return (\n    <>\n      {!isError && <L d={data} />}\n    </>\n  );'), ERRO_SEM_DADO],
+      // G2-I3: erro guardado em variável local
+      ['I3 `const erro = q.isError; if (erro)`', tela('  const q = useCoisas();\n  const erro = q.isError;\n  if (erro) {\n    return <ErrorState />;\n  }\n  return <L d={q.data} />;'), ERRO_SEM_DADO],
+      [
+        'I3 `const mostrarErro = isError && !isFetching; if (mostrarErro)`',
+        tela('  const { data, isError, isFetching } = useCoisas();\n  const mostrarErro = isError && !isFetching;\n  if (mostrarErro) {\n    return <ErrorState />;\n  }\n  return <L d={data} />;'),
+        ERRO_SEM_DADO,
+      ],
+      // G2-I5: ramo `{ query: q }` passa pelas mesmas regras
+      ['I5 `{ query: q }` + `if (q.isError)`', tela('  const { query: q } = useCoisas();\n  if (q.isError) {\n    return <ErrorState />;\n  }\n  return <L d={q.data} />;'), ERRO_SEM_DADO],
+      ['I5 `{ query: q }` + `q.isError ? <Erro/> : <L/>`', tela('  const { query: q } = useCoisas();\n  return q.isError ? (\n    <ErrorState />\n  ) : (\n    <L d={q.data} />\n  );'), ERRO_SEM_DADO],
+      [
+        'I5 forma da teleorientação: erro derivado de `{ query, mutation }` testado antes da sala salva',
+        tela(
+          '  const { query: salaQuery, mutation } = useCoisas();\n  const sala = mutation.data ?? salaQuery.data;\n  const erro = mutation.error ?? salaQuery.error;\n  return erro ? <Text>Nao foi possivel</Text> : sala ? <Sala /> : null;',
+        ),
+        ERRO_SEM_DADO,
+      ],
+      // G2-M1: outros campos de erro
+      ['M1 `q.error`', tela('  const q = useCoisas();\n  if (q.error) {\n    return <ErrorState />;\n  }\n  return <QueryState query={q} empty={null}>{() => null}</QueryState>;'), ERRO_SEM_DADO],
+      ["M1 `q.status === 'error'`", tela("  const q = useCoisas();\n  if (q.status === 'error') {\n    return <ErrorState />;\n  }\n  return <QueryState query={q} empty={null}>{() => null}</QueryState>;"), ERRO_SEM_DADO],
+      ['M1 `q.isRefetchError`', tela('  const q = useCoisas();\n  if (q.isRefetchError) {\n    return <ErrorState />;\n  }\n  return <QueryState query={q} empty={null}>{() => null}</QueryState>;'), ERRO_SEM_DADO],
+      ['M1 `q?.isError`', tela('  const q = useCoisas();\n  if (q?.isError) {\n    return <ErrorState />;\n  }\n  return <QueryState query={q} empty={null}>{() => null}</QueryState>;'), ERRO_SEM_DADO],
+      // parênteses aninhados na condição (antes o `if` era lido só até o 1º `)`)
+      ['`if (Boolean(ativo) && q.isError)`', tela('  const q = useCoisas();\n  if (Boolean(ativo) && q.isError) {\n    return <ErrorState />;\n  }\n  return <L d={q.data} />;'), ERRO_SEM_DADO],
+    ];
+    it.each(CASOS_G2)('isca: %s => violação nominal, EXIT 1', (_n, src, motivo) => {
+      const { status, r } = rodar(montarIsca(src));
+      expect(status).toBe(1);
+      expect(r.violacoes).toHaveLength(1);
+      expect(r.violacoes[0]!.motivo).toMatch(motivo);
+    });
+
+    // G2-I4: `useQueries` — o erro de um item não pode vencer o dado dos outros
+    const QUERIES = (corpo: string) => tela(`  const vacinas = useQueries({ queries: [] });\n${corpo}`);
+    const CASOS_USEQUERIES: [string, string][] = [
+      ['I4 `if (rs.some(r => r.isError)) return <Erro/>`', QUERIES('  if (vacinas.some((r) => r.isError)) {\n    return <ErrorState />;\n  }\n  return <L d={vacinas.map((r) => r.data)} />;')],
+      ['I4 `falhou ? <Erro/> : <L/>` com `falhou` derivado do array', QUERIES('  const falhou = vacinas.some((r) => r.isError);\n  return falhou ? (\n    <ErrorState />\n  ) : (\n    <L d={vacinas.map((r) => r.data)} />\n  );')],
+      ['I4 `vacinas[0]?.isError ? <Erro/> : <L/>`', QUERIES('  return vacinas[0]?.isError ? <ErrorState /> : <L d={vacinas[0]?.data} />;')],
+    ];
+    it.each(CASOS_USEQUERIES)('isca (useQueries): %s => violação em useQueries, EXIT 1', (_n, src) => {
+      const { status, r } = rodar(montarIsca(src));
+      expect(status).toBe(1);
+      expect(r.violacoes.map((v) => v.hook)).toEqual(['useQueries']);
+      expect(r.violacoes[0]!.motivo).toMatch(ERRO_SEM_DADO);
+    });
+
+    // G2-M4 (falso positivo): o retorno antecipado COM guarda de dado exclui o erro quando há dado; o vazio, que só existe com dado,
+    // não coincide com ele.
+    const CORRETAS: [string, string][] = [
+      [
+        'M4 retorno antecipado com guarda + vazio depois',
+        tela('  const { data, isError } = useCoisas();\n  if (isError && data == null) {\n    return <ErrorState />;\n  }\n  return (\n    <>\n      {data?.length === 0 && <Text>Nenhum</Text>}\n      <L d={data} />\n    </>\n  );'),
+      ],
+      [
+        'M4 `{isError && data == null && <Erro/>}` + vazio',
+        tela('  const { data, isError } = useCoisas();\n  return (\n    <>\n      {isError && data == null && <ErrorState />}\n      {data?.length === 0 && <Text>Nenhum</Text>}\n    </>\n  );'),
+      ],
+      [
+        'M4 2 queries: erro guardado da A, vazio da B',
+        tela(
+          '  const a = useCoisas();\n  const b = useCoisas();\n  if (a.isError && a.data == null) {\n    return <ErrorState />;\n  }\n  return (\n    <>\n      {b.data?.length === 0 && <Text>Nenhum</Text>}\n      <QueryState query={b} empty={null}>{() => null}</QueryState>\n    </>\n  );',
+        ),
+      ],
+      ['I3 alias de erro COM guarda na definição', tela('  const { data, isError } = useCoisas();\n  const semDado = isError && data == null;\n  if (semDado) {\n    return <ErrorState />;\n  }\n  return <L d={data} />;')],
+      ['I2 erro negado só no vazio (a lista continua com o erro)', tela('  const { data = [], isError } = useCoisas();\n  return (\n    <>\n      {isError && data.length === 0 && <ErrorState />}\n      {!isError && data.length === 0 && <Text>Nenhum</Text>}\n      <L d={data} />\n    </>\n  );')],
+      ['I5 `{ query: q }` com guarda de dado', tela('  const { query: q } = useCoisas();\n  if (q.isError && q.data == null) {\n    return <ErrorState />;\n  }\n  return <L d={q.data} />;')],
+    ];
+    it.each(CORRETAS)('controle negativo (chamada contada): %s => passa', (_n, src) => {
+      exigirPassa(montarIsca(src));
+    });
+  });
+
+  it('allowlist EXATA: 2 entradas (BR-TUT-T04), razão > 30 caracteres, cada entrada aponta para chamada que existe e as telas da T03/T04 nunca entram', () => {
     const lista = JSON.parse(execFileSync(process.execPath, [SCRIPT, '--allowlist'], { encoding: 'utf8' })) as Record<string, string>;
     expect(Object.keys(lista).sort()).toEqual([...ALLOWLIST_EXATA].sort());
     const { r } = rodar(RAIZ);
@@ -393,13 +508,36 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
       expect(razao.length).toBeGreaterThan(30);
       const [tela, hook] = chave.split('::');
       expect(r.chamadas.some((c) => c.tela === tela && c.hook === hook)).toBe(true);
-      expect(chave).not.toMatch(/saude\/index|pets\/\[id\]\/index|perfil\/consentimentos/);
+      expect(chave).not.toMatch(/saude\/index|pets\/\[id\]\/index|perfil\/consentimentos|agenda\/index|pets\/index|notificacoes|ConsultasTab|VacinasTab/);
     }
   });
 
   it('o CLI imprime a contagem e sai 0 no app real', () => {
     const out = execFileSync(process.execPath, [SCRIPT], { encoding: 'utf8' });
+    expect(out).toMatch(/chamadas: [1-9]\d/); // detector nulo imprime `chamadas: 0`
     expect(out).toMatch(/violacoes: 0/);
+  });
+});
+
+// LIMITES DECLARADOS (G2 BR-TUT-T04, I1/I2): formas em que o detector deixa passar uma leitura de erro que esconde o dado, porque
+// `<QueryState query={q}>` absolve `q` e a regra do erro negado só enxerga o DADO textual. Cada isca FIXA o limite: EXIT 0 e 0 violações.
+// limite declarado (G2 BR-TUT-T04): se este teste quebrar, o detector melhorou; troque por isca de violação.
+// Quem protege essas formas nas telas reais é o teste de estado por tela (`TelasDadoEstados.test.tsx`), não o detector.
+describe('limites declarados do detector (iscas que PASSAM de propósito)', () => {
+  const QS = '<QueryState query={q} empty={null}>{() => null}</QueryState>';
+  const tela = (corpo: string, jsx = QS) => `export default function T() {\n  const q = useCoisas();\n${corpo}\n  return (\n    <>\n      ${jsx}\n    </>\n  );\n}`;
+  const LIMITES: [string, string][] = [
+    ['A01 erro negado em volta do <QueryState> (I2)', tela('', `{!q.isError && ${QS}}`)],
+    ['A02 erro negado por constante (I2)', tela('  const ok = !q.isError;', `{ok && ${QS}}`)],
+    ['A03 função auxiliar lê o erro (I1)', `function falhou(x: { isError: boolean }) {\n  return x.isError;\n}\n\n${tela('  if (falhou(q)) return null;')}`],
+    ["A04 `status !== 'success'` (I1)", tela("  if (q.status !== 'success' && !q.isLoading) return null;")],
+    ['A05 desestruturação com cast `as` (I1)', tela('  const { isError: falhou } = q as { isError: boolean };\n  if (falhou) return null;')],
+    ['A09 `failureReason` (I1)', tela('  if (q.failureReason) return null;')],
+    ['A10 spread que zera o erro + leitura inócua (I1)', tela('', '<Lista refreshing={canceling || q.isError} /><QueryState query={{ ...q, isError: false }} empty={null}>{() => null}</QueryState>')],
+    ['A11 alias do objeto `const q2 = q` (I1)', tela('  const q2 = q;\n  if (q2.isError) return null;')],
+  ];
+  it.each(LIMITES)('limite: %s => passa, EXIT 0, 0 violações', (_nome, src) => {
+    exigirPassa(montarIsca(src));
   });
 });
 

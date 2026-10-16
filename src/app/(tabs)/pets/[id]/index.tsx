@@ -110,16 +110,19 @@ export default function PetDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* FAB Agendar */}
-      <Pressable
-        onPress={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(petId) } } as any)}
-        style={[styles.fab, { backgroundColor: colors.primary }]}
-        accessibilityRole="button"
-        accessibilityLabel="Agendar consulta"
-      >
-        <KIcon name="plus" size={18} color={colors.textOnPrimary} />
-        <Text style={{ fontFamily: fonts.bodyMedium, color: colors.textOnPrimary, fontSize: fontSize.sm }}>Agendar</Text>
-      </Pressable>
+      {/* FAB Agendar: numa faixa PRÓPRIA abaixo do ScrollView (não flutua sobre o conteúdo), para nunca cobrir o "Tentar de novo"
+          das abas em erro (G2 BR-TUT-T04 I4: alvos a ≥ 8 px). */}
+      <View style={styles.fabZona}>
+        <Pressable
+          onPress={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(petId) } } as any)}
+          style={[styles.fab, { backgroundColor: colors.primary }]}
+          accessibilityRole="button"
+          accessibilityLabel="Agendar consulta"
+        >
+          <KIcon name="plus" size={18} color={colors.textOnPrimary} />
+          <Text style={{ fontFamily: fonts.bodyMedium, color: colors.textOnPrimary, fontSize: fontSize.sm }}>Agendar</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -277,7 +280,7 @@ const styles = StyleSheet.create({
   flex:        { flex: 1 },
   hdr:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1 },
   backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  scrollContent: { paddingBottom: 120 },
+  scrollContent: { paddingBottom: 16 },
   skeletonPet: { paddingHorizontal: 20, paddingTop: 20 },
   hero:        { flexDirection: 'row', alignItems: 'flex-start', padding: 20, gap: 16 },
   summaryArea: { paddingHorizontal: 20, paddingBottom: 16, gap: 10 },
@@ -292,5 +295,6 @@ const styles = StyleSheet.create({
   apptCard:    { borderWidth: 1, padding: 16, gap: 12 },
   apptRow:     { flexDirection: 'row', alignItems: 'center', gap: 10 },
   obsCard:     { borderWidth: 1, padding: 16 },
-  fab:         { position: 'absolute', bottom: 96, right: 20, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 14, borderRadius: 9999, elevation: 4 },
+  fabZona:     { alignItems: 'flex-end', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
+  fab:         { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 14, borderRadius: 9999, elevation: 4 },
 });
