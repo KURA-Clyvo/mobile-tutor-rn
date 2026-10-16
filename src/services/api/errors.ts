@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios';
 import type { ApiError } from '../../types/api';
 
 // TASK-61 (fix round 2 — achado da re-revisão): o backend-tutor-java (`ApiError`
@@ -22,6 +23,10 @@ export function normalizeError(error: unknown): ApiError {
       details: data.detalhes ?? data.details,
     };
   }
-  if (error instanceof Error) return { status: 0, code: 'NETWORK_ERROR', message: error.message };
+  // BR-TUT-T05: 'NETWORK_ERROR' só quando o axios diz que NÃO houve resposta (sem rede, DNS, timeout). Qualquer
+  // outro Error (bug de código, JSON inválido) NÃO é rede — antes tudo virava NETWORK_ERROR e o login culpava
+  // a internet sem saber.
+  if (isAxiosError(error)) return { status: 0, code: 'NETWORK_ERROR', message: error.message };
+  if (error instanceof Error) return { status: 0, code: 'UNKNOWN_ERROR', message: error.message };
   return { status: 0, code: 'UNKNOWN_ERROR', message: 'Erro desconhecido' };
 }

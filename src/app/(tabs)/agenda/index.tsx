@@ -5,7 +5,8 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KButton } from '@components/primitives/KButton';
 import { KIcon }   from '@components/primitives/KIcon';
-import { useDialog } from '@components/primitives/KDialog';
+import { confirmar } from '@components/feedback/confirmar';
+import { useToast } from '@components/feedback/Toast';
 import { QueryState } from '@components/feedback/QueryState';
 import { Skeleton } from '@components/feedback/Skeleton';
 import { AgendamentoItem } from '../../../components/domain/AgendamentoItem';
@@ -18,20 +19,27 @@ export default function AgendaScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const agendaQuery = useAgendamentos();
-  const { mutate: cancelar, isPending: canceling } = useCancelarAgendamento();
-  const { confirmar } = useDialog();
+  const { mutateAsync: cancelar, isPending: canceling } = useCancelarAgendamento();
+  const toast = useToast();
 
   // TASK-F06: era um Alert nativo. A confirmação continua obrigatória —
   // `cancelar(id)` só roda quando o botão destrutivo é tocado.
   const handleCancel = async (id: number) => {
     const confirmado = await confirmar({
-      titulo:     'Cancelar agendamento?',
-      mensagem:   'Você pode solicitar outro agendamento depois.',
-      cancelar:   'Voltar',
-      confirmar:  'Cancelar agendamento',
-      destrutivo: true,
+      titulo:         'Cancelar agendamento?',
+      mensagem:       'Você pode solicitar outro agendamento depois.',
+      rotuloCancelar: 'Voltar',
+      verbo:          'Cancelar agendamento',
+      destrutivo:     true,
     });
-    if (confirmado) cancelar(id);
+    if (!confirmado) return;
+    // BR-TUT-T05: o toast espera a resposta do servidor; falha vira toast de erro.
+    try {
+      await cancelar(id);
+      toast.show({ tipo: 'sucesso', texto: 'Agendamento cancelado' });
+    } catch {
+      toast.show({ tipo: 'erro', texto: 'Não foi possível cancelar o agendamento. Tente novamente.' });
+    }
   };
 
   return (

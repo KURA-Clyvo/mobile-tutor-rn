@@ -11,7 +11,7 @@ jest.mock('../hooks/useAgendamentos', () => ({
   useAgendamentos:          () => ({ data: [
     { id: 1, dtInicio: new Date(Date.now() + 86400_000).toISOString(), nrDuracaoMinutos: 30, sgStatus: 'SOLICITADO', sgTipoConsulta: 'RETORNO', pet: { id: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador' }, nmClinica: 'KURA', dsMotivo: '' },
   ], isLoading: false, refetch: jest.fn() }),
-  useCancelarAgendamento:   () => ({ mutate: mockCancelar, isPending: false }),
+  useCancelarAgendamento:   () => ({ mutateAsync: mockCancelar, isPending: false }),
   useAgendamentoBadgeCount: () => 1,
 }));
 
