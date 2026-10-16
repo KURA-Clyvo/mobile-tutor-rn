@@ -40,6 +40,10 @@ export default function SaudeScreen() {
   // BR-TUT-T03: "Tudo em dia" só existe se TODAS as consultas responderam. Sem a lista de vacinas de algum pet não se
   // sabe se há vacina vencendo, então `data` fica indefinido (carregando ou erro) em vez de virar lista vazia.
   const todasComDado = petsQuery.data !== undefined && vacinasResults.every(r => r.data !== undefined);
+  // F5-M1 (G2): o `fetchStatus` do agregado considera pets E vacinas. Pets em cache ('idle') com a lista de vacinas pausada
+  // (offline, nunca carregada) NÃO é "query desabilitada": tem de dar skeleton, nunca tela em branco.
+  const statuses = [petsQuery.fetchStatus, ...vacinasResults.map(r => r.fetchStatus)];
+  const statusAgregado = statuses.includes('paused') ? 'paused' : statuses.includes('fetching') ? 'fetching' : 'idle';
   const saudeQuery: QueryLike<DadosSaude> = {
     data: todasComDado
       ? {
@@ -54,7 +58,7 @@ export default function SaudeScreen() {
     isLoading: petsQuery.isLoading || vacinasResults.some(r => r.isLoading),
     isError: petsQuery.isError || vacinasResults.some(r => r.isError),
     refetch: onRefresh,
-    fetchStatus: petsQuery.fetchStatus,
+    fetchStatus: statusAgregado,
     dataUpdatedAt: Math.min(petsQuery.dataUpdatedAt, ...vacinasResults.map(r => r.dataUpdatedAt)) || undefined,
   };
 

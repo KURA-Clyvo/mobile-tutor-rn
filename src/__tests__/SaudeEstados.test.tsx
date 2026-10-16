@@ -40,6 +40,15 @@ describe('Saúde — estados', () => {
     semAfirmacaoDeSaude(r);
   });
 
+  it('F5-M1: pets em cache e lista de vacinas PAUSADA (offline, nunca carregada) => skeleton, nunca tela em branco', () => {
+    mockPets = { ...base, data: [PET], fetchStatus: 'idle' };
+    mockVacinas = [{ data: undefined, isLoading: false, isError: false, fetchStatus: 'paused', refetch: jest.fn(), dataUpdatedAt: 0 }];
+    const r = render(<SaudeScreen />, { wrapper: W });
+    expect(r.getAllByTestId('skeleton').length).toBeGreaterThan(0);
+    expect(r.queryByTestId('error-state')).toBeNull();
+    semAfirmacaoDeSaude(r);
+  });
+
   it('erro nos pets, sem dado => ErrorState com "Tentar de novo", nenhuma afirmação de saúde', () => {
     mockPets = { ...base, data: undefined, isError: true };
     mockVacinas = [];
