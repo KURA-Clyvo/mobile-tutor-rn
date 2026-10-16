@@ -57,21 +57,48 @@ describe('_layout: a abertura cobre fontes e sessão', () => {
 
 describe('marca: o texto "Kura." não volta no lugar do símbolo', () => {
   const SRC = path.join(__dirname, '..');
-  // `>Kura.<` (texto JSX) ou `{'Kura'}` (a forma que o splash antigo usava).
-  const TEXTO_MARCA = />\s*Kura\.\s*</;
-  const TEXTO_MARCA_EXPR = /\{\s*['"`]Kura['"`]\s*\}/;
+  // Normaliza o fonte para enxergar o texto que o JSX de fato desenha: tira comentários, desembrulha
+  // literais em chaves (`{'Kura.'}`, `{"Kura"}`, `{`Kura`}`) e trata as quebras de linha do Prettier como
+  // espaço. Depois procura `Kura` seguido de `.` com, no máximo, tags JSX no meio (`Kura<Text>.</Text>`),
+  // sempre como TEXTO de JSX (entre `>` e `<`). `demo@kura.local`, imports e identificadores não têm `>`
+  // antes do `Kura` nem `<` depois do ponto, e não casam.
+  const desembrulhar = (t: string) =>
+    t
+      .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|\s)\/\/.*$/gm, '$1')
+      .replace(/\{\s*(['"`])([^'"`{}]*)\1\s*\}/g, '$2');
+  const TEXTO_MARCA = />\s*Kura\s*(?:<[^<>]*>\s*)*\.\s*(?:<[^<>]*>\s*)*</;
+  const desenhaKura = (t: string) => TEXTO_MARCA.test(desembrulhar(t));
   const varrer = (dir: string): string[] =>
     fs.readdirSync(dir, { withFileTypes: true }).flatMap(e => {
       const p = path.join(dir, e.name);
       if (e.isDirectory()) return e.name === '__tests__' ? [] : varrer(p);
       if (!/\.tsx$/.test(e.name)) return [];
-      const t = fs.readFileSync(p, 'utf8');
-      return TEXTO_MARCA.test(t) || TEXTO_MARCA_EXPR.test(t) ? [path.relative(SRC, p)] : [];
+      return desenhaKura(fs.readFileSync(p, 'utf8')) ? [path.relative(SRC, p)] : [];
     });
 
-  it('controle positivo: o detector enxerga as duas formas', () => {
-    expect(TEXTO_MARCA.test('<Text style={s}>Kura.</Text>')).toBe(true);
-    expect(TEXTO_MARCA_EXPR.test("{'Kura'}")).toBe(true);
+  it.each([
+    ['texto simples', '<Text style={s}>Kura.</Text>'],
+    ['forma do Prettier, em linhas separadas', '<Text style={s}>\n  Kura.\n</Text>'],
+    ['literal entre aspas simples em chaves', "<Text>{'Kura.'}</Text>"],
+    ['literal entre aspas duplas em chaves', '<Text>{"Kura."}</Text>'],
+    ['template literal em chaves', '<Text>{`Kura.`}</Text>'],
+    ['ponto em Text aninhado, em linhas separadas', '<Text>\n  Kura<Text>.</Text>\n</Text>'],
+    ['forma do splash antigo', "<Text>{'Kura'}<Text style={s}>.</Text></Text>"],
+    ['ponto em literal separado', "<Text>{'Kura'}{'.'}</Text>"],
+  ])('controle positivo: o detector pega %s', (_nome, fonte) => {
+    expect(desenhaKura(fonte)).toBe(true);
+  });
+
+  it.each([
+    ['e-mail demo', "const e = 'demo@kura.local';"],
+    ['import de módulo', "import { KuraMark } from '@/components/brand/KuraMark';\nimport k from './kura.config';"],
+    ['símbolo no JSX', '<View><KuraMark size={44} /></View>'],
+    ['comentário', '// o texto "Kura." foi trocado pelo símbolo\n<View />'],
+    ['rótulo de acessibilidade', '<View accessibilityLabel="KURA" />'],
+  ])('controle negativo: o detector ignora %s', (_nome, fonte) => {
+    expect(desenhaKura(fonte)).toBe(false);
   });
 
   it('nenhum .tsx de src/ desenha "Kura." como texto', () => {
