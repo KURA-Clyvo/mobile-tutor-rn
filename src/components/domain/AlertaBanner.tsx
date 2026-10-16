@@ -17,7 +17,7 @@ export function AlertaBanner({ title, subtitle, onPress, tone = 'clay' }: Alerta
     ? { bg: colors.amberPale, border: colors.chipBorderAmber, ink: colors.amberInk, tint: colors.chipBorderAmber }
     : { bg: colors.clayPale,  border: colors.chipBorderClay,  ink: colors.clayInk,  tint: colors.clayTint };
   return (
-    <View style={[styles.wrap, {
+    <View testID={`alerta-${tone}`} style={[styles.wrap, {
       backgroundColor: t.bg,
       borderColor: t.border,
       borderRadius: radius.lg,

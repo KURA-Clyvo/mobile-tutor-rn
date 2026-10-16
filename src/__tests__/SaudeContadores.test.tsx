@@ -66,6 +66,16 @@ describe('Saúde — contadores derivam da lista exibida', () => {
     );
   });
 
+  it('clay = urgência, amber = atenção: Mel (URGENTE) em clay, Thor (ALERTA) em amber; chip de vacina vencida clay', () => {
+    mockPets = { ...base, data: [THOR, MEL] };
+    mockVacinas = resp([THOR, MEL]);
+    const r = render(<SaudeScreen />, { wrapper: W });
+    expect(r.getAllByTestId('alerta-clay')).toHaveLength(1);
+    expect(r.getAllByTestId('alerta-amber')).toHaveLength(1);
+    expect(r.getByText('Urgente · KURA')).toBeTruthy();
+    expect(r.getByText('Atenção · KURA')).toBeTruthy();
+  });
+
   it('cada vacina diz de qual pet é, o nome e quando', () => {
     mockPets = { ...base, data: [THOR, MEL, BIA] };
     mockVacinas = resp([THOR, MEL, BIA]);
