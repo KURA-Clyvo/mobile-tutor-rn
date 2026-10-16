@@ -53,7 +53,7 @@ import { fileURLToPath } from 'node:url';
 
 // Chave: "<arquivo relativo a src>::<hook>". Razão precisa explicar por que erro não importa / quando a entrada sai.
 // ALLOWLIST EXATA (BR-TUT-T03): são as chamadas que ainda NÃO tratam o erro e que outra task do ciclo vai migrar para
-// `QueryState`. A BR-TUT-T04 ZERA as 7 entradas "T04"; a BR-TUT-T07 troca a de `agenda/novo.tsx`. Entrada nova aqui é
+// `QueryState`. A BR-TUT-T04 zera as entradas dela (as 7 "T04"); `agenda/novo.tsx::usePets` sai na BR-TUT-T07; ao fim da T07 sobra exatamente 1 entrada, PERMANENTE (`useAgendamentoBadgeCount`). Entrada nova aqui é
 // regressão: `src/__tests__/queryStateCoverage.test.ts` trava a lista inteira por igualdade, não por tamanho.
 export const ALLOWLIST = {
   'app/(tabs)/agenda/index.tsx::useAgendamentos':
@@ -73,7 +73,7 @@ export const ALLOWLIST = {
   'app/(tabs)/agenda/novo.tsx::usePets':
     'T07: seletor de pet do pedido de horário (hoje fixa pets[0]); a BR-TUT-T07 reescreve a tela e remove esta entrada',
   'app/(tabs)/_layout.tsx::useAgendamentoBadgeCount':
-    'FORA DA T04: badge numérico da aba Agenda; erro some o número em vez de afirmar "tudo certo"; decisão do maestro (G2)',
+    'PERMANENTE (ruling do maestro, 16/10): badge numérico da aba Agenda; no erro o número some em vez de afirmar "tudo certo", então ignorar o erro é o comportamento correto e esta entrada não sai com nenhuma task',
 };
 
 const RAZAO_MIN = 30;
