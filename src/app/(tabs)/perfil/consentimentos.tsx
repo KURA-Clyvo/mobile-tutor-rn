@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, Switch, Pressable, ScrollView, Modal, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@theme/index';
@@ -54,33 +54,47 @@ export default function ConsentimentosScreen() {
   const getStatus = (tipo: TipoConsentimento): ConsentimentoResponse | undefined =>
     lista.find(c => c.tipo === tipo);
 
+  // BR-TUT-T05 (m3): trava síncrona para revogar (diálogo + chamada) e assinar; `isPending`/`disabled` só valem após o re-render.
+  const emVoo = useRef(false);
+
   const handleSwitch = async (tipo: TipoConsentimento, currentlyActive: boolean) => {
+    if (emVoo.current) return;
     if (currentlyActive) {
-      const c = getStatus(tipo);
-      if (!c) return;
-      // LGPD — a confirmação é obrigatória: `revogar(...)` só roda com `confirmado === true`; dispensar o
-      // diálogo (voltar do Android, toque fora) resolve false.
-      const confirmado = await confirmar({
-        titulo:     'Revogar consentimento?',
-        mensagem:   `${CONSEQUENCIA_REVOGAR[tipo]} Você pode aceitar de novo quando quiser.`,
-        verbo:      'Revogar consentimento',
-        destrutivo: true,
-      });
-      if (!confirmado) return;
-      // BR-TUT-T05 (F5-M3): o toast só afirma sucesso DEPOIS da resposta do servidor; falha vira toast de erro.
+      emVoo.current = true;
       try {
-        await revogar({ tipo, key: generateUUID() });
-        toast.show({ tipo: 'sucesso', texto: 'Consentimento revogado' });
-      } catch {
-        toast.show({ tipo: 'erro', texto: 'Não foi possível revogar o consentimento. Tente novamente.' });
+        await revogarComConfirmacao(tipo);
+      } finally {
+        emVoo.current = false;
       }
     } else {
       setModalTipo(tipo);
     }
   };
 
+  const revogarComConfirmacao = async (tipo: TipoConsentimento) => {
+    const c = getStatus(tipo);
+    if (!c) return;
+    // LGPD — a confirmação é obrigatória: `revogar(...)` só roda com `confirmado === true`; dispensar o
+    // diálogo (voltar do Android, toque fora) resolve false.
+    const confirmado = await confirmar({
+      titulo:     'Revogar consentimento?',
+      mensagem:   `${CONSEQUENCIA_REVOGAR[tipo]} Você pode aceitar de novo quando quiser.`,
+      verbo:      'Revogar consentimento',
+      destrutivo: true,
+    });
+    if (!confirmado) return;
+    // BR-TUT-T05 (F5-M3): o toast só afirma sucesso DEPOIS da resposta do servidor; falha vira toast de erro.
+    try {
+      await revogar({ tipo, key: generateUUID() });
+      toast.show({ tipo: 'sucesso', texto: 'Consentimento revogado' });
+    } catch {
+      toast.show({ tipo: 'erro', texto: 'Não foi possível revogar o consentimento. Tente novamente.' });
+    }
+  };
+
   const handleAceitar = async () => {
-    if (!modalTipo) return;
+    if (!modalTipo || emVoo.current) return;
+    emVoo.current = true;
     setModalLoading(true);
     try {
       await assinar({
@@ -94,6 +108,7 @@ export default function ConsentimentosScreen() {
       // diálogo e não toast porque o modal da tela está aberto e cobriria o toast (BR-TUT-T05).
       void alerta('Erro', 'Não foi possível registrar o consentimento. Tente novamente.');
     } finally {
+      emVoo.current = false;
       setModalLoading(false);
     }
   };

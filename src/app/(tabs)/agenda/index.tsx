@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { View, Text, ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -24,7 +24,18 @@ export default function AgendaScreen() {
 
   // TASK-F06: era um Alert nativo. A confirmação continua obrigatória —
   // `cancelar(id)` só roda quando o botão destrutivo é tocado.
+  // BR-TUT-T05 (m3): trava síncrona — ignora novo pedido de cancelamento (e novo diálogo) enquanto um está em andamento.
+  const emVoo = useRef(false);
   const handleCancel = async (id: number) => {
+    if (emVoo.current) return;
+    emVoo.current = true;
+    try {
+      await cancelarConfirmado(id);
+    } finally {
+      emVoo.current = false;
+    }
+  };
+  const cancelarConfirmado = async (id: number) => {
     const confirmado = await confirmar({
       titulo:         'Cancelar agendamento?',
       mensagem:       'Você pode solicitar outro agendamento depois.',

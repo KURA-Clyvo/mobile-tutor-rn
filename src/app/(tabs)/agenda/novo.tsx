@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
@@ -51,7 +51,11 @@ export default function NovoAgendamentoScreen() {
     return d.toISOString();
   }, [selectedDay, selectedSlot, days]);
 
+  // BR-TUT-T05 (m3): trava síncrona — `isPending` só vale depois do re-render, e dois toques seguidos chamam o serviço 2×.
+  const emVoo = useRef(false);
+
   const handleSubmit = async () => {
+    if (emVoo.current) return;
     if (!selectedPet || !selectedSlot || !dtPreferida) {
       await alerta('Atenção', 'Selecione o pet, uma data e um horário.');
       return;
@@ -66,6 +70,7 @@ export default function NovoAgendamentoScreen() {
       dsMotivo:       motivo,
       dtPreferida,
     };
+    emVoo.current = true;
     try {
       await solicitar(req);
       // BR-TUT-T05: o retorno é um toast com o verbo (substitui o diálogo "Solicitação enviada!" com promessa
@@ -74,6 +79,8 @@ export default function NovoAgendamentoScreen() {
       voltar();
     } catch {
       toast.show({ tipo: 'erro', texto: 'Não foi possível solicitar o horário. Tente novamente.' });
+    } finally {
+      emVoo.current = false;
     }
   };
 
