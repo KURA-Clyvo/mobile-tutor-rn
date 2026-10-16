@@ -4,6 +4,7 @@
 import React from 'react';
 import * as RN from 'react-native';
 import { Animated, Text } from 'react-native';
+import * as Reanimated from 'react-native-reanimated';
 import { spawnSync } from 'child_process';
 import { join } from 'path';
 import { Path, Circle } from 'react-native-svg';
@@ -57,6 +58,25 @@ describe('Abertura', () => {
     avancar(PLANO_ABERTURA.fimMs);
     expect(jest.getTimerCount()).toBe(0);
     expect(patas(r)).toEqual([base, base, base]);
+  });
+
+  // F4-2 (G2): `getTimerCount()` não vê animação com `useNativeDriver: true` (não agenda timer JS no Jest).
+  // Então a duração é medida na fonte: toda animação criada pelo caminho normal (Animated.timing/delay,
+  // withTiming/withDelay do Reanimated), com `delay` + `duration` somados, tem de caber no teto — qualquer
+  // que seja a forma (constante, variável importada, literal).
+  it('caminho normal: a soma de delay + duration de toda animação criada cabe em 600 ms', () => {
+    const timing = jest.spyOn(Animated, 'timing');
+    const delay = jest.spyOn(Animated, 'delay');
+    const withTiming = jest.spyOn(Reanimated, 'withTiming');
+    const withDelay = jest.spyOn(Reanimated, 'withDelay');
+    montar();
+    avancar(PLANO_ABERTURA.fimMs);
+    const total =
+      timing.mock.calls.reduce((a, [, c]) => a + (c.delay ?? 0) + c.duration!, 0) +
+      delay.mock.calls.reduce((a, [ms]) => a + ms, 0) +
+      withTiming.mock.calls.reduce((a, [, c]) => a + (c?.duration ?? 300), 0) +
+      withDelay.mock.calls.reduce((a, [ms]) => a + ms, 0);
+    expect(total).toBeLessThanOrEqual(PLANO_ABERTURA.fimMs);
   });
 
   it('as 3 patas acendem em sequência (meio, depois laterais) e voltam à cor do símbolo', () => {
