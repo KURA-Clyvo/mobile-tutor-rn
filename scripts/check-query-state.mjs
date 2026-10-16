@@ -2,8 +2,10 @@
 // ÂNCORA (regra 11): cópia de mobile-clinica-rn `scripts/check-query-state.mjs`, linhas 1-253, commit 773ae66 (já com a regra de
 // retorno antecipado `if (isError)` do commit 3ab0631, linhas 153-156 da origem), conferida em 2026-10-15:
 //   git -C mobile-clinica-rn show 773ae66:scripts/check-query-state.mjs | sed -n '1,253p'
-// DIVERGÊNCIAS do tutor: (1) este cabeçalho de âncora, o rótulo da task e a ALLOWLIST (própria do tutor); a lógica de análise
-// (origem 36-253, aqui de `const RAZAO_MIN` ao fim) é idêntica byte a byte; reproduz com:
+// DIVERGÊNCIAS do tutor: (1) este cabeçalho de âncora, o rótulo da task e a ALLOWLIST (própria do tutor); (1b) a lógica de análise
+// (origem 36-253, aqui de `const RAZAO_MIN` ao fim) é a da origem MAIS as 4 regras da fix wave da BR-TUT-T03 (F3-I1 da G2),
+// todas marcadas `BR-TUT-T03 (F3-I1` no corpo; o `diff` abaixo mostra SÓ esses hunks (a clínica ainda NÃO os tem: cópia de volta
+// para `mobile-clinica-rn` é decisão do maestro, não desta task):
 //   diff <(git -C mobile-clinica-rn show 773ae66:scripts/check-query-state.mjs | sed -n '36,253p') <(sed -n '/^const RAZAO_MIN = 30/,$p' scripts/check-query-state.mjs)
 // (2) os caminhos de tela são `app/(tabs)/...`, não `app/(app)/...`. Roda por `node` puro: no Windows o `npm run` usa cmd.exe
 // e isto não tem sintaxe POSIX.
@@ -24,12 +26,25 @@
 //     que é checado no lugar dele).
 //   Do contrário é violação, salvo entrada em ALLOWLIST (razão > 30 caracteres).
 //
+// REGRAS DE "erro antes do dado" / vazio / useQueries (BR-CLI-G4 + F3-I1 da G2 da BR-TUT-T03). O detector REPROVA:
+//   * desestruturação OU objeto (`const q = useX()`, lendo `q.isError`) em que o erro vence o dado salvo: `isError || !data`,
+//     `if (isError) ...`, `if (isError && <cond sem o dado>)` (ex.: `isError && !isFetching`), `isError ? <X/> : ...`;
+//     a forma objeto vale mesmo quando a query TAMBÉM vai para <QueryState> (retorno antecipado por fora do kit descarta o dado);
+//   * componente que renderiza o erro (`{isError && <...`, ou `<ErrorState` direto) E um vazio `{x.length === 0 && <...`
+//     sem `!isError` na cadeia (as duas frases coincidiriam; Review Focus §5);
+//   * `useQueries` cujo array não tem o isError de CADA item lido pelo próprio array (`res.some/every/find/map(... isError ...)`,
+//     `res[i].isError`) ou em que o valor lido é guardado e jogado fora (`void x`); `isError` solto no componente não basta.
 // LIMITES DECLARADOS (M-1 da revisão G2): a checagem de "uso" é textual, não é análise de fluxo.
 // Descontamos `console.*(...)` e `if (x) {}` vazio, mas `isError ? null : x` ou `if (isError) foo()`
 // contam como uso mesmo que o ramo de erro seja inócuo; `query={q}` só vale colado a `<QueryState`;
 // `q` repassado por prop a um filho é violação (conservador). `useSuspenseQuery` lança o erro a um
 // error boundary, que este script não enxerga: exige allowlist com a razão. Hook que não começa
-// por `use`, ou chamado por alias importado (`import { useX as useY }`), não é descoberto.
+// por `use`, ou chamado por ALIAS importado (`import { useX as useY }`), não é descoberto (limite declarado, F3-I1 e: não resolvemos
+// alias de import). Também NÃO pega: ternário encadeado/retorno antecipado para a regra do vazio (só a forma `&&`); a condição
+// do `if` lida só até o 1º `)` (parênteses aninhados cortam); o dado lido por variável derivada (`const l = q.data ?? []` e
+// `if (q.isError && l.length === 0)`) conta como "sem guarda de q.data" (conservador: o caminho aceito é <QueryState>);
+// `useQueries` com o resultado desestruturado (`const [a, b] = useQueries(...)`) ou sem variável simples é violação; o detector
+// não prova que o erro lido chega ao render, só que ele é lido e usado.
 //
 // Uso:  node scripts/check-query-state.mjs [--root <dir>] [--json]   (exit 1 com violação)
 import fs from 'node:fs';
@@ -182,12 +197,71 @@ function erroAntesDoDado(util, erro, dataMatch) {
   if (new RegExp(String.raw`\bif\s*\(\s*${e}\s*\)`).test(util)) {
     return `if (${erro}) sem guarda de ${dado}: retorno antecipado descarta o dado salvo (isError antes de data)`;
   }
+  // BR-TUT-T03 (F3-I1 b): `if (erro && !isFetching) return ...` — condição composta que lê o erro e NÃO menciona o dado.
+  for (const m of util.matchAll(/\bif\s*\(([^)]*)\)/g)) {
+    const cond = m[1];
+    if (!new RegExp(String.raw`(?<![\w.!])${e}(?!\w)`).test(cond)) continue;
+    if (new RegExp(String.raw`(?<![\w.])${d}(?!\w)`).test(cond)) continue; // há guarda de dado na condição
+    return `if (${cond.trim()}): condição composta sem guarda de ${dado}, retorno antecipado descarta o dado salvo (isError antes de data)`;
+  }
   // `erro ? <Algo/>` como 1º teste de um ternário, salvo quando o ramo é a faixa de dados salvos.
   for (const m of util.matchAll(new RegExp(String.raw`(?<![\w.!&|])${e}\s*\?\s*(\(?\s*<\s*(\w+))?`, 'g'))) {
     if (m[2] === 'FaixaDadosSalvos') continue;
     return `${erro} ? ... sem guarda de ${dado}: o erro vence o dado salvo (isError antes de data)`;
   }
   return null;
+}
+
+/**
+ * BR-TUT-T03 (F3-I1 c, Review Focus §5): a frase de erro e a frase de vazio nunca podem coincidir. Regra textual: o componente
+ * renderiza o erro (`{erro && <...`, ou `<ErrorState` direto) E renderiza um vazio por `{<x>.length === 0 && <...` em
+ * expressão `&&` SEM `!erro` na mesma cadeia. LIMITE: ternário/retorno antecipado não são analisados (o retorno antecipado já é
+ * pego por `erroAntesDoDado`; ternário encadeado certo — `erro && data == null ? <E/> : vazio ? <V/> : ...` — passa).
+ */
+function erroEVazio(util, erro) {
+  const e = esc(erro);
+  const renderizaErro = new RegExp(String.raw`(?<![\w.!])${e}\s*&&\s*\(?\s*<`).test(util) || /<ErrorState\b/.test(util);
+  if (!renderizaErro) return null;
+  for (const m of util.matchAll(/\{\s*\(?([^{}]*?(?:\.length\s*===?\s*0|!\s*[\w.?]+\.length\b|\.length\s*<\s*1))\s*\)?\s*&&\s*\(?\s*</g)) {
+    if (new RegExp(String.raw`!\s*${e}(?!\w)`).test(m[1])) continue; // `!erro` na cadeia: o vazio só aparece sem erro
+    if (new RegExp(String.raw`(?<![\w.!])${e}\s*&&`).test(m[1])) continue; // cadeia do próprio erro (ErrorState só quando vazio)
+    return `erro e vazio podem coincidir: o componente renderiza o erro e também \`${m[1].trim()} && <...>\` sem \`!${erro}\` (Review Focus §5)`;
+  }
+  return null;
+}
+
+/** Conteúdo entre parênteses balanceados; `i` aponta para o 1º caractere DEPOIS do `(` de abertura. */
+function argsBalanceados(t, i) {
+  let prof = 1;
+  let j = i;
+  for (; j < t.length && prof > 0; j++) {
+    if (t[j] === '(') prof++;
+    else if (t[j] === ')') prof--;
+  }
+  return t.slice(i, j - 1);
+}
+
+/**
+ * BR-TUT-T03 (F3-I1 d): `useQueries` devolve um ARRAY. A palavra `isError` em qualquer lugar do componente não basta (a
+ * `petsQuery.isError` da Saúde enganava o detector com o erro das vacinas descartado). Exige o erro de CADA item lido pelo
+ * próprio array: `res.some/every/find/filter/map(... isError ...)` ou `res[i].isError`; e, se o resultado da leitura for
+ * guardado numa variável, essa variável tem de ser usada (`void x` não conta). LIMITE: não prova que o valor lido chega ao render.
+ */
+function avaliarUseQueries(util, lhs) {
+  const nome = /^(\w+)$/.exec(lhs)?.[1];
+  if (!nome) return { ok: false, motivo: 'useQueries: o resultado precisa ficar numa variável simples (para checar isError de cada item)' };
+  const re = new RegExp(String.raw`(?<![\w.])${nome}(?!\w)\s*(?:\.\s*\w+\s*\(|\[)`, 'g');
+  for (const m of util.matchAll(re)) {
+    const depois = m.index + m[0].length;
+    let leu;
+    if (m[0].endsWith('(')) leu = /\bisError\b/.test(argsBalanceados(util, depois));
+    else leu = /^[^\]]*\]\s*\??\.isError\b/.test(util.slice(depois));
+    if (!leu) continue;
+    const guardado = /(?:const|let)\s+(\w+)\s*=\s*$/.exec(util.slice(0, m.index));
+    if (guardado && contar(util.replace(new RegExp(String.raw`\bvoid\s+${guardado[1]}\b`, 'g'), ' '), guardado[1]) < 2) continue;
+    return { ok: true };
+  }
+  return { ok: false, motivo: `useQueries: o isError de cada item de ${nome} não é lido (ex.: ${nome}.some(r => r.isError)) ou é lido e descartado` };
 }
 
 /** `escopo` = texto do componente (declaração de topo) que contém a chamada. */
@@ -197,8 +271,7 @@ function avaliarChamada(t, escopo, hook, idx) {
   const util = semUsoInocuo(escopo);
   const naQueryState = (q) => new RegExp(String.raw`<QueryState\b(?:[^<>]|=>)*?\bquery=\{\s*${esc(q)}\s*\}`).test(util);
   if (hook === 'useQueries') {
-    // resultado é um ARRAY de queries: exige algum isError lido no mesmo componente.
-    return /\bisError\b/.test(util) ? { ok: true } : { ok: false, motivo: 'useQueries sem leitura de isError' };
+    return avaliarUseQueries(util, lhs);
   }
   if (lhs.startsWith('{')) {
     const alias = /\bisError\s*(?::\s*(\w+))?/.exec(lhs);
@@ -206,8 +279,8 @@ function avaliarChamada(t, escopo, hook, idx) {
     if (alias) {
       const nome = alias[1] ?? 'isError';
       if (contar(util, nome) >= 2) {
-        const errDescartaDado = erroAntesDoDado(util, nome, /\bdata\s*(?::\s*(\w+))?/.exec(lhs));
-        return errDescartaDado ? { ok: false, motivo: errDescartaDado } : { ok: true };
+        const problema = erroAntesDoDado(util, nome, /\bdata\s*(?::\s*(\w+))?/.exec(lhs)) ?? erroEVazio(util, nome);
+        return problema ? { ok: false, motivo: problema } : { ok: true };
       }
       return { ok: false, motivo: `isError lido (${nome}) mas nunca usado no componente` };
     }
@@ -216,7 +289,13 @@ function avaliarChamada(t, escopo, hook, idx) {
   }
   const nome = /^(\w+)/.exec(lhs)?.[1];
   if (!nome) return { ok: false, motivo: 'atribuição não reconhecida' };
-  if (new RegExp(String.raw`\b${nome}\.isError\b`).test(util) || naQueryState(nome)) return { ok: true };
+  if (new RegExp(String.raw`\b${nome}\.isError\b`).test(util)) {
+    // forma OBJETO: a regra "erro antes do dado" vale igual (F3-I1 a/b); o dado é `<nome>.data`. Vale também quando a query
+    // TAMBÉM vai para <QueryState>: o retorno antecipado por fora do kit descartaria o dado salvo do mesmo jeito.
+    const problema = erroAntesDoDado(util, `${nome}.isError`, [null, `${nome}.data`]) ?? erroEVazio(util, `${nome}.isError`);
+    return problema ? { ok: false, motivo: problema } : { ok: true };
+  }
+  if (naQueryState(nome)) return { ok: true };
   return { ok: false, motivo: `${nome} nunca passa a <QueryState query> nem lê .isError` };
 }
 

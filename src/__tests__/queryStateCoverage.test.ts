@@ -265,6 +265,99 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
     expect(status).toBe(1);
   });
 
+  // BR-TUT-T03 fix wave (F3-I1): as iscas da G2 que o detector herdado da clínica NÃO via, no formato multilinha do Prettier.
+  describe('F3-I1: formas que o detector herdado não enxergava', () => {
+    const tela = (corpo: string) => `export default function T() {\n${corpo}\n}`;
+    const CASOS: [string, string, RegExp][] = [
+      [
+        'a) objeto: `if (q.isError) { return <Erro/> }` descarta o dado salvo',
+        tela(
+          '  const petsQuery = useCoisas();\n  if (petsQuery.isError) {\n    return <ErrorState onRetry={() => petsQuery.refetch()} />;\n  }\n  return <Text>{petsQuery.data?.length ?? 0}</Text>;',
+        ),
+        /isError antes de data/,
+      ],
+      [
+        'a) objeto: ternário `q.isError ? <Erro/> : ...`',
+        tela('  const q = useCoisas();\n  return q.isError ? (\n    <Erro />\n  ) : (\n    <L d={q.data} />\n  );'),
+        /isError antes de data/,
+      ],
+      [
+        'a) objeto: `q.isError || !q.data`',
+        tela('  const q = useCoisas();\n  if (q.isError || !q.data) return <Erro />;\n  return <L d={q.data} />;'),
+        /isError antes de data/,
+      ],
+      [
+        'b) desestruturado: `if (isError && !isFetching) return <Erro/>`',
+        tela('  const { data, isError, isFetching } = useCoisas();\n  if (isError && !isFetching) {\n    return <Erro />;\n  }\n  return <L d={data} />;'),
+        /condição composta sem guarda de data/,
+      ],
+      [
+        'b) objeto: `if (q.isError && !q.isFetching) return <Erro/>`',
+        tela('  const q = useCoisas();\n  if (q.isError && !q.isFetching) {\n    return <Erro />;\n  }\n  return <L d={q.data} />;'),
+        /condição composta sem guarda de q\.data/,
+      ],
+      [
+        'c) erro E vazio ao mesmo tempo (Review Focus §5)',
+        tela(
+          '  const { data = [], isError } = useCoisas();\n  return (\n    <>\n      {isError && <ErrorState onRetry={() => 1} />}\n      {data.length === 0 && <Text>Nenhum pet ainda</Text>}\n      {data.length > 0 && <L d={data} />}\n    </>\n  );',
+        ),
+        /erro e vazio podem coincidir/,
+      ],
+      [
+        'c) erro E vazio, forma objeto, `!q.length`',
+        tela(
+          '  const q = useCoisas();\n  return (\n    <>\n      {q.isError && <ErrorState onRetry={() => 1} />}\n      {!q.data?.length && (\n        <Text>Nenhum</Text>\n      )}\n    </>\n  );',
+        ),
+        /erro e vazio podem coincidir/,
+      ],
+    ];
+    it.each(CASOS)('isca: %s => violação nominal, EXIT 1', (_n, src, motivo) => {
+      const { status, r } = rodar(montarIsca(src));
+      expect(status).toBe(1);
+      expect(r.violacoes).toHaveLength(1);
+      expect(r.violacoes[0]!.motivo).toMatch(motivo);
+    });
+
+    const QUERIES = (corpo: string) => tela(`  const petsQuery = useCoisas();\n  const vacinas = useQueries({ queries: [] });\n${corpo}`);
+    const QUERY_LIKE = 'isLoading: false, refetch: () => 1, data: petsQuery.data';
+    const CASOS_QUERIES: [string, string][] = [
+      [
+        'd) M8b da G2: o erro dos itens do useQueries é descartado (só `petsQuery.isError`)',
+        QUERIES(`  const agregada = { ${QUERY_LIKE}, isError: petsQuery.isError };\n  return (\n    <QueryState query={agregada} empty={null}>\n      {() => null}\n    </QueryState>\n  );`),
+      ],
+      [
+        'd) `isError` lido do array e jogado fora (`void algumErro`)',
+        QUERIES('  const algumErro = vacinas.some((r) => r.isError);\n  void algumErro;\n  return petsQuery.isError && petsQuery.data == null ? 1 : 2;'),
+      ],
+      ['d) a palavra isError só aparece em outro lugar', QUERIES('  return petsQuery.isError && petsQuery.data == null ? vacinas.length : 2;')],
+    ];
+    it.each(CASOS_QUERIES)('isca (useQueries): %s => violação em useQueries, EXIT 1', (_n, src) => {
+      const { status, r } = rodar(montarIsca(src));
+      expect(status).toBe(1);
+      expect(r.violacoes.map((v) => v.hook)).toEqual(['useQueries']);
+      expect(r.violacoes[0]!.motivo).toMatch(/useQueries: o isError de cada item/);
+    });
+
+    const PASSAM_F3: [string, string][] = [
+      ['objeto com guarda de dado', tela('  const q = useCoisas();\n  if (q.isError && q.data == null) {\n    return <Erro />;\n  }\n  return <L d={q.data} />;')],
+      ['desestruturado com guarda de dado na condição composta', tela('  const { data, isError, isFetching } = useCoisas();\n  if (isError && data == null && !isFetching) {\n    return <Erro />;\n  }\n  return <L d={data} />;')],
+      [
+        'erro e vazio, com `!isError` na cadeia do vazio',
+        tela('  const { data = [], isError } = useCoisas();\n  return (\n    <>\n      {isError && data.length === 0 && <ErrorState onRetry={() => 1} />}\n      {!isError && data.length === 0 && <Text>Nenhum pet ainda</Text>}\n    </>\n  );'),
+      ],
+      [
+        'useQueries: o erro de cada item entra no agregado e o agregado é usado',
+        tela('  const vacinas = useQueries({ queries: [] });\n  const falhou = vacinas.some((r) => r.isError);\n  return falhou ? <Erro /> : <L />;'),
+      ],
+      ['useQueries: `res[0].isError` lido', tela('  const vacinas = useQueries({ queries: [] });\n  return vacinas[0]?.isError ? <Erro /> : <L />;')],
+    ];
+    it.each(PASSAM_F3)('controle negativo: %s => passa', (_n, src) => {
+      const { status, r } = rodar(montarIsca(src));
+      expect(r.violacoes).toEqual([]);
+      expect(status).toBe(0);
+    });
+  });
+
   const PASSAM: [string, Record<string, string | null>][] = [
     ['componente com isError usado', { 'src/components/Lista.tsx': "export function Lista(){ const { data = [], isError } = useCoisas(); return isError && data.length === 0 ? 'erro' : data; }" }],
     ['hook local com consumidor em QueryState', { 'src/hooks/useCoisa.ts': null, 'src/app/t.tsx': "function useLocal(){ return useQuery({queryKey:['x'],queryFn:async()=>[]}); }\nexport default function T(){ const q = useLocal(); return <QueryState query={q} empty={null}>{() => null}</QueryState>; }" }],
