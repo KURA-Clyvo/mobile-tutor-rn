@@ -5,8 +5,8 @@ import { useTheme } from '@theme/index';
 import { resolverSimbolo, type VarianteSimbolo } from './simboloCores';
 
 // ÂNCORA (regra 11): a forma (viewBox, `d=` dos paths, círculos) e a lógica de variante/patas são copiadas de
-// mobile-clinica-rn `src/components/brand/KuraMark.tsx`, commit 773ae66, conferido em 2026-10-15:
-//   git -C mobile-clinica-rn show 773ae66:src/components/brand/KuraMark.tsx | sed -n '37,51p;62,95p'
+// mobile-clinica-rn `src/components/brand/KuraMark.tsx`, commit 773ae66, conferido em 2026-10-15 (lógica de variante/patas = linhas 52-61; 37-51 são constantes e doc; 62-95 o JSX do Svg):
+//   git -C mobile-clinica-rn show 773ae66:src/components/brand/KuraMark.tsx | sed -n '37,95p'
 // Diferenças do tutor: cor de contexto sage (tokens do tutor), só a variante `sobreNeutro`, e o desenho vem
 // embrulhado num <View accessibilityRole="image" accessibilityLabel="KURA"> (o texto "Kura." que ele
 // substitui era lido pelo leitor de tela; a marca precisa continuar lida).
