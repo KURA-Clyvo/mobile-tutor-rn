@@ -120,7 +120,7 @@ function SaudeConteudo({ pets, vacinaAlerts }: DadosSaude) {
           <View style={[styles.allClearIcon, { backgroundColor: colors.primarySoft }]}>
             <KIcon name="check" size={40} color={colors.primary} />
           </View>
-          <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 28 }}>Tudo em dia!</Text>
+          <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: fontSize.xl }}>Tudo em dia!</Text>
           <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, textAlign: 'center' }}>
             Nenhum alerta ativo e todas as vacinas em dia.
           </Text>

@@ -139,7 +139,7 @@ function PetCabecalho({ pet }: { pet: NonNullable<ReturnType<typeof usePetDetail
           nome={pet.nmPet}
         />
         <View style={styles.heroInfo}>
-          <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 26, lineHeight: 30 }}>
+          <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: fontSize.xl, lineHeight: 30 }}>
             {pet.nmPet}
           </Text>
           <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm }}>
@@ -151,7 +151,7 @@ function PetCabecalho({ pet }: { pet: NonNullable<ReturnType<typeof usePetDetail
               <KChip key={i} tone={c.tone}>{c.label}</KChip>
             ))}
           </View>
-          <Text style={{ fontFamily: fonts.mono, color: colors.textSoft, fontSize: 10 }}>
+          <Text style={{ fontFamily: fonts.mono, color: colors.textSoft, fontSize: fontSize.xs }}>
             {pet.nmClinica}
           </Text>
         </View>
