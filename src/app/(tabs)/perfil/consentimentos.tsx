@@ -7,6 +7,8 @@ import { KChip }   from '@components/primitives/KChip';
 import { KButton } from '@components/primitives/KButton';
 import { KCard }   from '@components/primitives/KCard';
 import { useDialog } from '@components/primitives/KDialog';
+import { QueryState } from '@components/feedback/QueryState';
+import { Skeleton } from '@components/feedback/Skeleton';
 import { useConsentimentos, useAssinar, useRevogar } from '../../../hooks/useConsentimentos';
 import { useVoltar } from '../../../hooks/useVoltar';
 import { LGPD_CONSENTIMENTOS, type TipoConsentimento } from '../../../constants/lgpd';
@@ -29,7 +31,8 @@ export default function ConsentimentosScreen() {
   // ver useVoltar.ts) — agora cai na aba pai.
   const voltar = useVoltar('/(tabs)/perfil');
   const { alerta, confirmar } = useDialog();
-  const { data: lista = [] }                          = useConsentimentos();
+  const consentimentosQuery = useConsentimentos();
+  const lista = consentimentosQuery.data ?? [];
   const { mutateAsync: assinar,  isPending: assinando } = useAssinar();
   const { mutateAsync: revogar,  isPending: revogando } = useRevogar();
 
@@ -104,43 +107,58 @@ export default function ConsentimentosScreen() {
           Você controla como seus dados são usados. Pode revogar a qualquer momento.
         </Text>
 
-        {TIPOS.map(tipo => {
-          const meta    = LGPD_CONSENTIMENTOS[tipo];
-          const chip    = chipForStatus(tipo);
-          const isAtivo = getStatus(tipo)?.ativo === true;
+        {/* BR-TUT-T03: sem a lista vinda do servidor NÃO se sabe o que o tutor aceitou — carregando => skeleton; erro =>
+            ErrorState; erro com lista salva => lista + faixa. "Pendente" só aparece com a lista na mão. Lista vazia é dado
+            (nada registrado ainda), não "vazio" a esconder. */}
+        <QueryState
+          query={consentimentosQuery}
+          isEmpty={() => false}
+          empty={null}
+          skeleton={<Skeleton variant="card" count={3} />}
+          errorTitle="Não consegui carregar os seus consentimentos"
+        >
+          {() => (
+            <>
+              {TIPOS.map(tipo => {
+                const meta    = LGPD_CONSENTIMENTOS[tipo];
+                const chip    = chipForStatus(tipo);
+                const isAtivo = getStatus(tipo)?.ativo === true;
 
-          return (
-            <KCard key={tipo} style={styles.consentCard}>
-              <View style={styles.consentTop}>
-                <View style={styles.consentInfo}>
-                  <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{meta.titulo}</Text>
-                  <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs, marginTop: 4, lineHeight: 18 }}>{meta.resumo}</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end', gap: 8 }}>
-                  <KChip tone={chip.tone}>{chip.label}</KChip>
-                  <Switch
-                    value={isAtivo}
-                    onValueChange={() => void handleSwitch(tipo, isAtivo)}
-                    trackColor={{ false: colors.borderControl, true: colors.primary }}
-                    thumbColor={colors.surface}
-                    disabled={assinando || revogando}
-                    accessibilityLabel={`Consentimento ${meta.titulo}`}
-                  />
-                </View>
-              </View>
-              <Pressable
-                onPress={() => setModalTipo(tipo)}
-                hitSlop={8}
-                style={{ minHeight: 44, justifyContent: 'center', marginTop: 6 }}
-                accessibilityRole="button"
-              >
-                <Text style={{ fontFamily: fonts.mono, color: colors.primary, fontSize: fontSize.xs, letterSpacing: 0.8 }}>
-                  VER TEXTO COMPLETO →
-                </Text>
-              </Pressable>
-            </KCard>
-          );
-        })}
+                return (
+                  <KCard key={tipo} style={styles.consentCard}>
+                    <View style={styles.consentTop}>
+                      <View style={styles.consentInfo}>
+                        <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{meta.titulo}</Text>
+                        <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs, marginTop: 4, lineHeight: 18 }}>{meta.resumo}</Text>
+                      </View>
+                      <View style={{ alignItems: 'flex-end', gap: 8 }}>
+                        <KChip tone={chip.tone}>{chip.label}</KChip>
+                        <Switch
+                          value={isAtivo}
+                          onValueChange={() => void handleSwitch(tipo, isAtivo)}
+                          trackColor={{ false: colors.borderControl, true: colors.primary }}
+                          thumbColor={colors.surface}
+                          disabled={assinando || revogando}
+                          accessibilityLabel={`Consentimento ${meta.titulo}`}
+                        />
+                      </View>
+                    </View>
+                    <Pressable
+                      onPress={() => setModalTipo(tipo)}
+                      hitSlop={8}
+                      style={{ minHeight: 44, justifyContent: 'center', marginTop: 6 }}
+                      accessibilityRole="button"
+                    >
+                      <Text style={{ fontFamily: fonts.mono, color: colors.primary, fontSize: fontSize.xs, letterSpacing: 0.8 }}>
+                        VER TEXTO COMPLETO →
+                      </Text>
+                    </Pressable>
+                  </KCard>
+                );
+              })}
+            </>
+          )}
+        </QueryState>
       </ScrollView>
 
       {/* Consent modal */}
