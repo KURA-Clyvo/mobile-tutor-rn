@@ -18,7 +18,8 @@
     "lint": "eslint src --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
     "check:colors": "node scripts/check-gate.js \"hex literal fora do tema\"",
-    "check:no-ocean": "node scripts/check-gate.js \"no-ocean\""
+    "check:no-ocean": "node scripts/check-gate.js \"no-ocean\"",
+    "check:query-state": "node scripts/check-query-state.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/cormorant": "0.2.3",
