@@ -12,6 +12,9 @@ jest.mock('expo-router', () => ({
 let mockQuery: any;
 const mockRefetch = jest.fn();
 jest.mock('../hooks/usePetDetail', () => ({ usePetDetail: () => mockQuery }));
+// BR-TUT-T06: o status do pet vem da LISTA (`usePets`), não do detalhe.
+let mockLista: any;
+jest.mock('../hooks/usePets', () => ({ usePets: () => mockLista }));
 
 const PET = {
   id: 1, nmPet: 'Thor', nmEspecie: 'Cão', nmRaca: 'Labrador', dtNascimento: '2021-03-10',
@@ -23,7 +26,7 @@ const FALSAS = [/Tudo certo/i, /Tudo em dia/i, /\bOK\b/, /Pendente/i];
 const semStatusFalso = (r: ReturnType<typeof render>) => { for (const re of FALSAS) expect(r.queryByText(re)).toBeNull(); };
 
 describe('Perfil do pet — estados', () => {
-  beforeEach(() => mockRefetch.mockClear());
+  beforeEach(() => { mockRefetch.mockClear(); mockLista = { data: [{ id: 1, statusGeral: 'OK' }], isError: false }; });
 
   it('carregando => skeleton, sem chip de status', () => {
     mockQuery = { ...base, isLoading: true, fetchStatus: 'fetching' };
@@ -80,7 +83,8 @@ describe('Perfil do pet — estados', () => {
   });
 
   it('sucesso com status desconhecido/ausente => NENHUM chip de status (nada de default OK)', () => {
-    mockQuery = { ...base, data: { ...PET, dsStatusGeral: undefined } };
+    mockQuery = { ...base, data: PET };
+    mockLista = { data: [], isError: false };
     const r = render(<PetDetailScreen />, { wrapper: W });
     expect(r.getAllByText('Thor').length).toBeGreaterThan(0);
     semStatusFalso(r);

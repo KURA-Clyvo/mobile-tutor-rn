@@ -42,7 +42,8 @@ export default function PetDetailScreen() {
   const pet = petQuery.data;
   // BR-TUT-T06: o status do pet é UM só — o da lista (`usePets`), o mesmo que o tutor viu ao tocar. O detalhe Java não tem status;
   // sem o pet na lista, a chip some (nunca um "Tudo certo" inventado).
-  const statusGeral = usePets().data?.find(p => p.id === petId)?.statusGeral;
+  const listaQuery = usePets();
+  const statusGeral = listaQuery.isError && !listaQuery.data ? undefined : listaQuery.data?.find(p => p.id === petId)?.statusGeral;
   const [tab, setTab] = useState<Tab>('visao');
   // F5-M4 (G2): no erro sem dado a barra não fica em '…' (lê como carregando): título neutro.
 
