@@ -163,4 +163,17 @@ describe('PerfilScreen — logout exige confirmação (TASK-F06)', () => {
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/login'));
     expect(useAuthStore.getState().token).toBeNull();
   });
+
+
+// BR-TUT-T02: o diálogo "Sobre o app" mostra o símbolo KuraMark, não o texto "Kura.".
+describe('PerfilScreen — marca (BR-TUT-T02)', () => {
+  it('"Sobre o app" mostra o símbolo KURA e não o texto "Kura."', async () => {
+    mockGetPermissionStatus.mockResolvedValue(false);
+    useAuthStore.setState({ token: 'jwt-valido', expiresAt: new Date(Date.now() + 3600_000).toISOString(), tutor: TUTOR });
+    const { getByText, getByRole, queryByText } = render(<PerfilScreen />, { wrapper: W });
+    fireEvent.press(getByText('Sobre o app'));
+    await waitFor(() => expect(getByRole('image', { name: 'KURA' })).toBeTruthy());
+    expect(queryByText('Kura.')).toBeNull();
+  });
+});
 });
