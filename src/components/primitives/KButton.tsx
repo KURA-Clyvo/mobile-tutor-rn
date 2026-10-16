@@ -26,7 +26,7 @@ export function KButton({
 
   const variantStyles: Record<Variant, { container: object; label: { color: string } }> = {
     primary:   { container: { backgroundColor: theme.colors.primary },  label: { color: theme.colors.textOnPrimary } },
-    secondary: { container: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: theme.colors.borderStrong }, label: { color: theme.colors.text } },
+    secondary: { container: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: theme.colors.borderControl }, label: { color: theme.colors.text } },
     ghost:     { container: { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, label: { color: theme.colors.text } },
     danger:    { container: { backgroundColor: theme.colors.danger },  label: { color: theme.colors.textOnPrimary } },
   };

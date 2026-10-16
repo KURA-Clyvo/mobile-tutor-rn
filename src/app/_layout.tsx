@@ -40,7 +40,7 @@ function SplashContent() {
       <View style={styles.logoArea}>
         <Text style={{ fontFamily: fonts.display, color: colors.primary, fontSize: 76, lineHeight: 80 }}>
           {'Kura'}
-          <Text style={{ color: colors.amber }}>.</Text>
+          <Text style={{ color: colors.amberInk }}>.</Text>
         </Text>
         <Text style={{ fontFamily: fonts.display, fontStyle: 'italic', color: colors.textSoft, fontSize: 22, lineHeight: 28 }}>
           O cuidado registrado.
@@ -48,7 +48,7 @@ function SplashContent() {
       </View>
       <View style={styles.footer}>
         <Animated.View style={[styles.pulseDot, { backgroundColor: colors.primary }, dotStyle]} />
-        <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10, letterSpacing: 1.5, marginTop: 12 }}>
+        <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10, letterSpacing: 1.5, marginTop: 12 }}>
           CLYVO VET · V1.0
         </Text>
       </View>

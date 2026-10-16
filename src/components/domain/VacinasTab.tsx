@@ -18,14 +18,14 @@ export function VacinasTab({ petId }: { petId: number }) {
 
   const bannerCfg = {
     EM_DIA:  { bg: colors.primarySoft, border: colors.primary, icon: 'check' as const, iconColor: colors.primary, title: 'Vacinação em dia' },
-    ALERTA:  { bg: colors.amberPale,   border: colors.amber,   icon: 'alert' as const, iconColor: colors.amber,   title: 'Vacinas próximas do vencimento' },
-    VENCIDA: { bg: colors.clayPale,    border: colors.clay,    icon: 'alert' as const, iconColor: colors.clay,    title: 'Vacinas vencidas — agende já' },
+    ALERTA:  { bg: colors.amberPale,   border: colors.amberInk, icon: 'alert' as const, iconColor: colors.amberInk,  title: 'Vacinas próximas do vencimento' },
+    VENCIDA: { bg: colors.clayPale,    border: colors.clayInk, icon: 'alert' as const, iconColor: colors.clayInk,   title: 'Vacinas vencidas — agende já' },
   };
   const bCfg = bannerCfg[statusData?.dsStatusGeral ?? 'EM_DIA'];
 
   return (
     <View>
-      <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1, marginBottom: 4 }}>
+      <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1, marginBottom: 4 }}>
         04 · IMUNIZAÇÃO
       </Text>
       <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 28, lineHeight: 34, marginBottom: 16 }}>
@@ -52,14 +52,14 @@ export function VacinasTab({ petId }: { petId: number }) {
 
       {aplicadas.length > 0 && (
         <>
-          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>APLICADAS</Text>
+          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>APLICADAS</Text>
           {aplicadas.map(v => <VacinaItem key={v.id} vacina={v} />)}
         </>
       )}
 
       {proximas.length > 0 && (
         <>
-          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>PRÓXIMAS / VENCIDAS</Text>
+          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>PRÓXIMAS / VENCIDAS</Text>
           {proximas.map(v => (
             <VacinaItem
               key={v.id}
@@ -72,8 +72,8 @@ export function VacinasTab({ petId }: { petId: number }) {
 
       {vacinas.length === 0 && (
         <View style={{ alignItems: 'center', paddingTop: 40, gap: 12 }}>
-          <KIcon name="vaccine" size={28} color={colors.textMute} />
-          <Text style={{ fontFamily: fonts.body, color: colors.textMute }}>Sem registro de vacinas ainda.</Text>
+          <KIcon name="vaccine" size={28} color={colors.textMuteInk} />
+          <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk }}>Sem registro de vacinas ainda.</Text>
         </View>
       )}
     </View>

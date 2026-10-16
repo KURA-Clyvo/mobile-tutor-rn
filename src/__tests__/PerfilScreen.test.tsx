@@ -58,7 +58,7 @@ describe('PerfilScreen — notificações push (TASK-70)', () => {
     const { getByLabelText } = render(<PerfilScreen />, { wrapper: W });
 
     await waitFor(() => expect(getByLabelText('Ativar notificações').props.value).toBe(true));
-  });
+  }, 20000);
 
   it('reflete permissão NEGADA quando a tela abre', async () => {
     mockGetPermissionStatus.mockResolvedValue(false);

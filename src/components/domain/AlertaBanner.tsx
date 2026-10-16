@@ -14,16 +14,16 @@ export function AlertaBanner({ title, subtitle, onPress }: AlertaBannerProps) {
   return (
     <View style={[styles.wrap, {
       backgroundColor: colors.clayPale,
-      borderColor: 'rgba(217,98,74,0.22)',
+      borderColor: colors.chipBorderClay,
       borderRadius: radius.lg,
       borderLeftWidth: 3,
-      borderLeftColor: colors.clay,
+      borderLeftColor: colors.clayInk,
     }]}>
-      <View style={[styles.iconWrap, { backgroundColor: 'rgba(217,98,74,0.15)' }]}>
-        <KIcon name="alert" size={16} color={colors.clay} />
+      <View style={[styles.iconWrap, { backgroundColor: colors.clayTint }]}>
+        <KIcon name="alert" size={16} color={colors.clayInk} />
       </View>
       <View style={styles.content}>
-        <Text style={[styles.title, { fontFamily: fonts.bodyMedium, color: colors.clay, fontSize: fontSize.sm }]}>
+        <Text style={[styles.title, { fontFamily: fonts.bodyMedium, color: colors.clayInk, fontSize: fontSize.sm }]}>
           {title}
         </Text>
         <Text style={[styles.sub, { fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }]}>
@@ -38,7 +38,7 @@ export function AlertaBanner({ title, subtitle, onPress }: AlertaBannerProps) {
           accessibilityRole="button"
           accessibilityLabel="Ver detalhes"
         >
-          <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, color: colors.clay, letterSpacing: 0.8 }}>
+          <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, color: colors.clayInk, letterSpacing: 0.8 }}>
             VER →
           </Text>
         </Pressable>

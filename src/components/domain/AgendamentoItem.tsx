@@ -51,7 +51,7 @@ export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
       <KPetPortrait palette={racaToPalette(item.pet.nmRaca)} size={44} especie={item.pet.nmEspecie} />
       <View style={styles.info}>
         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{item.pet.nmPet}</Text>
-        <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }}>
+        <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }}>
           {formatDateBR(item.dtInicio)} · {formatTimeBR(item.dtInicio)}
         </Text>
         <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>

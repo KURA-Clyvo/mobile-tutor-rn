@@ -60,7 +60,7 @@ export default function AgendaScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading || canceling} onRefresh={refetch} tintColor={colors.primary} />}
       >
-        <Text style={[styles.groupTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>
+        <Text style={[styles.groupTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
           {`PRÓXIMOS · ${proximos.length}`}
         </Text>
         {proximos.length === 0
@@ -70,7 +70,7 @@ export default function AgendaScreen() {
             ))
         }
 
-        <Text style={[styles.groupTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, marginTop: 24 }]}>
+        <Text style={[styles.groupTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, marginTop: 24 }]}>
           {`HISTÓRICO · ${historico.length}`}
         </Text>
         {historico.length === 0
@@ -88,8 +88,8 @@ function EmptySection({ label }: { label: string }) {
   const { colors, fonts, fontSize } = useTheme();
   return (
     <View style={{ alignItems: 'center', paddingVertical: 20, gap: 8 }}>
-      <KIcon name="calendar" size={22} color={colors.textMute} />
-      <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.sm }}>{label}</Text>
+      <KIcon name="calendar" size={22} color={colors.textMuteInk} />
+      <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.sm }}>{label}</Text>
     </View>
   );
 }

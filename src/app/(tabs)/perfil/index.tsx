@@ -111,13 +111,13 @@ export default function PerfilScreen() {
           <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 26 }}>
             {tutor?.nmTutor ?? '—'}
           </Text>
-          <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
+          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
             {tutor?.dsEmail ?? '—'}
           </Text>
         </View>
 
         {/* Perfil */}
-        <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>PERFIL</Text>
+        <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>PERFIL</Text>
         <KCard style={styles.card}>
           {[
             { label: 'Nome',     value: tutor?.nmTutor    ?? '—', icon: 'perfil' as const },
@@ -125,41 +125,41 @@ export default function PerfilScreen() {
             { label: 'Telefone', value: tutor?.dsTelefone ?? '—', icon: 'bell'   as const },
           ].map(row => (
             <View key={row.label} style={[styles.row, { borderBottomColor: colors.border }]}>
-              <KIcon name={row.icon} size={16} color={colors.textMute} />
+              <KIcon name={row.icon} size={16} color={colors.textMuteInk} />
               <View style={styles.rowInfo}>
-                <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10, letterSpacing: 1 }}>{row.label.toUpperCase()}</Text>
+                <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10, letterSpacing: 1 }}>{row.label.toUpperCase()}</Text>
                 <Text style={{ fontFamily: fonts.body, color: colors.text, fontSize: fontSize.sm, marginTop: 2 }}>{row.value}</Text>
               </View>
-              <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>Em breve</Text>
+              <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>Em breve</Text>
             </View>
           ))}
         </KCard>
 
         {/* Configurações */}
-        <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>CONFIGURAÇÕES</Text>
+        <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>CONFIGURAÇÕES</Text>
         <KCard style={styles.card}>
           <View style={[styles.row, { borderBottomColor: colors.border }]}>
-            <KIcon name="saude" size={16} color={colors.textMute} />
+            <KIcon name="saude" size={16} color={colors.textMuteInk} />
             <View style={styles.rowInfo}>
               <Text style={{ fontFamily: fonts.body, color: colors.text, fontSize: fontSize.sm }}>Modo escuro</Text>
             </View>
             <Switch
               value={isDark}
               onValueChange={toggleTheme}
-              trackColor={{ false: colors.border, true: colors.primary }}
+              trackColor={{ false: colors.borderControl, true: colors.primary }}
               thumbColor={colors.surface}
               accessibilityLabel="Alternar modo escuro"
             />
           </View>
           <View style={styles.row}>
-            <KIcon name="bell" size={16} color={colors.textMute} />
+            <KIcon name="bell" size={16} color={colors.textMuteInk} />
             <View style={styles.rowInfo}>
               <Text style={{ fontFamily: fonts.body, color: colors.text, fontSize: fontSize.sm }}>Notificações push</Text>
             </View>
             <Switch
               value={notifEnabled}
               onValueChange={handleNotifToggle}
-              trackColor={{ false: colors.border, true: colors.primary }}
+              trackColor={{ false: colors.borderControl, true: colors.primary }}
               thumbColor={colors.surface}
               accessibilityLabel="Ativar notificações"
             />
@@ -167,14 +167,14 @@ export default function PerfilScreen() {
         </KCard>
 
         {/* Links */}
-        <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>MAIS</Text>
+        <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>MAIS</Text>
         <KCard style={styles.card}>
           <Pressable
             onPress={() => router.push('/(tabs)/perfil/consentimentos' as any)}
             style={[styles.row, { borderBottomColor: colors.border }]}
             accessibilityRole="button"
           >
-            <KIcon name="check" size={16} color={colors.textMute} />
+            <KIcon name="check" size={16} color={colors.textMuteInk} />
             <View style={styles.rowInfo}>
               <Text style={{ fontFamily: fonts.body, color: colors.text, fontSize: fontSize.sm }}>Gerenciar Consentimentos LGPD</Text>
             </View>
@@ -185,11 +185,11 @@ export default function PerfilScreen() {
             style={styles.row}
             accessibilityRole="button"
           >
-            <KIcon name="alert" size={16} color={colors.textMute} />
+            <KIcon name="alert" size={16} color={colors.textMuteInk} />
             <View style={styles.rowInfo}>
               <Text style={{ fontFamily: fonts.body, color: colors.text, fontSize: fontSize.sm }}>Sobre o app</Text>
             </View>
-            <KIcon name="chevR" size={14} color={colors.textMute} />
+            <KIcon name="chevR" size={14} color={colors.textMuteInk} />
           </Pressable>
         </KCard>
 
@@ -204,14 +204,14 @@ export default function PerfilScreen() {
           Sair do app
         </KButton>
 
-        <Text style={[styles.footer, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>
+        <Text style={[styles.footer, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
           KURA VET · MOBILE TUTOR · FIAP 2026
         </Text>
       </ScrollView>
 
       {/* About modal */}
       <Modal visible={aboutVisible} transparent animationType="slide" onRequestClose={() => setAboutVisible(false)}>
-        <Pressable style={styles.modalBg} onPress={() => setAboutVisible(false)}>
+        <Pressable style={[styles.modalBg, { backgroundColor: colors.scrim }]} onPress={() => setAboutVisible(false)}>
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 24, marginBottom: 12 }}>Kura.</Text>
             <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, marginBottom: 8 }}>Versão 1.0.0 — Tutor App</Text>
@@ -235,6 +235,6 @@ const styles = StyleSheet.create({
   rowInfo:     { flex: 1 },
   logoutBtn:   { marginTop: 32 },
   footer:      { textAlign: 'center', letterSpacing: 1.5, marginTop: 24 },
-  modalBg:     { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalBg:     { flex: 1, justifyContent: 'flex-end' },
   modalCard:   { margin: 16, borderRadius: 20, padding: 24, borderWidth: 1 },
 });

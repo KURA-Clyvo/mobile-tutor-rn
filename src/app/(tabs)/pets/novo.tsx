@@ -113,7 +113,7 @@ export default function AddPetScreen() {
         <Pressable onPress={() => voltar()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
-        <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1.2 }}>NOVO · 1 DE 2</Text>
+        <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1.2 }}>NOVO · 1 DE 2</Text>
         <Pressable onPress={() => voltar()} hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }} accessibilityRole="button">
           <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, color: colors.primary, letterSpacing: 1 }}>CANCELAR</Text>
         </Pressable>
@@ -130,7 +130,7 @@ export default function AddPetScreen() {
 
         <Pressable
           onPress={() => void handlePickPhoto()}
-          style={[styles.photoArea, { borderColor: colors.borderStrong, borderRadius: radius.xl }]}
+          style={[styles.photoArea, { borderColor: colors.borderControl, borderRadius: radius.xl }]}
           accessibilityRole="button"
           accessibilityLabel="Adicionar foto do pet"
         >
@@ -142,7 +142,7 @@ export default function AddPetScreen() {
                 <KIcon name="plus" size={28} color={colors.primary} />
               </View>
               <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 18, marginTop: 8 }}>Foto do pet</Text>
-              <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>TOQUE PARA ESCOLHER</Text>
+              <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>TOQUE PARA ESCOLHER</Text>
               <View style={styles.photoChips}>
                 <KChip tone="sage">✨ Câmera</KChip>
                 <KChip tone="mute">Galeria</KChip>
@@ -151,17 +151,17 @@ export default function AddPetScreen() {
           )}
         </Pressable>
 
-        <Text style={[styles.fieldLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>NOME DO PET *</Text>
+        <Text style={[styles.fieldLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>NOME DO PET *</Text>
         <TextInput
           value={nmPet}
           onChangeText={setNmPet}
           placeholder="Como ele se chama?"
-          placeholderTextColor={colors.textMute}
-          style={[styles.input, { fontFamily: fonts.body, color: colors.text, backgroundColor: colors.surface, borderColor: colors.borderStrong, borderRadius: radius.md, fontSize: fontSize.base }]}
+          placeholderTextColor={colors.textMuteInk}
+          style={[styles.input, { fontFamily: fonts.body, color: colors.text, backgroundColor: colors.surface, borderColor: colors.borderControl, borderRadius: radius.md, fontSize: fontSize.base }]}
           accessibilityLabel="Nome do pet"
         />
 
-        <Text style={[styles.fieldLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>ESPÉCIE *</Text>
+        <Text style={[styles.fieldLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>ESPÉCIE *</Text>
         <View style={styles.especieGrid}>
           {ESPECIES.map(e => {
             const active = especie === e.key;
@@ -178,7 +178,7 @@ export default function AddPetScreen() {
                 accessibilityState={{ selected: active }}
               >
                 <Text style={{ fontSize: 24 }}>{e.emoji}</Text>
-                <Text style={{ fontFamily: fonts.mono, color: active ? colors.primary : colors.textMute, fontSize: 9, letterSpacing: 0.8 }}>
+                <Text style={{ fontFamily: fonts.mono, color: active ? colors.primary : colors.textMuteInk, fontSize: 9, letterSpacing: 0.8 }}>
                   {e.key.toUpperCase()}
                 </Text>
               </Pressable>
@@ -186,17 +186,17 @@ export default function AddPetScreen() {
           })}
         </View>
 
-        <Text style={[styles.fieldLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>RAÇA</Text>
+        <Text style={[styles.fieldLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>RAÇA</Text>
         <TextInput
           value={raca}
           onChangeText={setRaca}
           placeholder="Labrador · Golden · SRD"
-          placeholderTextColor={colors.textMute}
-          style={[styles.input, { fontFamily: fonts.body, color: colors.text, backgroundColor: colors.surface, borderColor: colors.borderStrong, borderRadius: radius.md, fontSize: fontSize.base }]}
+          placeholderTextColor={colors.textMuteInk}
+          style={[styles.input, { fontFamily: fonts.body, color: colors.text, backgroundColor: colors.surface, borderColor: colors.borderControl, borderRadius: radius.md, fontSize: fontSize.base }]}
           accessibilityLabel="Raça do pet"
         />
 
-        <Text style={[styles.fieldLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>SEXO *</Text>
+        <Text style={[styles.fieldLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>SEXO *</Text>
         <View style={[styles.sexoSegmented, { backgroundColor: colors.surface2, borderRadius: radius.md }]}>
           {([{ key: 'M', label: 'Macho' }, { key: 'F', label: 'Fêmea' }] as const).map(s => {
             const active = sexo === s.key;
@@ -229,7 +229,7 @@ export default function AddPetScreen() {
           Cadastrar pet
         </KButton>
 
-        <Text style={[styles.footerMono, { fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs }]}>
+        <Text style={[styles.footerMono, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
           ⌧ DADOS CIFRADOS · LGPD COMPLIANT
         </Text>
       </ScrollView>

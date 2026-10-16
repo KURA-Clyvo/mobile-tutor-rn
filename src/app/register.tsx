@@ -110,7 +110,7 @@ export default function RegisterScreen() {
           <KIcon name="back" size={18} color={c.text} />
         </Pressable>
 
-        <Text style={[styles.stepLabel, { fontFamily: theme.fonts.mono, color: c.textMute, fontSize: theme.fontSize.xs }]}>
+        <Text style={[styles.stepLabel, { fontFamily: theme.fonts.mono, color: c.textMuteInk, fontSize: theme.fontSize.xs }]}>
           NOVO · 1 DE 2
         </Text>
 
@@ -192,12 +192,12 @@ export default function RegisterScreen() {
                 accessibilityState={{ checked: value }}
                 accessibilityLabel="Aceito receber lembretes de vacina e consulta (obrigatório)"
               >
-                <View style={[styles.checkbox, { borderColor: errors.aceiteLembretes ? c.danger : c.border, backgroundColor: value ? c.primary : 'transparent' }]}>
+                <View style={[styles.checkbox, { borderColor: errors.aceiteLembretes ? c.danger : c.borderControl, backgroundColor: value ? c.primary : 'transparent' }]}>
                   {value && <KIcon name="check" size={12} color={c.textOnPrimary} strokeWidth={2.5} />}
                 </View>
                 <Text style={{ fontFamily: theme.fonts.body, color: c.textSoft, fontSize: theme.fontSize.xs, flex: 1, lineHeight: 18 }}>
                   Aceito receber lembretes de vacina, consultas e comunicados da clínica.{' '}
-                  <Text style={{ fontFamily: theme.fonts.bodyMedium, color: c.textMute }}>Obrigatório.</Text>
+                  <Text style={{ fontFamily: theme.fonts.bodyMedium, color: c.textMuteInk }}>Obrigatório.</Text>
                 </Text>
               </Pressable>
             )}
@@ -218,12 +218,12 @@ export default function RegisterScreen() {
                 accessibilityState={{ checked: value }}
                 accessibilityLabel="Autorizo o uso de teleorientação por chamada de vídeo (opcional)"
               >
-                <View style={[styles.checkbox, { borderColor: c.border, backgroundColor: value ? c.primary : 'transparent' }]}>
+                <View style={[styles.checkbox, { borderColor: c.borderControl, backgroundColor: value ? c.primary : 'transparent' }]}>
                   {value && <KIcon name="check" size={12} color={c.textOnPrimary} strokeWidth={2.5} />}
                 </View>
                 <Text style={{ fontFamily: theme.fonts.body, color: c.textSoft, fontSize: theme.fontSize.xs, flex: 1, lineHeight: 18 }}>
                   Autorizo o uso de teleorientação (chamada de vídeo) quando indicado pelo veterinário.{' '}
-                  <Text style={{ fontFamily: theme.fonts.bodyMedium, color: c.textMute }}>Opcional.</Text>
+                  <Text style={{ fontFamily: theme.fonts.bodyMedium, color: c.textMuteInk }}>Opcional.</Text>
                 </Text>
               </Pressable>
             )}
@@ -241,7 +241,7 @@ export default function RegisterScreen() {
           Criar conta
         </KButton>
 
-        <Text style={[styles.footerMono, { fontFamily: theme.fonts.mono, color: c.textMute, fontSize: theme.fontSize.xs }]}>
+        <Text style={[styles.footerMono, { fontFamily: theme.fonts.mono, color: c.textMuteInk, fontSize: theme.fontSize.xs }]}>
           ⌧ DADOS CIFRADOS · LGPD COMPLIANT
         </Text>
       </ScrollView>

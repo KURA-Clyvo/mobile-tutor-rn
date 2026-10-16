@@ -6,10 +6,10 @@ interface KBadgeProps { count?: number; dot?: boolean; }
 
 export function KBadge({ count, dot }: KBadgeProps) {
   const { colors, fonts } = useTheme();
-  if (dot) return <View style={[styles.dot, { backgroundColor: colors.clay, borderColor: colors.surface }]} />;
+  if (dot) return <View style={[styles.dot, { backgroundColor: colors.clayInk, borderColor: colors.surface }]} />;
   if (!count || count === 0) return null;
   return (
-    <View style={[styles.badge, { backgroundColor: colors.clay, borderColor: colors.surface }]}>
+    <View style={[styles.badge, { backgroundColor: colors.clayInk, borderColor: colors.surface }]}>
       <Text style={[styles.label, { fontFamily: fonts.mono, color: colors.textOnPrimary }]}>
         {count > 99 ? '99+' : String(count)}
       </Text>

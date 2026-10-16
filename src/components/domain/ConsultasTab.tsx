@@ -38,7 +38,7 @@ export function ConsultasTab({ petId }: { petId: number }) {
 
   return (
     <View>
-      <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1, marginBottom: 4 }}>
+      <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1, marginBottom: 4 }}>
         {`${eventos.length} · VISITAS`}
       </Text>
       <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 28, lineHeight: 34, marginBottom: 16 }}>
@@ -79,7 +79,7 @@ export function ConsultasTab({ petId }: { petId: number }) {
 
       {filtered.length === 0 && (
         <View style={{ alignItems: 'center', paddingTop: 32, gap: 8 }}>
-          <Text style={{ fontFamily: fonts.body, color: colors.textMute }}>Sem eventos neste filtro</Text>
+          <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk }}>Sem eventos neste filtro</Text>
         </View>
       )}
     </View>
@@ -98,7 +98,7 @@ function TimelineRow({ ev, isLast, onPress }: { ev: TimelineTutorEventResponse; 
       <View style={[styles.dot, { backgroundColor: dotBg, borderColor: dotBorder }]} />
       <Pressable onPress={onPress} style={[styles.evCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
         <View style={styles.evMeta}>
-          <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>
+          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>
             {formatDateBR(ev.dtEvento)}
           </Text>
           <KChip tone={isTele ? 'ocean' : 'sage'}>{isTele ? 'Telemedicina' : 'Presencial'}</KChip>
@@ -107,7 +107,7 @@ function TimelineRow({ ev, isLast, onPress }: { ev: TimelineTutorEventResponse; 
           <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{ev.nmVeterinario}</Text>
         )}
         {ev.nrCRMV && (
-          <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>CRMV {ev.nrCRMV}</Text>
+          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>CRMV {ev.nrCRMV}</Text>
         )}
         <Text numberOfLines={2} style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, marginTop: 4 }}>
           {ev.dsResumoPublico}
@@ -130,7 +130,7 @@ function ConsultaDetail({ petId, idEvento, onBack }: { petId: number; idEvento: 
         <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Voltar">
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
-        <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: fontSize.xs, letterSpacing: 1 }}>
+        <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
           {`PRONTUÁRIO · #CONS-${idEvento}`}
         </Text>
         <Pressable onPress={() => Share.share({ message: `Prontuário #CONS-${idEvento}` })} accessibilityRole="button">
@@ -155,7 +155,7 @@ function ConsultaDetail({ petId, idEvento, onBack }: { petId: number; idEvento: 
                 { l: 'FC',   v: ev.nrFreqCardiacaBpm  ? `${ev.nrFreqCardiacaBpm} bpm` : '—' },
               ].map(v => (
                 <View key={v.l} style={[styles.vitalBox, { backgroundColor: colors.surface2 }]}>
-                  <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>{v.l}</Text>
+                  <Text style={{ fontFamily: fonts.mono, color: colors.textSoft, fontSize: 10 }}>{v.l}</Text>
                   <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 22 }}>{v.v}</Text>
                 </View>
               ))}
@@ -164,7 +164,7 @@ function ConsultaDetail({ petId, idEvento, onBack }: { petId: number; idEvento: 
           {ev.dsDiagnostico && (
             <ConsultaSection title="Diagnóstico" tone="amber">
               <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{ev.dsDiagnostico}</Text>
-              {ev.dsCID10Vet && <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>{ev.dsCID10Vet}</Text>}
+              {ev.dsCID10Vet && <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>{ev.dsCID10Vet}</Text>}
             </ConsultaSection>
           )}
           {ev.prescricoes && ev.prescricoes.length > 0 && (
@@ -173,7 +173,7 @@ function ConsultaDetail({ petId, idEvento, onBack }: { petId: number; idEvento: 
                 <View key={i} style={[styles.rxRow, { borderLeftColor: colors.ocean }]}>
                   <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.sm }}>{p.nmMedicamento}</Text>
                   <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>{p.dsPosologia}</Text>
-                  {p.nrDuracaoDias && <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>{p.nrDuracaoDias} dias</Text>}
+                  {p.nrDuracaoDias && <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>{p.nrDuracaoDias} dias</Text>}
                 </View>
               ))}
             </ConsultaSection>
@@ -191,7 +191,7 @@ function ConsultaDetail({ petId, idEvento, onBack }: { petId: number; idEvento: 
           </KButton>
         </View>
       ) : (
-        <Text style={{ fontFamily: fonts.body, color: colors.textMute, padding: 20 }}>Carregando...</Text>
+        <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, padding: 20 }}>Carregando...</Text>
       )}
     </ScrollView>
   );

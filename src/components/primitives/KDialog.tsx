@@ -119,7 +119,7 @@ export function KDialog({ visivel, opcoes, onFechar }: KDialogProps) {
       <Pressable
         style={[
           styles.overlay,
-          { backgroundColor: theme.isDark ? 'rgba(0,0,0,0.66)' : 'rgba(0,0,0,0.45)' },
+          { backgroundColor: theme.colors.scrimDialog },
         ]}
         onPress={opcoes.dispensavelPorFora ? dispensar : undefined}
         accessible={false}

@@ -11,8 +11,8 @@ export function DocsTab() {
   const { colors, fonts, fontSize } = useTheme();
   return (
     <View style={{ alignItems: 'center', paddingTop: 40, gap: 12 }}>
-      <KIcon name="download" size={28} color={colors.textMute} />
-      <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.sm }}>Documentos em breve</Text>
+      <KIcon name="download" size={28} color={colors.textMuteInk} />
+      <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.sm }}>Documentos em breve</Text>
     </View>
   );
 }

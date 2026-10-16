@@ -8,7 +8,7 @@ interface ConsultaSectionProps { title: string; tone: Tone; children: React.Reac
 
 export function ConsultaSection({ title, tone, children }: ConsultaSectionProps) {
   const { colors, fonts, fontSize } = useTheme();
-  const lineColor = tone === 'sage' ? colors.primary : tone === 'ocean' ? colors.ocean : colors.amber;
+  const lineColor = tone === 'sage' ? colors.primary : tone === 'ocean' ? colors.ocean : colors.amberInk;
   return (
     <View style={[styles.section, { borderLeftWidth: 3, borderLeftColor: lineColor, paddingLeft: 14, marginBottom: 20 }]}>
       <Text style={[styles.label, { fontFamily: fonts.mono, color: lineColor, fontSize: fontSize.xs, letterSpacing: 1.2, marginBottom: 8 }]}>

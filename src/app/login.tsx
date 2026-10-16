@@ -136,7 +136,7 @@ export default function LoginScreen() {
 
           <View style={styles.divider}>
             <View style={[styles.divLine, { backgroundColor: c.border }]} />
-            <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: c.textMute, paddingHorizontal: 12 }}>ou</Text>
+            <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: c.textMuteInk, paddingHorizontal: 12 }}>ou</Text>
             <View style={[styles.divLine, { backgroundColor: c.border }]} />
           </View>
 
@@ -150,10 +150,10 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: c.textMute, letterSpacing: 1.2 }}>
+          <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: c.textMuteInk, letterSpacing: 1.2 }}>
             LGPD · AES-256
           </Text>
-          <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: c.textMute, letterSpacing: 1.2 }}>
+          <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: c.textMuteInk, letterSpacing: 1.2 }}>
             Clyvo Vet
           </Text>
         </View>

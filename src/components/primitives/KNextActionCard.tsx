@@ -18,7 +18,7 @@ export function KNextActionCard({ action }: KNextActionCardProps) {
         <KIcon name={action.icon ?? 'calendar'} size={16} color={tone} />
       </View>
       <View style={styles.text}>
-        <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 9, letterSpacing: 0.8 }}>
+        <Text style={{ fontFamily: fonts.mono, color: colors.textSoft, fontSize: 9, letterSpacing: 0.8 }}>
           {action.label}
         </Text>
         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.sm }}>
@@ -26,7 +26,7 @@ export function KNextActionCard({ action }: KNextActionCardProps) {
         </Text>
       </View>
       {!!action.extraCount && (
-        <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }}>
+        <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>
           +{action.extraCount}
         </Text>
       )}

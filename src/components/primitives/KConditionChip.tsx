@@ -13,8 +13,8 @@ export function KConditionChip({ condicao }: KConditionChipProps) {
   const { colors, fonts, fontSize } = useTheme();
 
   const toneMap: Record<Tone, { bg: string; color: string; border: string }> = {
-    amber: { bg: colors.amberPale, color: colors.amber, border: 'rgba(200,129,13,0.22)' },
-    clay:  { bg: colors.clayPale,  color: colors.clay,  border: 'rgba(217,98,74,0.22)'  },
+    amber: { bg: colors.amberPale, color: colors.amberInk, border: colors.chipBorderAmber },
+    clay:  { bg: colors.clayPale,  color: colors.clayInk,  border: colors.chipBorderClay  },
   };
   const { bg, color, border } = toneMap[condicao.tone];
 

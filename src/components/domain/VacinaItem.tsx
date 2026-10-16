@@ -26,23 +26,23 @@ export function VacinaItem({ vacina, compact, onAgendar }: VacinaItemProps) {
           ? { backgroundColor: colors.primarySoft }
           : { borderWidth: 1.5, borderColor: colors.borderStrong, borderStyle: 'dashed' as const },
       ]}>
-        <KIcon name="vaccine" size={18} color={isAplicada ? colors.primary : colors.textMute} />
+        <KIcon name="vaccine" size={18} color={isAplicada ? colors.primary : colors.textMuteInk} />
       </View>
 
       <View style={styles.info}>
         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{vacina.nmVacina}</Text>
         {!compact && (
           <>
-            <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }}>
+            <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }}>
               {vacina.nmClinica}{vacina.nmVeterinario ? ` · ${vacina.nmVeterinario}` : ''}
             </Text>
-            <Text style={{ fontFamily: fonts.mono, color: colors.textMute, fontSize: 10 }}>
+            <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>
               📅 {formatDateBR(vacina.dtAplicacao)}{vacina.nrLote ? `  🧪 ${vacina.nrLote}` : ''}
             </Text>
           </>
         )}
         {compact && (
-          <Text style={{ fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }}>
+          <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }}>
             {vacina.nmClinica}
           </Text>
         )}

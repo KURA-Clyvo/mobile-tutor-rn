@@ -50,12 +50,12 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
           <Text numberOfLines={1} style={[styles.nome, { fontFamily: fonts.display, color: colors.text, fontSize: 26 }]}>
             {pet.nome}
           </Text>
-          <Text style={[styles.meta, { fontFamily: fonts.body, color: colors.textMute, fontSize: fontSize.xs }]}>
+          <Text style={[styles.meta, { fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
             {pet.raca} · {pet.idadeAnos}a · {pet.sexo === 'M' ? 'Macho' : 'Fêmea'}
           </Text>
           {condicaoPrincipal && <KConditionChip condicao={condicaoPrincipal} />}
         </View>
-        <KIcon name="chevR" size={16} color={colors.textMute} />
+        <KIcon name="chevR" size={16} color={colors.textMuteInk} />
       </View>
 
       {/* Stats grid — 2 cols, ambas acionáveis */}
@@ -68,10 +68,10 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
               i < stats.length - 1 && { borderRightWidth: 1, borderRightColor: colors.border },
             ]}
           >
-            <Text style={[styles.statLabel, { fontFamily: fonts.mono, color: colors.textMute, fontSize: 9 }]}>
+            <Text style={[styles.statLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 9 }]}>
               {s.label}
             </Text>
-            <Text style={[styles.statValue, { fontFamily: fonts.display, color: s.alert ? colors.clay : colors.text, fontSize: 16 }]}>
+            <Text style={[styles.statValue, { fontFamily: fonts.display, color: s.alert ? colors.clayInk : colors.text, fontSize: 16 }]}>
               {s.value}
             </Text>
           </View>

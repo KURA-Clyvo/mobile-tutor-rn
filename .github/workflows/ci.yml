@@ -53,6 +53,8 @@ jobs:
       # Enforce a paleta do app tutor (--sage) — nenhuma cor hex hardcoded fora
       # dos tokens de design, e nenhum token --ocean (contexto clínica) pode
       # vazar para a experiência do tutor.
+      # Os dois scripts rodam scripts/check-gate.js: falham (EXIT!=0) se o padrão -t não
+      # executar nenhum teste, em vez de sair verde com tudo "skipped" (BR-TUT-T01 M-3).
       - name: Check hardcoded colors
         run: npm run check:colors
 
