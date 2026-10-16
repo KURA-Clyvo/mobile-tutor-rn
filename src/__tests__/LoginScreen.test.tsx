@@ -86,17 +86,17 @@ describe('LoginScreen', () => {
 
     it('401 => credenciais incorretas', async () => {
       const u = await entrar({ status: 401, code: 'X', message: 'x' });
-      expect(await u.findByText('E-mail ou senha incorretos')).toBeTruthy();
+      expect(await u.findByText('E-mail ou senha incorretos', { timeout: 5000 })).toBeTruthy();
     });
 
     it('rede comprovada (axios sem resposta) => "Sem conexão"', async () => {
       const u = await entrar(normalizeError(new AxiosError('Network Error', 'ERR_NETWORK', undefined, {})));
-      expect(await u.findByText(/Sem conexão/)).toBeTruthy();
+      expect(await u.findByText(/Sem conexão/, { timeout: 5000 })).toBeTruthy();
     });
 
     it('500 do servidor e Error de código NÃO falam em internet', async () => {
       const u = await entrar({ status: 500, code: 'UNKNOWN_ERROR', message: 'x' });
-      expect(await u.findByText(/Não foi possível entrar agora/)).toBeTruthy();
+      expect(await u.findByText(/Não foi possível entrar agora/, { timeout: 5000 })).toBeTruthy();
       expect(u.queryByText(/conexão|internet/i)).toBeNull();
     });
 

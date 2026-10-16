@@ -115,8 +115,8 @@ describe('Revogar consentimento (web)', () => {
     mockAssinar = jest.fn(() => new Promise<void>((r) => { resolver = r; }));
     const u = render(<ConsentimentosScreen />, { wrapper: W });
     const aceitar = await abrirAceite(u);
-    fireEvent.press(aceitar);
-    fireEvent.press(aceitar);
+    // dois toques no MESMO tick, antes de qualquer re-render: só a trava síncrona segura (o `loading` do botão não chegou).
+    act(() => { fireEvent.press(aceitar); fireEvent.press(aceitar); });
     await act(async () => {});
     expect(mockAssinar).toHaveBeenCalledTimes(1);
     await act(async () => { resolver(); });
