@@ -6,6 +6,10 @@ import { ToastProvider } from '../components/feedback/Toast';
 import NovoAgendamentoScreen from '../app/(tabs)/agenda/novo';
 import AgendaScreen from '../app/(tabs)/agenda/index';
 
+// Cache frio (`--no-cache`/`--runInBand`): o 1º render da tela paga a transformação do bundle e passa de 5 s; o teste espera
+// promessas que ele mesmo resolve (sem `findByText` de 1 s), então só o orçamento do teste muda.
+jest.setTimeout(30_000);
+
 // BR-TUT-T05: retorno de ação com o verbo. Sucesso só depois da resposta; erro nunca vira sucesso.
 const mockBack = jest.fn();
 jest.mock('expo-router', () => ({

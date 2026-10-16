@@ -4,8 +4,12 @@ import { useTheme } from '@theme/index';
 import { KIcon, type IconName } from '@components/primitives/KIcon';
 
 // BR-TUT-T05 — retorno não-decisório de uma ação ("Horário solicitado", "Consentimento revogado").
-// Fica acima da tab bar (spacing[16]). Âncora: `mobile-clinica-rn/src/components/feedback/Toast.tsx` (BR-CLI-T02, main@8e721ee), mesma API
-// (`useToast().show({tipo, texto})`, canal por módulo). Diferença: tokens/ícones do tutor.
+// Fica acima da tab bar (spacing[16]).
+// ÂNCORA (regra 11): o canal (tipos, DURACAO_MS, D_BASE_MS, registrarOuvinteToast, mostrarToast, useToast) é cópia de
+// `mobile-clinica-rn/src/components/feedback/Toast.tsx` linhas 11-40, commit 8e721ee (BR-CLI-T02), conferido em 2026-10-16;
+// aqui são as linhas 14-41. Diferenças: 2 comentários a menos. O ToastProvider (clínica 44-121) NÃO é cópia
+// literal: reescrito com `useTheme` do tutor (tokens, ícones `IconName`) e `bottom: spacing[16]` (a clínica usa spacing[6]).
+// Reproduz: diff <(git -C ../mobile-clinica-rn show 8e721ee:src/components/feedback/Toast.tsx | sed -n '11,40p') <(sed -n '14,41p' src/components/feedback/Toast.tsx)
 // O toast NÃO afirma sucesso antes de o servidor responder: quem chama só usa 'sucesso' depois do `await`.
 export type TipoToast = 'sucesso' | 'erro' | 'info';
 export type OpcoesToast = { tipo: TipoToast; texto: string };
