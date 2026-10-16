@@ -64,6 +64,9 @@ describe('Perfil do pet — estados', () => {
     const r = render(<PetDetailScreen />, { wrapper: W });
     expect(r.getByTestId('query-state-salvos')).toBeTruthy();
     expect(r.getByText(/atualizados há 2h/)).toBeTruthy();
+    // F7-M2: a faixa tem gutter lateral (spacing[5]=20) — sem ele encosta nas bordas a 390.
+    const flat = Object.assign({}, ...[].concat(r.getByTestId('query-state-salvos').props.style as any).flat(3).filter(Boolean));
+    expect(flat.marginHorizontal).toBe(20);
     expect(r.queryByTestId('error-state')).toBeNull();
     expect(r.getAllByText('Thor').length).toBeGreaterThan(0);
   });

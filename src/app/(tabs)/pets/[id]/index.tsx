@@ -36,7 +36,7 @@ const TABS: { key: Tab; label: string }[] = [
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const petId  = parseInt(id ?? '0', 10);
-  const { colors, fonts, fontSize } = useTheme();
+  const { colors, fonts, fontSize, spacing } = useTheme();
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
   // TASK-F02: alcançável sem histórico (ex.: deep link direto pro pet a
@@ -68,6 +68,7 @@ export default function PetDetailScreen() {
           empty={null}
           skeleton={<Skeleton variant="card" count={2} style={styles.skeletonPet} />}
           errorTitle="Não consegui carregar o perfil do pet"
+          faixaStyle={{ marginHorizontal: spacing[5], marginTop: spacing[3] }}
         >
           {(p) => <PetCabecalho pet={p} />}
         </QueryState>

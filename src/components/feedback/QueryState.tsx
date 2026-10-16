@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { useTheme } from '@theme/index';
 import { KButton } from '@components/primitives/KButton';
 import { formatRelativeTime } from '../../utils/date';
@@ -38,6 +38,8 @@ export interface QueryStateProps<T> {
   empty: React.ReactNode;
   /** Default: "Não foi possível carregar". */
   errorTitle?: string;
+  /** Estilo extra da faixa de dados salvos (gutter quando a tela usa o QueryState fora do padding do conteúdo). */
+  faixaStyle?: StyleProp<ViewStyle>;
   children: (data: T) => React.ReactNode;
 }
 
@@ -65,15 +67,15 @@ const makeStyles = ({ colors, fonts, fontSize, radius, spacing }: Tema) =>
     alvo: { minHeight: ALVO_MINIMO },
   });
 
-/** Faixa "Mostrando dados salvos — Tentar de novo": refetch falhou mas há dado em cache. Telas que não usam
+/** Faixa "Mostrando dados salvos. [Tentar de novo]": refetch falhou mas há dado em cache. Telas que não usam
  *  <QueryState> renderizam o dado E esta faixa, nunca só o erro. `dataUpdatedAt` (epoch ms) é opcional. */
-export function FaixaDadosSalvos({ onRetry, dataUpdatedAt }: { onRetry: () => void; dataUpdatedAt?: number }) {
+export function FaixaDadosSalvos({ onRetry, dataUpdatedAt, style }: { onRetry: () => void; dataUpdatedAt?: number; style?: StyleProp<ViewStyle> }) {
   const theme = useTheme();
   const styles = makeStyles(theme);
   const quando = dataUpdatedAt ? formatRelativeTime(new Date(dataUpdatedAt)) : '';
-  const texto = quando ? `${TEXTO_DADOS_SALVOS}, atualizados ${quando} —` : `${TEXTO_DADOS_SALVOS} —`;
+  const texto = quando ? `${TEXTO_DADOS_SALVOS}, atualizados ${quando}.` : `${TEXTO_DADOS_SALVOS}.`;
   return (
-    <View style={styles.faixa} testID="query-state-salvos" accessibilityRole="alert">
+    <View style={[styles.faixa, style]} testID="query-state-salvos" accessibilityRole="alert">
       <Text style={styles.faixaTexto}>{texto}</Text>
       <KButton variant="ghost" size="sm" onPress={onRetry} style={styles.alvo} testID="query-state-salvos-retry" accessibilityLabel={ROTULO_TENTAR_DE_NOVO}>
         {ROTULO_TENTAR_DE_NOVO}
@@ -88,6 +90,7 @@ export function QueryState<T>({
   skeleton,
   empty,
   errorTitle,
+  faixaStyle,
   children,
 }: QueryStateProps<T>) {
   const { data, isLoading, isError, refetch, fetchStatus, dataUpdatedAt } = query;
@@ -111,7 +114,7 @@ export function QueryState<T>({
 
   return (
     <>
-      {isError ? <FaixaDadosSalvos onRetry={tentar} dataUpdatedAt={dataUpdatedAt} /> : null}
+      {isError ? <FaixaDadosSalvos onRetry={tentar} dataUpdatedAt={dataUpdatedAt} style={faixaStyle} /> : null}
       {isEmpty(data) ? empty : children(data)}
     </>
   );

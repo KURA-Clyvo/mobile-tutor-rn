@@ -54,6 +54,15 @@ describe('QueryState', () => {
     const r = render(ui(q({ isError: true, data: ['a'], dataUpdatedAt: Date.now() - 3 * 3_600_000 })), { wrapper: W });
     expect(r.getByText(/atualizados há 3h/)).toBeTruthy();
   });
+  it('F7-M1: o texto da faixa não termina em travessão órfão (o botão já é a ação)', () => {
+    for (const dataUpdatedAt of [undefined, Date.now() - 3 * 3_600_000]) {
+      const r = render(ui(q({ isError: true, data: ['a'], dataUpdatedAt })), { wrapper: W });
+      const txt = r.getByText(/Mostrando dados salvos/).props.children as string;
+      expect(txt).not.toMatch(/[—–-]\s*$/);
+      expect(txt).toMatch(/\.$/);
+      r.unmount();
+    }
+  });
   it('alvo de toque: o botão da faixa e o do erro têm minHeight >= 44', () => {
     const faixa = render(ui(q({ isError: true, data: ['a'] })), { wrapper: W });
     const flat = (n: any) => Object.assign({}, ...[].concat(n.props.style).flat(3).filter(Boolean));
