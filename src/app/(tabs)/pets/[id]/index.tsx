@@ -8,6 +8,8 @@ import { KIcon }        from '@components/primitives/KIcon';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
 import { KConditionChip } from '@components/primitives/KConditionChip';
 import { KNextActionCard } from '@components/primitives/KNextActionCard';
+import { QueryState } from '@components/feedback/QueryState';
+import { Skeleton } from '@components/feedback/Skeleton';
 import { ConsultasTab } from '@components/domain/ConsultasTab';
 import { VacinasTab }   from '@components/domain/VacinasTab';
 import { DocsTab }      from '@components/domain/DocsTab';
@@ -17,6 +19,7 @@ import { formatDateBR } from '../../../../utils/date';
 
 type Tab = 'visao' | 'consultas' | 'vacinas' | 'docs';
 
+// BR-TUT-T03: não há mais `?? 'OK'` — status ausente ou desconhecido NÃO vira chip "Tudo certo" (a chip some).
 const STATUS_CHIP = {
   OK:      { tone: 'sage'  as const, label: 'Tudo certo' },
   ALERTA:  { tone: 'amber' as const, label: 'Atenção'    },
@@ -40,10 +43,9 @@ export default function PetDetailScreen() {
   // partir de notificação); sem isto o back() antigo não faria nada (ver
   // useVoltar.ts) — agora volta pra lista de pets.
   const voltar  = useVoltar('/(tabs)/pets');
-  const { data: pet } = usePetDetail(petId);
+  const petQuery = usePetDetail(petId);
+  const pet = petQuery.data;
   const [tab, setTab] = useState<Tab>('visao');
-
-  const statusCfg = STATUS_CHIP[pet?.dsStatusGeral ?? 'OK'];
 
   return (
     <View style={[styles.flex, { backgroundColor: colors.bg }]}>
@@ -57,52 +59,17 @@ export default function PetDetailScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Hero */}
-        <View style={[styles.hero, { backgroundColor: colors.primarySoft }]}>
-          <KPetPortrait
-            palette={racaToPalette(pet?.nmRaca ?? '')}
-            size={92}
-            tier="detected"
-            especie={pet?.nmEspecie}
-            fotoUrl={pet?.dsFotoUrl}
-            nome={pet?.nmPet}
-          />
-          <View style={styles.heroInfo}>
-            <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 26, lineHeight: 30 }}>
-              {pet?.nmPet ?? '…'}
-            </Text>
-            <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm }}>
-              {pet ? `${pet.nmRaca} · ${pet.sgSexo === 'M' ? 'Macho' : 'Fêmea'}` : ''}
-            </Text>
-            <View style={styles.chipsRow}>
-              <KChip tone={statusCfg.tone}>{statusCfg.label}</KChip>
-              {pet?.chips?.slice(0, 2).map((c, i) => (
-                <KChip key={i} tone={c.tone}>{c.label}</KChip>
-              ))}
-            </View>
-            <Text style={{ fontFamily: fonts.mono, color: colors.textSoft, fontSize: 10 }}>
-              {pet?.nmClinica}
-            </Text>
-          </View>
-        </View>
-
-        {/* Próxima ação + condições — resumo acionável antes das abas */}
-        {(pet?.dtProximoAgendamento || (pet?.condicoes && pet.condicoes.length > 0)) && (
-          <View style={styles.summaryArea}>
-            {pet?.dtProximoAgendamento && (
-              <KNextActionCard
-                action={{
-                  label: 'PRÓXIMA AÇÃO',
-                  description: `Consulta em ${formatDateBR(pet.dtProximoAgendamento)}`,
-                  icon: 'calendar',
-                }}
-              />
-            )}
-            {pet?.condicoes?.map((c, i) => (
-              <KConditionChip key={i} condicao={c} />
-            ))}
-          </View>
-        )}
+        {/* Hero + resumo: só existem com o dado do pet. Carregando => skeleton; erro => ErrorState; erro com dado salvo
+            => dado + faixa (BR-TUT-T03). Nunca chip "Tudo certo" sem o servidor ter respondido. */}
+        <QueryState
+          query={petQuery}
+          isEmpty={() => false}
+          empty={null}
+          skeleton={<Skeleton variant="card" count={2} style={styles.skeletonPet} />}
+          errorTitle="Não consegui carregar o perfil do pet"
+        >
+          {(p) => <PetCabecalho pet={p} />}
+        </QueryState>
 
         {/* Pill tabs */}
         <ScrollView
@@ -134,7 +101,7 @@ export default function PetDetailScreen() {
 
         {/* Tab content */}
         <View style={styles.tabContent}>
-          {tab === 'visao'     && <VisaoTab pet={pet} />}
+          {tab === 'visao'     && pet && <VisaoTab pet={pet} />}
           {tab === 'consultas' && <ConsultasTab petId={petId} />}
           {tab === 'vacinas'   && <VacinasTab petId={petId} />}
           {tab === 'docs'      && <DocsTab />}
@@ -155,7 +122,60 @@ export default function PetDetailScreen() {
   );
 }
 
-function VisaoTab({ pet }: { pet: ReturnType<typeof usePetDetail>['data'] }) {
+function PetCabecalho({ pet }: { pet: NonNullable<ReturnType<typeof usePetDetail>['data']> }) {
+  const { colors, fonts, fontSize } = useTheme();
+  const statusCfg = STATUS_CHIP[pet.dsStatusGeral];
+  return (
+    <>
+      {/* Hero */}
+      <View style={[styles.hero, { backgroundColor: colors.primarySoft }]}>
+        <KPetPortrait
+          palette={racaToPalette(pet.nmRaca)}
+          size={92}
+          tier="detected"
+          especie={pet.nmEspecie}
+          fotoUrl={pet.dsFotoUrl}
+          nome={pet.nmPet}
+        />
+        <View style={styles.heroInfo}>
+          <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 26, lineHeight: 30 }}>
+            {pet.nmPet}
+          </Text>
+          <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm }}>
+            {`${pet.nmRaca} · ${pet.sgSexo === 'M' ? 'Macho' : 'Fêmea'}`}
+          </Text>
+          <View style={styles.chipsRow}>
+            {statusCfg && <KChip tone={statusCfg.tone}>{statusCfg.label}</KChip>}
+            {pet.chips?.slice(0, 2).map((c, i) => (
+              <KChip key={i} tone={c.tone}>{c.label}</KChip>
+            ))}
+          </View>
+          <Text style={{ fontFamily: fonts.mono, color: colors.textSoft, fontSize: 10 }}>
+            {pet.nmClinica}
+          </Text>
+        </View>
+      </View>
+      {(pet.dtProximoAgendamento || (pet.condicoes && pet.condicoes.length > 0)) && (
+        <View style={styles.summaryArea}>
+          {pet.dtProximoAgendamento && (
+            <KNextActionCard
+              action={{
+                label: 'PRÓXIMA AÇÃO',
+                description: `Consulta em ${formatDateBR(pet.dtProximoAgendamento)}`,
+                icon: 'calendar',
+              }}
+            />
+          )}
+          {pet.condicoes?.map((c, i) => (
+            <KConditionChip key={i} condicao={c} />
+          ))}
+        </View>
+      )}
+    </>
+  );
+}
+
+function VisaoTab({ pet }: { pet: NonNullable<ReturnType<typeof usePetDetail>['data']> }) {
   const { colors, fonts, fontSize } = useTheme();
 
   const vitais = [
@@ -256,6 +276,7 @@ const styles = StyleSheet.create({
   hdr:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1 },
   backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingBottom: 120 },
+  skeletonPet: { paddingHorizontal: 20, paddingTop: 20 },
   hero:        { flexDirection: 'row', alignItems: 'flex-start', padding: 20, gap: 16 },
   summaryArea: { paddingHorizontal: 20, paddingBottom: 16, gap: 10 },
   heroInfo:    { flex: 1, gap: 6 },
