@@ -13,11 +13,14 @@ jest.mock('../services/pets.service', () => ({ listPets: () => mockListPets() })
 jest.mock('../services/vacinas.service', () => ({ getVacinas: (id: number) => mockGetVacinas(id) }));
 
 const mk = () => new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
-const W = (qc: QueryClient) => ({ children }: any) => (
-  <QueryClientProvider client={qc}>
-    <ThemeProvider>{children}</ThemeProvider>
-  </QueryClientProvider>
-);
+const W = (qc: QueryClient) => {
+  const Wrapper = ({ children }: any) => (
+    <QueryClientProvider client={qc}>
+      <ThemeProvider>{children}</ThemeProvider>
+    </QueryClientProvider>
+  );
+  return Wrapper;
+};
 
 afterEach(() => {
   onlineManager.setOnline(true);
