@@ -7,6 +7,8 @@ import { VacinaItem } from './VacinaItem';
 import { QueryState } from '@components/feedback/QueryState';
 import { Skeleton } from '@components/feedback/Skeleton';
 import { usePetVacinas, type DadosVacinasPet } from '@hooks/usePetVacinas';
+import { classificarVacina, piorEstado } from '../../utils/vacinas';
+import type { VacinaTutorResponse } from '../../types/api';
 
 export function VacinasTab({ petId }: { petId: number }) {
   const { colors, fonts, fontSize } = useTheme();
@@ -39,54 +41,63 @@ export function VacinasTab({ petId }: { petId: number }) {
 function VacinasConteudo({ petId, dados }: { petId: number; dados: DadosVacinasPet }) {
   const { colors, fonts, fontSize } = useTheme();
   const router = useRouter();
-  const { vacinas, status: statusData } = dados;
+  const { vacinas } = dados;
 
-  const aplicadas = [...vacinas.filter(v => v.sgStatus === 'EM_DIA')]
-    .sort((a, b) => new Date(b.dtAplicacao).getTime() - new Date(a.dtAplicacao).getTime());
-  const proximas = [...vacinas.filter(v => v.sgStatus !== 'EM_DIA')]
-    .sort((a, b) => new Date(a.dtProximaDose ?? '0').getTime() - new Date(b.dtProximaDose ?? '0').getTime());
+  // BR-TUT-T06: a faixa e as duas listas saem da MESMA classificação (`classificarVacina`), a mesma da Saúde. O resumo do
+  // servidor (`/vacinas/status`: "0/N" com 0 sem fonte) deixou de ser exibido: número sem fonte não entra.
+  const classificadas = vacinas.map(v => ({ v, estado: classificarVacina(v) }));
+  const porData = (a: { v: VacinaTutorResponse }, b: { v: VacinaTutorResponse }) =>
+    new Date(a.v.dtProximaDose ?? a.v.dtAplicacao).getTime() - new Date(b.v.dtProximaDose ?? b.v.dtAplicacao).getTime();
+  const atencao = classificadas.filter(c => c.estado !== 'EM_DIA').sort(porData);
+  const emDia = classificadas.filter(c => c.estado === 'EM_DIA').sort(porData);
+  const nVencidas = atencao.filter(c => c.estado === 'VENCIDA').length;
+  const nVencendo = atencao.length - nVencidas;
+  const pior = piorEstado(classificadas.map(c => c.estado));
 
   const bannerCfg = {
-    EM_DIA:  { bg: colors.primarySoft, border: colors.primary, icon: 'check' as const, iconColor: colors.primary, title: 'Vacinação em dia' },
-    ALERTA:  { bg: colors.amberPale,   border: colors.amberInk, icon: 'alert' as const, iconColor: colors.amberInk,  title: 'Vacinas próximas do vencimento' },
-    VENCIDA: { bg: colors.clayPale,    border: colors.clayInk, icon: 'alert' as const, iconColor: colors.clayInk,   title: 'Vacinas vencidas — agende já' },
+    EM_DIA:   { bg: colors.primarySoft, border: colors.primary, icon: 'check' as const, iconColor: colors.primary, title: 'Vacinação em dia' },
+    VENCENDO: { bg: colors.amberPale,   border: colors.amberInk, icon: 'alert' as const, iconColor: colors.amberInk,
+                title: `${nVencendo} vacina${nVencendo === 1 ? '' : 's'} vencendo` },
+    VENCIDA:  { bg: colors.clayPale,    border: colors.clayInk, icon: 'alert' as const, iconColor: colors.clayInk,
+                title: `${nVencidas} vacina${nVencidas === 1 ? '' : 's'} vencida${nVencidas === 1 ? '' : 's'} — agende já` },
   };
-  const bCfg = bannerCfg[statusData.dsStatusGeral ?? 'EM_DIA'];
+  const bCfg = bannerCfg[pior];
 
   return (
     <>
+      {vacinas.length > 0 && (
       <View style={[styles.banner, { backgroundColor: bCfg.bg, borderColor: bCfg.border }]}>
         <View style={[styles.bannerIcon, { backgroundColor: bCfg.iconColor + '22' }]}>
           <KIcon name={bCfg.icon} size={20} color={bCfg.iconColor} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: fonts.bodyMedium, color: bCfg.iconColor, fontSize: fontSize.sm }}>{bCfg.title}</Text>
-          <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>
-            {statusData.nmUltimaVacina ? `Última: ${statusData.nmUltimaVacina}` : ''}
-          </Text>
+          {pior === 'VENCIDA' && nVencendo > 0 && (
+            <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>
+              {`${nVencendo} outra${nVencendo === 1 ? '' : 's'} vencendo`}
+            </Text>
+          )}
         </View>
-        <Text style={{ fontFamily: fonts.display, color: bCfg.iconColor, fontSize: 28 }}>
-          {`${statusData.nrAplicadas}/${statusData.nrTotal}`}
-        </Text>
       </View>
-
-      {aplicadas.length > 0 && (
-        <>
-          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>APLICADAS</Text>
-          {aplicadas.map(v => <VacinaItem key={v.id} vacina={v} />)}
-        </>
       )}
 
-      {proximas.length > 0 && (
+      {atencao.length > 0 && (
         <>
-          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>PRÓXIMAS / VENCIDAS</Text>
-          {proximas.map(v => (
+          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>{`PEDEM ATENÇÃO · ${atencao.length}`}</Text>
+          {atencao.map(({ v }) => (
             <VacinaItem
               key={v.id}
               vacina={v}
               onAgendar={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(petId), tipo: 'RETORNO' } } as any)}
             />
           ))}
+        </>
+      )}
+
+      {emDia.length > 0 && (
+        <>
+          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>{`EM DIA · ${emDia.length}`}</Text>
+          {emDia.map(({ v }) => <VacinaItem key={v.id} vacina={v} />)}
         </>
       )}
 

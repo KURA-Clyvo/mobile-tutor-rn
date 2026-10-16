@@ -26,7 +26,9 @@ export interface PetTutorResponse {
   condicoes?: { label: string; tone: 'amber' | 'clay'; desde?: string; observacao?: string }[];
   dsFotoThumbUrl?: string | null;
 }
-export interface PetTutorDetailResponse extends PetTutorResponse {
+export interface PetTutorDetailResponse extends Omit<PetTutorResponse, 'dsStatusGeral'> {
+  /** Não vem do detalhe Java (BR-TUT-T06): o status do pet é o da lista. */
+  dsStatusGeral?: PetTutorResponse['dsStatusGeral'];
   dsObservacoes?: string; dsFotoUrl?: string | null; nrPesoKg?: number; nrTemperaturaC?: number; nrFreqCardiacaBpm?: number;
 }
 

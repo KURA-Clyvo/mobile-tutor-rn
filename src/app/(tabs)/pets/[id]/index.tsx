@@ -14,17 +14,12 @@ import { ConsultasTab } from '@components/domain/ConsultasTab';
 import { VacinasTab }   from '@components/domain/VacinasTab';
 import { DocsTab }      from '@components/domain/DocsTab';
 import { usePetDetail } from '../../../../hooks/usePetDetail';
+import { usePets } from '../../../../hooks/usePets';
+import { STATUS_PET, type StatusPet } from '../../../../utils/statusPet';
 import { useVoltar } from '../../../../hooks/useVoltar';
 import { formatDateBR } from '../../../../utils/date';
 
 type Tab = 'visao' | 'consultas' | 'vacinas' | 'docs';
-
-// BR-TUT-T03: o default "OK" sobre o status acabou — status ausente ou desconhecido NÃO vira chip "Tudo certo" (a chip some).
-const STATUS_CHIP = {
-  OK:      { tone: 'sage'  as const, label: 'Tudo certo' },
-  ALERTA:  { tone: 'amber' as const, label: 'Atenção'    },
-  URGENTE: { tone: 'clay'  as const, label: 'Urgente'    },
-};
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'visao',     label: 'Visão geral' },
@@ -45,6 +40,9 @@ export default function PetDetailScreen() {
   const voltar  = useVoltar('/(tabs)/pets');
   const petQuery = usePetDetail(petId);
   const pet = petQuery.data;
+  // BR-TUT-T06: o status do pet é UM só — o da lista (`usePets`), o mesmo que o tutor viu ao tocar. O detalhe Java não tem status;
+  // sem o pet na lista, a chip some (nunca um "Tudo certo" inventado).
+  const statusGeral = usePets().data?.find(p => p.id === petId)?.statusGeral;
   const [tab, setTab] = useState<Tab>('visao');
   // F5-M4 (G2): no erro sem dado a barra não fica em '…' (lê como carregando): título neutro.
 
@@ -70,7 +68,7 @@ export default function PetDetailScreen() {
           errorTitle="Não consegui carregar o perfil do pet"
           faixaStyle={{ marginHorizontal: spacing[5], marginTop: spacing[3] }}
         >
-          {(p) => <PetCabecalho pet={p} />}
+          {(p) => <PetCabecalho pet={p} statusGeral={statusGeral} />}
         </QueryState>
 
         {/* Pill tabs */}
@@ -127,9 +125,9 @@ export default function PetDetailScreen() {
   );
 }
 
-function PetCabecalho({ pet }: { pet: NonNullable<ReturnType<typeof usePetDetail>['data']> }) {
+function PetCabecalho({ pet, statusGeral }: { pet: NonNullable<ReturnType<typeof usePetDetail>['data']>; statusGeral?: StatusPet }) {
   const { colors, fonts, fontSize } = useTheme();
-  const statusCfg = STATUS_CHIP[pet.dsStatusGeral];
+  const statusCfg = statusGeral ? STATUS_PET[statusGeral] : undefined;
   return (
     <>
       {/* Hero */}

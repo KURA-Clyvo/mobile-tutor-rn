@@ -5,6 +5,7 @@ import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait
 import { KConditionChip } from '@components/primitives/KConditionChip';
 import { KIcon } from '@components/primitives/KIcon';
 import { formatDateShortBR } from '../../utils/date';
+import { STATUS_PET } from '../../utils/statusPet';
 import type { PetDomain } from '../../types/domain';
 
 interface StatCell { label: string; value: string; alert?: boolean }
@@ -23,7 +24,7 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
   const lunaEmoji = hasLunaChip ? '✨' : undefined;
   const condicaoPrincipal = pet.condicoes?.[0];
 
-  const statusLabel = { OK: 'Tudo certo', ALERTA: 'Atenção', URGENTE: 'Urgente' }[pet.statusGeral];
+  const statusLabel = STATUS_PET[pet.statusGeral].label;
 
   const stats: StatCell[] = [
     { label: 'PRÓXIMO', value: pet.dtProximoAgendamento ? formatDateShortBR(pet.dtProximoAgendamento) : '—' },
