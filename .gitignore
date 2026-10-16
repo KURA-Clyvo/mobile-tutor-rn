@@ -21,3 +21,5 @@ coverage/
 
 expo-env.d.ts
 # @end expo-cli
+# prebuild nativo gerado por `expo prebuild` (BR-TUT-T02)
+android/
