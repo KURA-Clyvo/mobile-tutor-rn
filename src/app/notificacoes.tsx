@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KIcon } from '@components/primitives/KIcon';
 import { KChip } from '@components/primitives/KChip';
+import { QueryState } from '@components/feedback/QueryState';
+import { Skeleton } from '@components/feedback/Skeleton';
 import { useNotifications, useMarcarLida, useMarcarTodasLidas } from '../hooks/useNotifications';
 import { useVoltar } from '../hooks/useVoltar';
 import type { NotificacaoTutorResponse } from '../types/api';
@@ -27,12 +29,11 @@ export default function NotificacoesScreen() {
   // TASK-F02: alcançável por toque em notificação push
   // (notifications.service.ts:93-95), sem histórico de navegação.
   const voltar = useVoltar('/(tabs)/pets');
-  const { data: notifs = [], isLoading }          = useNotifications();
+  const notifQuery                                = useNotifications();
   const { mutate: marcarLida }                    = useMarcarLida();
   const { mutate: marcarTodas, isPending: markingAll } = useMarcarTodasLidas();
 
-  const naoLidas  = notifs.filter(n => !n.flLida).length;
-  const ordenadas = [...notifs].sort((a, b) => new Date(b.dtEnvio).getTime() - new Date(a.dtEnvio).getTime());
+  const naoLidas = (notifQuery.data ?? []).filter(n => !n.flLida).length;
 
   const handleTap = (n: NotificacaoTutorResponse) => {
     if (!n.flLida) marcarLida(n.id);
@@ -69,55 +70,64 @@ export default function NotificacoesScreen() {
         </Pressable>
       </View>
 
-      <FlatList
-        data={ordenadas}
-        keyExtractor={n => String(n.id)}
-        contentContainerStyle={styles.list}
-        renderItem={({ item: n }) => {
-          const chip = TIPO_CHIP[n.dsTipo];
-          return (
-            <Pressable
-              onPress={() => handleTap(n)}
-              style={({ pressed }) => [
-                styles.item,
-                { backgroundColor: n.flLida ? colors.surface : colors.surface2, borderColor: colors.border, borderRadius: radius.lg },
-                pressed && { opacity: 0.8 },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={`${n.flLida ? 'Lida' : 'Não lida'}: ${n.dsTitulo}. ${n.dsMensagem}`}
-            >
-              {!n.flLida && <View style={[styles.unreadDot, { backgroundColor: colors.clay }]} />}
-              <View style={styles.itemContent}>
-                <View style={styles.itemTop}>
-                  <KChip tone={chip.tone}>{chip.label}</KChip>
-                  <Text style={{ fontFamily: fonts.mono, color: n.flLida ? colors.textMuteInk : colors.textSoft, fontSize: 10 }}>
-                    {new Date(n.dtEnvio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                </View>
-                <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.sm, marginTop: 6 }}>
-                  {n.dsTitulo}
-                </Text>
-                <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs, lineHeight: 18, marginTop: 2 }}>
-                  {n.dsMensagem}
-                </Text>
-                {n.nmPet && (
-                  <Text style={{ fontFamily: fonts.mono, color: n.flLida ? colors.textMuteInk : colors.textSoft, fontSize: 10, letterSpacing: 0.8, marginTop: 4 }}>
-                    {n.nmPet.toUpperCase()}
-                  </Text>
-                )}
-              </View>
-            </Pressable>
-          );
-        }}
-        ListEmptyComponent={!isLoading ? (
+      <QueryState
+        query={notifQuery}
+        skeleton={<View style={styles.list}><Skeleton variant="list" count={4} /></View>}
+        errorTitle="Não consegui carregar as notificações"
+        faixaStyle={styles.faixa}
+        empty={
           <View style={styles.empty}>
             <KIcon name="bell" size={32} color={colors.textMuteInk} />
             <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.sm }}>
               Nenhuma notificação ainda.
             </Text>
           </View>
-        ) : null}
-      />
+        }
+      >
+        {notifs => (
+          <FlatList
+            data={[...notifs].sort((a, b) => new Date(b.dtEnvio).getTime() - new Date(a.dtEnvio).getTime())}
+            keyExtractor={n => String(n.id)}
+            contentContainerStyle={styles.list}
+            renderItem={({ item: n }) => {
+              const chip = TIPO_CHIP[n.dsTipo];
+              return (
+                <Pressable
+                  onPress={() => handleTap(n)}
+                  style={({ pressed }) => [
+                    styles.item,
+                    { backgroundColor: n.flLida ? colors.surface : colors.surface2, borderColor: colors.border, borderRadius: radius.lg },
+                    pressed && { opacity: 0.8 },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${n.flLida ? 'Lida' : 'Não lida'}: ${n.dsTitulo}. ${n.dsMensagem}`}
+                >
+                  {!n.flLida && <View style={[styles.unreadDot, { backgroundColor: colors.clay }]} />}
+                  <View style={styles.itemContent}>
+                    <View style={styles.itemTop}>
+                      <KChip tone={chip.tone}>{chip.label}</KChip>
+                      <Text style={{ fontFamily: fonts.mono, color: n.flLida ? colors.textMuteInk : colors.textSoft, fontSize: 10 }}>
+                        {new Date(n.dtEnvio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                    </View>
+                    <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.sm, marginTop: 6 }}>
+                      {n.dsTitulo}
+                    </Text>
+                    <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs, lineHeight: 18, marginTop: 2 }}>
+                      {n.dsMensagem}
+                    </Text>
+                    {n.nmPet && (
+                      <Text style={{ fontFamily: fonts.mono, color: n.flLida ? colors.textMuteInk : colors.textSoft, fontSize: 10, letterSpacing: 0.8, marginTop: 4 }}>
+                        {n.nmPet.toUpperCase()}
+                      </Text>
+                    )}
+                  </View>
+                </Pressable>
+              );
+            }}
+          />
+        )}
+      </QueryState>
     </View>
   );
 }
@@ -128,6 +138,7 @@ const styles = StyleSheet.create({
   circle:      { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, paddingHorizontal: 12 },
   list:        { padding: 16, paddingBottom: 40 },
+  faixa:       { marginHorizontal: 16, marginTop: 12 },
   item:        { flexDirection: 'row', padding: 14, borderWidth: 1, marginBottom: 10, gap: 10 },
   unreadDot:   { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
   itemContent: { flex: 1 },

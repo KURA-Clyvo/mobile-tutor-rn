@@ -62,6 +62,6 @@ jobs:
         run: npm run check:no-ocean
 
       # BR-TUT-T03 — tela que lê dado de servidor sem tratar o ERRO mente ("tudo em dia" com a API fora). Derivado do código
-      # (regra v7), com ALLOWLIST exata e justificada em scripts/check-query-state.mjs; a BR-TUT-T04 zera as entradas dela; `agenda/novo.tsx::usePets` sai na BR-TUT-T07; ao fim da T07 sobra exatamente 1 entrada, permanente.
+      # (regra v7), com ALLOWLIST exata e justificada em scripts/check-query-state.mjs; a BR-TUT-T04 zerou as 7 entradas de migração; restam 2: `agenda/novo.tsx::usePets` (sai na BR-TUT-T07) e `useAgendamentoBadgeCount` (permanente).
       - name: Check query state (erro nunca vira vazio nem "tudo certo")
         run: npm run check:query-state

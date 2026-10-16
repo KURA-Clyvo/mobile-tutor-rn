@@ -4,24 +4,13 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KIcon }     from '@components/primitives/KIcon';
 import { VacinaItem } from './VacinaItem';
-import { usePetVacinas } from '@hooks/usePetVacinas';
+import { QueryState } from '@components/feedback/QueryState';
+import { Skeleton } from '@components/feedback/Skeleton';
+import { usePetVacinas, type DadosVacinasPet } from '@hooks/usePetVacinas';
 
 export function VacinasTab({ petId }: { petId: number }) {
   const { colors, fonts, fontSize } = useTheme();
-  const router = useRouter();
-  const { list: { data: vacinas = [] }, status: { data: statusData } } = usePetVacinas(petId);
-
-  const aplicadas = [...vacinas.filter(v => v.sgStatus === 'EM_DIA')]
-    .sort((a, b) => new Date(b.dtAplicacao).getTime() - new Date(a.dtAplicacao).getTime());
-  const proximas = [...vacinas.filter(v => v.sgStatus !== 'EM_DIA')]
-    .sort((a, b) => new Date(a.dtProximaDose ?? '0').getTime() - new Date(b.dtProximaDose ?? '0').getTime());
-
-  const bannerCfg = {
-    EM_DIA:  { bg: colors.primarySoft, border: colors.primary, icon: 'check' as const, iconColor: colors.primary, title: 'Vacinação em dia' },
-    ALERTA:  { bg: colors.amberPale,   border: colors.amberInk, icon: 'alert' as const, iconColor: colors.amberInk,  title: 'Vacinas próximas do vencimento' },
-    VENCIDA: { bg: colors.clayPale,    border: colors.clayInk, icon: 'alert' as const, iconColor: colors.clayInk,   title: 'Vacinas vencidas — agende já' },
-  };
-  const bCfg = bannerCfg[statusData?.dsStatusGeral ?? 'EM_DIA'];
+  const vacinasQuery = usePetVacinas(petId);
 
   return (
     <View>
@@ -33,22 +22,53 @@ export function VacinasTab({ petId }: { petId: number }) {
         <Text style={{ fontStyle: 'italic', color: colors.primary }}>vacinação.</Text>
       </Text>
 
-      {statusData && (
-        <View style={[styles.banner, { backgroundColor: bCfg.bg, borderColor: bCfg.border }]}>
-          <View style={[styles.bannerIcon, { backgroundColor: bCfg.iconColor + '22' }]}>
-            <KIcon name={bCfg.icon} size={20} color={bCfg.iconColor} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: fonts.bodyMedium, color: bCfg.iconColor, fontSize: fontSize.sm }}>{bCfg.title}</Text>
-            <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>
-              {statusData.nmUltimaVacina ? `Última: ${statusData.nmUltimaVacina}` : ''}
-            </Text>
-          </View>
-          <Text style={{ fontFamily: fonts.display, color: bCfg.iconColor, fontSize: 28 }}>
-            {`${statusData.nrAplicadas}/${statusData.nrTotal}`}
+      <QueryState
+        query={vacinasQuery}
+        // A faixa "Vacinação em dia" só existe com o resumo do servidor; a lista vazia com resumo é dado, não vazio de tela.
+        isEmpty={() => false}
+        skeleton={<Skeleton variant="card" count={2} />}
+        errorTitle="Não consegui carregar as vacinas"
+        empty={null}
+      >
+        {d => <VacinasConteudo petId={petId} dados={d} />}
+      </QueryState>
+    </View>
+  );
+}
+
+function VacinasConteudo({ petId, dados }: { petId: number; dados: DadosVacinasPet }) {
+  const { colors, fonts, fontSize } = useTheme();
+  const router = useRouter();
+  const { vacinas, status: statusData } = dados;
+
+  const aplicadas = [...vacinas.filter(v => v.sgStatus === 'EM_DIA')]
+    .sort((a, b) => new Date(b.dtAplicacao).getTime() - new Date(a.dtAplicacao).getTime());
+  const proximas = [...vacinas.filter(v => v.sgStatus !== 'EM_DIA')]
+    .sort((a, b) => new Date(a.dtProximaDose ?? '0').getTime() - new Date(b.dtProximaDose ?? '0').getTime());
+
+  const bannerCfg = {
+    EM_DIA:  { bg: colors.primarySoft, border: colors.primary, icon: 'check' as const, iconColor: colors.primary, title: 'Vacinação em dia' },
+    ALERTA:  { bg: colors.amberPale,   border: colors.amberInk, icon: 'alert' as const, iconColor: colors.amberInk,  title: 'Vacinas próximas do vencimento' },
+    VENCIDA: { bg: colors.clayPale,    border: colors.clayInk, icon: 'alert' as const, iconColor: colors.clayInk,   title: 'Vacinas vencidas — agende já' },
+  };
+  const bCfg = bannerCfg[statusData.dsStatusGeral ?? 'EM_DIA'];
+
+  return (
+    <>
+      <View style={[styles.banner, { backgroundColor: bCfg.bg, borderColor: bCfg.border }]}>
+        <View style={[styles.bannerIcon, { backgroundColor: bCfg.iconColor + '22' }]}>
+          <KIcon name={bCfg.icon} size={20} color={bCfg.iconColor} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontFamily: fonts.bodyMedium, color: bCfg.iconColor, fontSize: fontSize.sm }}>{bCfg.title}</Text>
+          <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>
+            {statusData.nmUltimaVacina ? `Última: ${statusData.nmUltimaVacina}` : ''}
           </Text>
         </View>
-      )}
+        <Text style={{ fontFamily: fonts.display, color: bCfg.iconColor, fontSize: 28 }}>
+          {`${statusData.nrAplicadas}/${statusData.nrTotal}`}
+        </Text>
+      </View>
 
       {aplicadas.length > 0 && (
         <>
@@ -76,7 +96,7 @@ export function VacinasTab({ petId }: { petId: number }) {
           <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk }}>Sem registro de vacinas ainda.</Text>
         </View>
       )}
-    </View>
+    </>
   );
 }
 

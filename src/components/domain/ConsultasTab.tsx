@@ -4,6 +4,8 @@ import { useTheme } from '@theme/index';
 import { KChip }   from '@components/primitives/KChip';
 import { KButton } from '@components/primitives/KButton';
 import { KIcon }   from '@components/primitives/KIcon';
+import { QueryState } from '@components/feedback/QueryState';
+import { Skeleton } from '@components/feedback/Skeleton';
 import { ConsultaSection } from './ConsultaSection';
 import { usePetTimeline, usePetTimelineEvent } from '@hooks/usePetTimeline';
 import { formatDateBR } from '../../utils/date';
@@ -12,10 +14,40 @@ import type { TimelineTutorEventResponse } from '../../types/api';
 type Filter = 'all' | 'pres' | 'tele';
 
 export function ConsultasTab({ petId }: { petId: number }) {
-  const { colors, fonts, fontSize } = useTheme();
-  const { data: eventos = [] } = usePetTimeline(petId);
-  const [filter, setFilter]       = useState<Filter>('all');
+  const { colors, fonts } = useTheme();
+  const timelineQuery = usePetTimeline(petId);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  if (selectedId) {
+    return <ConsultaDetail petId={petId} idEvento={selectedId} onBack={() => setSelectedId(null)} />;
+  }
+
+  return (
+    <View>
+      <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 28, lineHeight: 34, marginBottom: 16 }}>
+        {'Histórico de '}
+        <Text style={{ fontStyle: 'italic', color: colors.primary }}>consultas.</Text>
+      </Text>
+
+      <QueryState
+        query={timelineQuery}
+        skeleton={<Skeleton variant="card" count={2} />}
+        errorTitle="Não consegui carregar as consultas"
+        empty={
+          <View style={{ alignItems: 'center', paddingTop: 32, gap: 8 }}>
+            <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk }}>Nenhuma consulta registrada ainda.</Text>
+          </View>
+        }
+      >
+        {eventos => <ConsultasLista eventos={eventos} onSelect={setSelectedId} />}
+      </QueryState>
+    </View>
+  );
+}
+
+function ConsultasLista({ eventos, onSelect }: { eventos: TimelineTutorEventResponse[]; onSelect: (id: number) => void }) {
+  const { colors, fonts, fontSize } = useTheme();
+  const [filter, setFilter] = useState<Filter>('all');
 
   const filtered = eventos.filter(e => {
     if (filter === 'pres') return e.sgTipoAtendimento === 'pres';
@@ -26,10 +58,6 @@ export function ConsultasTab({ petId }: { petId: number }) {
   const presCount = eventos.filter(e => e.sgTipoAtendimento === 'pres').length;
   const teleCount = eventos.filter(e => e.sgTipoAtendimento === 'tele').length;
 
-  if (selectedId) {
-    return <ConsultaDetail petId={petId} idEvento={selectedId} onBack={() => setSelectedId(null)} />;
-  }
-
   const FILTERS: { key: Filter; label: string }[] = [
     { key: 'all',  label: `Todas ${eventos.length}` },
     { key: 'pres', label: `Presencial ${presCount}` },
@@ -37,13 +65,9 @@ export function ConsultasTab({ petId }: { petId: number }) {
   ];
 
   return (
-    <View>
-      <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1, marginBottom: 4 }}>
+    <>
+      <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1, marginBottom: 12 }}>
         {`${eventos.length} · VISITAS`}
-      </Text>
-      <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 28, lineHeight: 34, marginBottom: 16 }}>
-        {'Histórico de '}
-        <Text style={{ fontStyle: 'italic', color: colors.primary }}>consultas.</Text>
       </Text>
 
       <View style={styles.filterRow}>
@@ -73,7 +97,7 @@ export function ConsultasTab({ petId }: { petId: number }) {
           key={ev.idEventoClinico}
           ev={ev}
           isLast={idx === filtered.length - 1}
-          onPress={() => setSelectedId(ev.idEventoClinico)}
+          onPress={() => onSelect(ev.idEventoClinico)}
         />
       ))}
 
@@ -82,7 +106,7 @@ export function ConsultasTab({ petId }: { petId: number }) {
           <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk }}>Sem eventos neste filtro</Text>
         </View>
       )}
-    </View>
+    </>
   );
 }
 
@@ -122,7 +146,7 @@ function TimelineRow({ ev, isLast, onPress }: { ev: TimelineTutorEventResponse; 
 
 function ConsultaDetail({ petId, idEvento, onBack }: { petId: number; idEvento: number; onBack: () => void }) {
   const { colors, fonts, fontSize } = useTheme();
-  const { data: ev } = usePetTimelineEvent(petId, idEvento);
+  const eventQuery = usePetTimelineEvent(petId, idEvento);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
@@ -138,61 +162,67 @@ function ConsultaDetail({ petId, idEvento, onBack }: { petId: number; idEvento: 
         </Pressable>
       </View>
 
-      {ev ? (
-        <View style={{ gap: 0, paddingTop: 16 }}>
-          {ev.dsPlano && (
-            <ConsultaSection title="Anamnese" tone="sage">
-              <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, lineHeight: 20 }}>
-                {ev.dsResumoPublico ?? '—'}
-              </Text>
-            </ConsultaSection>
-          )}
-          <ConsultaSection title="Exame físico" tone="ocean">
-            <View style={styles.vitaisGrid}>
-              {[
-                { l: 'PESO', v: ev.nrPesoKg          ? `${ev.nrPesoKg} kg`          : '—' },
-                { l: 'TEMP', v: ev.nrTemperaturaC     ? `${ev.nrTemperaturaC}°C`     : '—' },
-                { l: 'FC',   v: ev.nrFreqCardiacaBpm  ? `${ev.nrFreqCardiacaBpm} bpm` : '—' },
-              ].map(v => (
-                <View key={v.l} style={[styles.vitalBox, { backgroundColor: colors.surface2 }]}>
-                  <Text style={{ fontFamily: fonts.mono, color: colors.textSoft, fontSize: 10 }}>{v.l}</Text>
-                  <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 22 }}>{v.v}</Text>
-                </View>
-              ))}
-            </View>
-          </ConsultaSection>
-          {ev.dsDiagnostico && (
-            <ConsultaSection title="Diagnóstico" tone="amber">
-              <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{ev.dsDiagnostico}</Text>
-              {ev.dsCID10Vet && <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>{ev.dsCID10Vet}</Text>}
-            </ConsultaSection>
-          )}
-          {ev.prescricoes && ev.prescricoes.length > 0 && (
-            <ConsultaSection title="Prescrição" tone="ocean">
-              {ev.prescricoes.map((p, i) => (
-                <View key={i} style={[styles.rxRow, { borderLeftColor: colors.ocean }]}>
-                  <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.sm }}>{p.nmMedicamento}</Text>
-                  <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>{p.dsPosologia}</Text>
-                  {p.nrDuracaoDias && <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>{p.nrDuracaoDias} dias</Text>}
-                </View>
-              ))}
-            </ConsultaSection>
-          )}
-          {ev.dtRetornoAgendado && (
-            <ConsultaSection title="Retorno agendado" tone="sage">
-              <View style={[styles.retornoChip, { backgroundColor: colors.primarySoft }]}>
-                <Text style={{ fontFamily: fonts.bodyMedium, color: colors.primary, fontSize: fontSize.sm }}>{formatDateBR(ev.dtRetornoAgendado)}</Text>
+      <QueryState
+        query={eventQuery}
+        skeleton={<Skeleton variant="card" count={2} />}
+        errorTitle="Não consegui carregar este prontuário"
+        isEmpty={() => false}
+        empty={null}
+      >
+        {ev => (
+          <View style={{ gap: 0, paddingTop: 16 }}>
+            {ev.dsPlano && (
+              <ConsultaSection title="Anamnese" tone="sage">
+                <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, lineHeight: 20 }}>
+                  {ev.dsResumoPublico ?? '—'}
+                </Text>
+              </ConsultaSection>
+            )}
+            <ConsultaSection title="Exame físico" tone="ocean">
+              <View style={styles.vitaisGrid}>
+                {[
+                  { l: 'PESO', v: ev.nrPesoKg          ? `${ev.nrPesoKg} kg`          : '—' },
+                  { l: 'TEMP', v: ev.nrTemperaturaC     ? `${ev.nrTemperaturaC}°C`     : '—' },
+                  { l: 'FC',   v: ev.nrFreqCardiacaBpm  ? `${ev.nrFreqCardiacaBpm} bpm` : '—' },
+                ].map(v => (
+                  <View key={v.l} style={[styles.vitalBox, { backgroundColor: colors.surface2 }]}>
+                    <Text style={{ fontFamily: fonts.mono, color: colors.textSoft, fontSize: 10 }}>{v.l}</Text>
+                    <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 22 }}>{v.v}</Text>
+                  </View>
+                ))}
               </View>
-              {ev.dsRetornoInstrucao && <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, marginTop: 8 }}>{ev.dsRetornoInstrucao}</Text>}
             </ConsultaSection>
-          )}
-          <KButton variant="primary" block onPress={() => Share.share({ message: `Prontuário #CONS-${idEvento}` })}>
-            Compartilhar prontuário (PDF)
-          </KButton>
-        </View>
-      ) : (
-        <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, padding: 20 }}>Carregando...</Text>
-      )}
+            {ev.dsDiagnostico && (
+              <ConsultaSection title="Diagnóstico" tone="amber">
+                <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{ev.dsDiagnostico}</Text>
+                {ev.dsCID10Vet && <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>{ev.dsCID10Vet}</Text>}
+              </ConsultaSection>
+            )}
+            {ev.prescricoes && ev.prescricoes.length > 0 && (
+              <ConsultaSection title="Prescrição" tone="ocean">
+                {ev.prescricoes.map((p, i) => (
+                  <View key={i} style={[styles.rxRow, { borderLeftColor: colors.ocean }]}>
+                    <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.sm }}>{p.nmMedicamento}</Text>
+                    <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>{p.dsPosologia}</Text>
+                    {p.nrDuracaoDias && <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>{p.nrDuracaoDias} dias</Text>}
+                  </View>
+                ))}
+              </ConsultaSection>
+            )}
+            {ev.dtRetornoAgendado && (
+              <ConsultaSection title="Retorno agendado" tone="sage">
+                <View style={[styles.retornoChip, { backgroundColor: colors.primarySoft }]}>
+                  <Text style={{ fontFamily: fonts.bodyMedium, color: colors.primary, fontSize: fontSize.sm }}>{formatDateBR(ev.dtRetornoAgendado)}</Text>
+                </View>
+                {ev.dsRetornoInstrucao && <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, marginTop: 8 }}>{ev.dsRetornoInstrucao}</Text>}
+              </ConsultaSection>
+            )}
+            <KButton variant="primary" block onPress={() => Share.share({ message: `Prontuário #CONS-${idEvento}` })}>
+              Compartilhar prontuário (PDF)
+            </KButton>
+          </View>
+        )}
+      </QueryState>
     </ScrollView>
   );
 }

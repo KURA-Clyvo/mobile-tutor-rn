@@ -65,17 +65,11 @@ function exigirPassa(dir: string) {
   expect(status).toBe(0);
 }
 
-// A lista EXATA que a BR-TUT-T03 deixa para a T04 (e a T07). A T04 troca por `[]` e a T07 tira a linha de agenda/novo.
+// A lista EXATA (BR-TUT-T04): só 2 entradas. `agenda/novo.tsx::usePets` sai na BR-TUT-T07; `useAgendamentoBadgeCount` é PERMANENTE
+// (badge numérico: no erro o número some, não afirma "tudo certo"). Entrada nova é regressão.
 const ALLOWLIST_EXATA = [
   'app/(tabs)/_layout.tsx::useAgendamentoBadgeCount',
-  'app/(tabs)/agenda/index.tsx::useAgendamentos',
   'app/(tabs)/agenda/novo.tsx::usePets',
-  'app/(tabs)/pets/index.tsx::useNotifications',
-  'app/(tabs)/pets/index.tsx::usePets',
-  'app/notificacoes.tsx::useNotifications',
-  'components/domain/ConsultasTab.tsx::usePetTimeline',
-  'components/domain/ConsultasTab.tsx::usePetTimelineEvent',
-  'components/domain/VacinasTab.tsx::usePetVacinas',
 ];
 
 describe('gate: tela que lê dado de servidor trata o erro (check-query-state)', () => {
@@ -92,8 +86,15 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
       expect.arrayContaining(['usePets', 'usePetDetail', 'useConsentimentos', 'useNotifications', 'useAgendamentos', 'usePetVacinas']),
     );
     expect(r.chamadas.length).toBeGreaterThanOrEqual(13);
-    // as 3 telas da BR-TUT-T03 estão entre as chamadas e passam SEM allowlist
+    // as telas da BR-TUT-T03 e as 7 chamadas da BR-TUT-T04 estão entre as chamadas e passam SEM allowlist
     for (const [tela, hook] of [
+      ['app/(tabs)/agenda/index.tsx', 'useAgendamentos'],
+      ['app/(tabs)/pets/index.tsx', 'usePets'],
+      ['app/(tabs)/pets/index.tsx', 'useNotifications'],
+      ['app/notificacoes.tsx', 'useNotifications'],
+      ['components/domain/ConsultasTab.tsx', 'usePetTimeline'],
+      ['components/domain/ConsultasTab.tsx', 'usePetTimelineEvent'],
+      ['components/domain/VacinasTab.tsx', 'usePetVacinas'],
       ['app/(tabs)/saude/index.tsx', 'usePets'],
       ['app/(tabs)/saude/index.tsx', 'useQueries'],
       ['app/(tabs)/pets/[id]/index.tsx', 'usePetDetail'],
@@ -499,7 +500,7 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
     });
   });
 
-  it('allowlist EXATA: igual à lista da BR-TUT-T03, razão > 30 caracteres, cada entrada aponta para chamada que existe e as 3 telas da T03 nunca entram', () => {
+  it('allowlist EXATA: 2 entradas (BR-TUT-T04), razão > 30 caracteres, cada entrada aponta para chamada que existe e as telas da T03/T04 nunca entram', () => {
     const lista = JSON.parse(execFileSync(process.execPath, [SCRIPT, '--allowlist'], { encoding: 'utf8' })) as Record<string, string>;
     expect(Object.keys(lista).sort()).toEqual([...ALLOWLIST_EXATA].sort());
     const { r } = rodar(RAIZ);
@@ -507,7 +508,7 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
       expect(razao.length).toBeGreaterThan(30);
       const [tela, hook] = chave.split('::');
       expect(r.chamadas.some((c) => c.tela === tela && c.hook === hook)).toBe(true);
-      expect(chave).not.toMatch(/saude\/index|pets\/\[id\]\/index|perfil\/consentimentos/);
+      expect(chave).not.toMatch(/saude\/index|pets\/\[id\]\/index|perfil\/consentimentos|agenda\/index|pets\/index|notificacoes|ConsultasTab|VacinasTab/);
     }
   });
 

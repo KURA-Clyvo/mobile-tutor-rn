@@ -58,24 +58,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// ALLOWLIST EXATA (BR-TUT-T03): são as chamadas que ainda NÃO tratam o erro e que outra task do ciclo vai migrar para
-// `QueryState`. A BR-TUT-T04 zerou as 7 entradas "T04"; sobram 2: `agenda/novo.tsx::usePets` (sai na BR-TUT-T07) e `useAgendamentoBadgeCount` (PERMANENTE). Entrada nova aqui é
+// ALLOWLIST EXATA (BR-TUT-T04): a BR-TUT-T04 zerou as 7 entradas "T04" (telas migradas para `QueryState`). Sobram 2:
+// `agenda/novo.tsx::usePets` (sai na BR-TUT-T07) e `useAgendamentoBadgeCount` (PERMANENTE). Entrada nova aqui é
 // regressão: `src/__tests__/queryStateCoverage.test.ts` trava a lista inteira por igualdade, não por tamanho.
 export const ALLOWLIST = {
-  'app/(tabs)/agenda/index.tsx::useAgendamentos':
-    'T04: lista de agenda do tutor, ainda sem QueryState; a BR-TUT-T04 migra e remove esta entrada',
-  'app/(tabs)/pets/index.tsx::usePets':
-    'T04: lista de pets, ainda sem QueryState; a BR-TUT-T04 migra e remove esta entrada',
-  'app/(tabs)/pets/index.tsx::useNotifications':
-    'T04: contador do sino na lista de pets, tratado junto com as notificações; a BR-TUT-T04 remove esta entrada',
-  'app/notificacoes.tsx::useNotifications':
-    'T04: tela de notificações, ainda sem QueryState; a BR-TUT-T04 migra e remove esta entrada',
-  'components/domain/ConsultasTab.tsx::usePetTimeline':
-    'T04: aba Consultas do pet, ainda sem QueryState; a BR-TUT-T04 migra e remove esta entrada',
-  'components/domain/ConsultasTab.tsx::usePetTimelineEvent':
-    'T04: detalhe do evento na aba Consultas, tratado com a aba; a BR-TUT-T04 remove esta entrada',
-  'components/domain/VacinasTab.tsx::usePetVacinas':
-    'T04: aba Vacinas do pet, ainda sem QueryState; a BR-TUT-T04 migra e remove esta entrada',
   'app/(tabs)/agenda/novo.tsx::usePets':
     'T07: seletor de pet do pedido de horário (hoje fixa pets[0]); a BR-TUT-T07 reescreve a tela e remove esta entrada',
   'app/(tabs)/_layout.tsx::useAgendamentoBadgeCount':
