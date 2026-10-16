@@ -41,6 +41,24 @@ describe('Perfil do pet — estados', () => {
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
+  it('F5-M4: erro sem dado => a barra de título diz "Perfil do pet", não "…" (que lê como carregando)', () => {
+    mockQuery = { ...base, isError: true };
+    const r = render(<PetDetailScreen />, { wrapper: W });
+    expect(r.getByText('Perfil do pet')).toBeTruthy();
+    expect(r.queryByText('…')).toBeNull();
+  });
+
+  it('F5-M4 (controle): carregando mantém "…" na barra; com dado a barra mostra o nome', () => {
+    mockQuery = { ...base, isLoading: true, fetchStatus: 'fetching' };
+    const c = render(<PetDetailScreen />, { wrapper: W });
+    expect(c.getByText('…')).toBeTruthy();
+    expect(c.queryByText('Perfil do pet')).toBeNull();
+    c.unmount();
+    mockQuery = { ...base, data: PET };
+    const ok = render(<PetDetailScreen />, { wrapper: W });
+    expect(ok.queryByText('Perfil do pet')).toBeNull();
+  });
+
   it('erro COM dado salvo => perfil + faixa de dados salvos, sem ErrorState', () => {
     mockQuery = { ...base, data: PET, isError: true, dataUpdatedAt: Date.now() - 2 * 3_600_000 };
     const r = render(<PetDetailScreen />, { wrapper: W });

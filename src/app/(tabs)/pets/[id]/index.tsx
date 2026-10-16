@@ -46,6 +46,7 @@ export default function PetDetailScreen() {
   const petQuery = usePetDetail(petId);
   const pet = petQuery.data;
   const [tab, setTab] = useState<Tab>('visao');
+  // F5-M4 (G2): no erro sem dado a barra não fica em '…' (lê como carregando): título neutro.
 
   return (
     <View style={[styles.flex, { backgroundColor: colors.bg }]}>
@@ -54,7 +55,7 @@ export default function PetDetailScreen() {
         <Pressable onPress={() => voltar()} style={styles.backBtn} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
-        <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{pet?.nmPet ?? '…'}</Text>
+        <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{pet?.nmPet ?? (petQuery.isError ? 'Perfil do pet' : '…')}</Text>
         <View style={{ width: 36 }} />
       </View>
 
