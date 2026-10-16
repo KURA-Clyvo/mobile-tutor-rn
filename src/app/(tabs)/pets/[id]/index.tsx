@@ -55,7 +55,7 @@ export default function PetDetailScreen() {
         <Pressable onPress={() => voltar()} style={styles.backBtn} hitSlop={8} accessibilityRole="button" accessibilityLabel="Voltar">
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
-        <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{pet?.nmPet ?? (petQuery.isError ? 'Perfil do pet' : '…')}</Text>
+        <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{pet?.nmPet ?? (petQuery.isError && !pet ? 'Perfil do pet' : '…')}</Text>
         <View style={{ width: 36 }} />
       </View>
 
