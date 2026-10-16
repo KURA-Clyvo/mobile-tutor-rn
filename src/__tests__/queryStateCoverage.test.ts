@@ -390,10 +390,20 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
   });
 });
 
-// Default que inventa "tudo certo" quando o dado não veio: `?? 'OK'` / `?? 'Tudo certo'` / `?? 'Tudo em dia'`. O detector acima não
-// enxerga o operador (só o isError), então este bloco olha o texto de src/ direto — com controle positivo.
+// Default que inventa "tudo certo" quando o dado não veio. O detector acima não enxerga o operador (só o isError), então este bloco
+// olha o texto de src/ direto — com controle positivo. PEGA (F4-M1 da G2): `?? 'OK'`, `|| 'OK'`, default de desestruturação ou de
+// parâmetro (`{ x = 'OK' }`, `(x = 'OK')`) e fallback pela CHAVE de status (`?? STATUS_CHIP.OK`, `|| MAPA['OK']`), com os literais OK,
+// Tudo certo, Tudo em dia e Em dia. NÃO PEGA (limite declarado): o mesmo literal guardado numa constante de nome arbitrário
+// (`const PADRAO = 'OK'; x ?? PADRAO`) — nesse caso quem protege é o teste de comportamento da tela (`PetDetalheEstados`).
 describe('gate: nenhum default "OK" sobre dado de servidor em src/', () => {
-  const RE = /\?\?\s*(['"`])(OK|Tudo certo|Tudo em dia|Em dia)\1/;
+  const LIT = String.raw`(['"` + "`" + String.raw`])(?:OK|Tudo certo|Tudo em dia|Em dia)\1`;
+  const FORMAS: [string, RegExp][] = [
+    ['`?? \'OK\'`', new RegExp(String.raw`\?\?\s*` + LIT)],
+    ['`|| \'OK\'`', new RegExp(String.raw`\|\|\s*` + LIT)],
+    ['default de desestruturação/parâmetro', new RegExp(String.raw`[{,(]\s*\w+(?:\s*:\s*\w+)?\s*=\s*` + LIT)],
+    ['fallback pela chave OK', /(?:\?\?|\|\|)\s*[A-Za-z_]\w*(?:\.OK\b|\[\s*['"`]OK['"`]\s*\])/],
+  ];
+  const acha = (src: string) => FORMAS.filter(([, re]) => re.test(src)).map(([n]) => n);
   function listar(dir: string, acc: string[] = []): string[] {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
       const p = path.join(dir, e.name);
@@ -402,10 +412,30 @@ describe('gate: nenhum default "OK" sobre dado de servidor em src/', () => {
     }
     return acc;
   }
-  it('controle positivo: o regex enxerga o código antigo do perfil do pet', () => {
-    expect(RE.test("const statusCfg = STATUS_CHIP[pet?.dsStatusGeral ?? 'OK'];")).toBe(true);
-    expect(RE.test('const x = a ?? "Tudo em dia";')).toBe(true);
-    expect(RE.test("const x = a ?? 0;")).toBe(false);
+  it('controle positivo: cada forma enxerga o código antigo e as variantes da G2 (M4a-d)', () => {
+    expect(acha("const statusCfg = STATUS_CHIP[pet?.dsStatusGeral ?? 'OK'];")).toEqual(['`?? \'OK\'`']);
+    expect(acha('const x = a ?? "Tudo em dia";')).toEqual(['`?? \'OK\'`']);
+    expect(acha("STATUS_CHIP[pet.dsStatusGeral || 'OK']")).toEqual(['`|| \'OK\'`']);
+    expect(acha("const { dsStatusGeral = 'OK' } = pet;")).toEqual(['default de desestruturação/parâmetro']);
+    expect(acha("const { id, dsStatusGeral: s = 'OK', outro } = pet;")).toEqual(['default de desestruturação/parâmetro']);
+    expect(acha("function f(status = 'Tudo certo') {}")).toEqual(['default de desestruturação/parâmetro']);
+    expect(acha('STATUS_CHIP[pet.dsStatusGeral] ?? STATUS_CHIP.OK')).toEqual(['fallback pela chave OK']);
+    expect(acha("STATUS_CHIP[pet.dsStatusGeral] || MAPA['OK']")).toEqual(['fallback pela chave OK']);
+  });
+  it('controle negativo: o que NÃO é default de status passa', () => {
+    for (const ok of [
+      'const x = a ?? 0;',
+      "if (status === 'OK') return 1;",
+      "const STATUS = { OK: 'Tudo certo', ALERTA: 'Atenção' };",
+      '<Chip status="OK" />',
+      "const y = a ?? 'Pendente';",
+      'const z = STATUS_CHIP[s];',
+    ]) {
+      expect(acha(ok)).toEqual([]);
+    }
+  });
+  it('limite declarado: constante de nome arbitrário NÃO é pega por este gate', () => {
+    expect(acha("const PADRAO = 'OK' as const; STATUS_CHIP[pet.dsStatusGeral ?? PADRAO]")).toEqual([]);
   });
   // Escopo: telas (src/app) e componentes de domínio. `components/primitives` fica de fora: o `rotuloOk ?? 'OK'` do KDialog é o
   // rótulo de um botão, não dado de servidor.
@@ -413,7 +443,7 @@ describe('gate: nenhum default "OK" sobre dado de servidor em src/', () => {
     const arquivos = [...listar(path.join(RAIZ, 'src', 'app')), ...listar(path.join(RAIZ, 'src', 'components', 'domain'))];
     expect(arquivos.length).toBeGreaterThan(15);
     const semComentario = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
-    const achados = arquivos.filter((f) => RE.test(semComentario(fs.readFileSync(f, 'utf8')))).map((f) => path.relative(RAIZ, f));
+    const achados = arquivos.filter((f) => acha(semComentario(fs.readFileSync(f, 'utf8'))).length > 0).map((f) => path.relative(RAIZ, f));
     expect(achados).toEqual([]);
   });
 });
