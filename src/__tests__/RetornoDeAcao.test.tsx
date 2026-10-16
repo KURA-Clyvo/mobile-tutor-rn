@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
 import { ToastProvider } from '../components/feedback/Toast';
@@ -35,6 +35,16 @@ const W = ({ children }: any) => (
   <ThemeProvider><KDialogProvider><ToastProvider>{children}</ToastProvider></KDialogProvider></ThemeProvider>
 );
 
+// Promessa segura: o teste decide quando o serviço responde (G2 BR-TUT-T05 I1). Sem isso, um mock que resolve na hora
+// deixa passar "toast de sucesso antes do await".
+function adiada() {
+  let ok!: () => void;
+  let falha!: (e: Error) => void;
+  const p = new Promise<void>((res, rej) => { ok = res; falha = rej; });
+  return { p, ok, falha };
+}
+const assentar = () => act(async () => {});
+
 describe('Solicitar horário — retorno', () => {
   beforeEach(() => { mockBack.mockClear(); mockSolicitar = jest.fn(() => Promise.resolve()); });
 
@@ -46,19 +56,41 @@ describe('Solicitar horário — retorno', () => {
     return u;
   }
 
-  it('sucesso: toast "Horário solicitado" e volta (sem diálogo com prazo)', async () => {
+  it('sucesso: nenhum toast enquanto o serviço não respondeu; depois, "Horário solicitado" e volta', async () => {
+    const d = adiada();
+    mockSolicitar = jest.fn(() => d.p);
     const u = await preencher();
-    expect(await u.findByText('Horário solicitado')).toBeTruthy();
+    await assentar();
+    expect(mockSolicitar).toHaveBeenCalledTimes(1);
+    expect(u.queryByTestId('toast')).toBeNull();
+    expect(u.queryByText('Horário solicitado')).toBeNull();
+    expect(mockBack).not.toHaveBeenCalled();
+    await act(async () => { d.ok(); });
+    expect(u.getByText('Horário solicitado')).toBeTruthy();
     expect(mockBack).toHaveBeenCalled();
     expect(u.queryByText('Solicitação enviada!')).toBeNull();
   });
 
   it('falha: toast de erro, não volta e não afirma "solicitado"', async () => {
-    mockSolicitar = jest.fn(() => Promise.reject(new Error('500')));
+    const d = adiada();
+    mockSolicitar = jest.fn(() => d.p);
     const u = await preencher();
-    expect(await u.findByText(/Não foi possível solicitar/)).toBeTruthy();
+    await assentar();
+    expect(u.queryByTestId('toast')).toBeNull();
+    await act(async () => { d.falha(new Error('500')); });
+    expect(u.getByText(/Não foi possível solicitar/)).toBeTruthy();
     expect(u.queryByText('Horário solicitado')).toBeNull();
     expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  it('duplo toque em "Confirmar agendamento" chama o serviço 1x', async () => {
+    const d = adiada();
+    mockSolicitar = jest.fn(() => d.p);
+    const u = await preencher();
+    fireEvent.press(u.getByText('Confirmar agendamento'));
+    await assentar();
+    expect(mockSolicitar).toHaveBeenCalledTimes(1);
+    await act(async () => { d.ok(); });
   });
 });
 
@@ -69,19 +101,39 @@ describe('Cancelar agendamento — retorno', () => {
     const u = render(<AgendaScreen />, { wrapper: W });
     fireEvent(await u.findByText('Bóbi'), 'longPress');
     fireEvent.press(await u.findByTestId('kdialog-acao-__confirmar__'));
+    await assentar();
     return u;
   }
 
-  it('sucesso: toast "Agendamento cancelado" depois da resposta', async () => {
+  it('sucesso: nenhum toast enquanto o servidor não respondeu; depois "Agendamento cancelado"', async () => {
+    const d = adiada();
+    mockCancelar = jest.fn(() => d.p);
     const u = await cancelar();
-    expect(await u.findByText('Agendamento cancelado')).toBeTruthy();
     expect(mockCancelar).toHaveBeenCalledWith(7);
+    expect(u.queryByTestId('toast')).toBeNull();
+    expect(u.queryByText('Agendamento cancelado')).toBeNull();
+    await act(async () => { d.ok(); });
+    expect(u.getByText('Agendamento cancelado')).toBeTruthy();
   });
 
   it('falha: toast de erro, nunca "cancelado"', async () => {
-    mockCancelar = jest.fn(() => Promise.reject(new Error('500')));
+    const d = adiada();
+    mockCancelar = jest.fn(() => d.p);
     const u = await cancelar();
-    expect(await u.findByText(/Não foi possível cancelar/)).toBeTruthy();
+    expect(u.queryByTestId('toast')).toBeNull();
+    await act(async () => { d.falha(new Error('500')); });
+    expect(u.getByText(/Não foi possível cancelar/)).toBeTruthy();
     expect(u.queryByText('Agendamento cancelado')).toBeNull();
+  });
+
+  it('segundo toque longo com o cancelamento em voo não abre outro diálogo nem chama o serviço de novo', async () => {
+    const d = adiada();
+    mockCancelar = jest.fn(() => d.p);
+    const u = await cancelar();
+    fireEvent(u.getByText('Bóbi'), 'longPress');
+    await assentar();
+    expect(u.queryByTestId('kdialog-acao-__confirmar__')).toBeNull();
+    expect(mockCancelar).toHaveBeenCalledTimes(1);
+    await act(async () => { d.ok(); });
   });
 });

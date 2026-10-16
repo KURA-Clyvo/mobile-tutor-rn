@@ -79,10 +79,61 @@ describe('Revogar consentimento (web)', () => {
     expect(u.queryByText('Consentimento revogado')).toBeNull();
   });
 
-  it('registrar um consentimento mostra o toast com o verbo', async () => {
-    const u = render(<ConsentimentosScreen />, { wrapper: W });
+  async function abrirAceite(u: ReturnType<typeof render>) {
     fireEvent.press(u.getAllByText('VER TEXTO COMPLETO →')[0]!);
-    fireEvent.press(await u.findByText('Aceitar'));
-    expect(await u.findByText('Consentimento registrado')).toBeTruthy();
+    return u.findByText('Aceitar');
+  }
+
+  it('registrar: nenhum toast enquanto o servidor não respondeu; depois "Consentimento registrado"', async () => {
+    let resolver!: () => void;
+    mockAssinar = jest.fn(() => new Promise<void>((r) => { resolver = r; }));
+    const u = render(<ConsentimentosScreen />, { wrapper: W });
+    fireEvent.press(await abrirAceite(u));
+    await waitFor(() => expect(mockAssinar).toHaveBeenCalledTimes(1));
+    await act(async () => {});
+    expect(u.queryByTestId('toast')).toBeNull();
+    expect(u.queryByText('Consentimento registrado')).toBeNull();
+    await act(async () => { resolver(); });
+    expect(u.getByText('Consentimento registrado')).toBeTruthy();
+  });
+
+  it('registrar: falha mostra o erro (diálogo) e NUNCA o toast de sucesso', async () => {
+    let falhar!: (e: Error) => void;
+    mockAssinar = jest.fn(() => new Promise<void>((_, rej) => { falhar = rej; }));
+    const u = render(<ConsentimentosScreen />, { wrapper: W });
+    fireEvent.press(await abrirAceite(u));
+    await waitFor(() => expect(mockAssinar).toHaveBeenCalledTimes(1));
+    expect(u.queryByText('Consentimento registrado')).toBeNull();
+    await act(async () => { falhar(new Error('500')); });
+    expect(await u.findByText(/Não foi possível registrar o consentimento/)).toBeTruthy();
+    expect(u.queryByText('Consentimento registrado')).toBeNull();
+    expect(u.queryByTestId('toast')).toBeNull();
+  });
+
+  it('duplo toque em "Aceitar" chama o serviço 1x', async () => {
+    let resolver!: () => void;
+    mockAssinar = jest.fn(() => new Promise<void>((r) => { resolver = r; }));
+    const u = render(<ConsentimentosScreen />, { wrapper: W });
+    const aceitar = await abrirAceite(u);
+    fireEvent.press(aceitar);
+    fireEvent.press(aceitar);
+    await act(async () => {});
+    expect(mockAssinar).toHaveBeenCalledTimes(1);
+    await act(async () => { resolver(); });
+  });
+
+  it('duplo toque no switch de revogar com o 1o pedido em voo: 1 diálogo, 1 chamada ao serviço', async () => {
+    let resolver!: () => void;
+    mockRevogar = jest.fn(() => new Promise<void>((r) => { resolver = r; }));
+    const u = render(<ConsentimentosScreen />, { wrapper: W });
+    fireEvent(u.getByLabelText(LABEL_LEMBRETES), 'valueChange', false);
+    fireEvent(u.getByLabelText(LABEL_LEMBRETES), 'valueChange', false);
+    await u.findByText('Revogar consentimento?');
+    fireEvent.press(u.getByTestId('kdialog-acao-__confirmar__'));
+    await waitFor(() => expect(mockRevogar).toHaveBeenCalledTimes(1));
+    await act(async () => {});
+    expect(u.queryByText('Revogar consentimento?')).toBeNull(); // nenhum 2o diálogo na fila
+    expect(mockRevogar).toHaveBeenCalledTimes(1);
+    await act(async () => { resolver(); });
   });
 });
