@@ -82,7 +82,12 @@ describe('marca: o texto "Kura." não volta no lugar do símbolo', () => {
       .replace(/(^|\s)\/\/.*$/gm, '$1')
       .replace(/\{\s*(['"`])([^'"`{}]*)\1\s*\}/g, '$2');
   const TEXTO_MARCA = />\s*Kura\s*(?:<[^<>]*>\s*)*\.\s*(?:<[^<>]*>\s*)*</;
-  const desenhaKura = (t: string) => TEXTO_MARCA.test(desembrulhar(t));
+  // Literal guardado em constante e desenhado por `{NOME}` (reprodução do maestro: escapava ao gate acima).
+  const LITERAL_MARCA = /(['"`])\s*Kura\s*\.\s*\1/;
+  const desenhaKura = (t: string) => {
+    const limpo = desembrulhar(t);
+    return TEXTO_MARCA.test(limpo) || LITERAL_MARCA.test(limpo);
+  };
   const varrer = (dir: string): string[] =>
     fs.readdirSync(dir, { withFileTypes: true }).flatMap(e => {
       const p = path.join(dir, e.name);
@@ -100,6 +105,7 @@ describe('marca: o texto "Kura." não volta no lugar do símbolo', () => {
     ['ponto em Text aninhado, em linhas separadas', '<Text>\n  Kura<Text>.</Text>\n</Text>'],
     ['forma do splash antigo', "<Text>{'Kura'}<Text style={s}>.</Text></Text>"],
     ['ponto em literal separado', "<Text>{'Kura'}{'.'}</Text>"],
+    ['literal em constante', "const NOME_MARCA = 'Kura.';\n<Text\n  accessibilityRole=\"header\"\n>\n  {NOME_MARCA}\n</Text>"],
   ])('controle positivo: o detector pega %s', (_nome, fonte) => {
     expect(desenhaKura(fonte)).toBe(true);
   });
