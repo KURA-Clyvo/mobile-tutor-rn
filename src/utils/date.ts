@@ -24,3 +24,23 @@ export function addDays(base: Date, n: number): Date {
 export function isFuture(iso: string): boolean {
   return new Date(iso).getTime() > Date.now();
 }
+
+// ÂNCORA (regra 11): cópia de mobile-clinica-rn `src/utils/date.ts`, linhas 167-183 (comentário + função), commit 773ae66,
+// conferida em 2026-10-15:
+//   git -C mobile-clinica-rn show 773ae66:src/utils/date.ts | sed -n '167,183p'
+// Sem divergência de lógica (comentário encurtado). Usada pela faixa "dados salvos" de `QueryState` (BR-TUT-T03).
+// Tempo relativo ("há 5min", "há 2h", "há 3d"). Nunca lança para instante futuro (relógio de servidor à frente do
+// dispositivo) — devolve "agora" em vez de "há -1min". Aceita `Date | string`: o cache persistido (JSON) devolve
+// `Date` como string ISO na reidratação (`date.getTime is not a function` derrubava a tela na clínica).
+export function formatRelativeTime(date: Date | string, now: Date = new Date()): string {
+  const instante = typeof date === 'string' ? new Date(date) : date;
+  const diffMs = now.getTime() - instante.getTime();
+  if (Number.isNaN(diffMs)) return '';
+  if (diffMs < 60_000) return 'agora';
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `há ${diffMin}min`;
+  const diffHoras = Math.floor(diffMin / 60);
+  if (diffHoras < 24) return `há ${diffHoras}h`;
+  const diffDias = Math.floor(diffHoras / 24);
+  return `há ${diffDias}d`;
+}
