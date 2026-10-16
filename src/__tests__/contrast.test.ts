@@ -63,6 +63,11 @@ const PARES: Par[] = [
   ...par('textOnPrimary', 'clayInk'), // KBadge: contagem sobre clayInk (clay do DS reprovaria)
   ...par('danger', 'surface'),
   // borda de controle (campo, checkbox, trilho do switch desligado, botão secundário): 3:1
+  // BR-TUT-T05 (m7): Toast.tsx pinta texto, ícone e borda sobre bgElev (sucesso, erro, info). AA de texto (4.5) nos três.
+  ...par('text', 'bgElev'),
+  ...par('success', 'bgElev'),
+  ...par('danger', 'bgElev'),
+  ...par('info', 'bgElev'),
   ...par('borderControl', 'bg', BORDA),
   ...par('borderControl', 'surface', BORDA),
 ];
