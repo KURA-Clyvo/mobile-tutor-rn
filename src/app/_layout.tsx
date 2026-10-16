@@ -79,9 +79,10 @@ function RootLayoutInner() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ Cormorant_500Medium, Lexend_400Regular, Lexend_500Medium, JetBrainsMono_400Regular });
+  const [fontsLoaded, fontError] = useFonts({ Cormorant_500Medium, Lexend_400Regular, Lexend_500Medium, JetBrainsMono_400Regular });
   const [storeHydrated, setStoreHydrated] = useState(false);
-  const appReady = fontsLoaded && storeHydrated;
+  // Falha ao carregar fonte não pode prender o arranque: com erro, segue com a fonte do sistema.
+  const appReady = (fontsLoaded || !!fontError) && storeHydrated;
 
   useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => setStoreHydrated(true));

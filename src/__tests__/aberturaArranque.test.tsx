@@ -7,8 +7,9 @@ import path from 'path';
 import { act, render } from '@testing-library/react-native';
 
 let mockFontsLoaded = false;
+let mockFontError: Error | null = null;
 
-jest.mock('@expo-google-fonts/cormorant', () => ({ useFonts: () => [mockFontsLoaded], Cormorant_500Medium: 'c' }));
+jest.mock('@expo-google-fonts/cormorant', () => ({ useFonts: () => [mockFontsLoaded, mockFontError], Cormorant_500Medium: 'c' }));
 jest.mock('@expo-google-fonts/lexend', () => ({ Lexend_400Regular: 'l4', Lexend_500Medium: 'l5' }));
 jest.mock('@expo-google-fonts/jetbrains-mono', () => ({ JetBrainsMono_400Regular: 'j' }));
 jest.mock('react-native-reanimated', () => ({
@@ -35,7 +36,10 @@ jest.mock('../hooks/useNotifications', () => ({ usePushTokenSync: () => undefine
 const RootLayout = require('../app/_layout').default;
 
 describe('_layout: a abertura cobre fontes e sessão', () => {
-  beforeEach(() => jest.useFakeTimers());
+  beforeEach(() => {
+    jest.useFakeTimers();
+    mockFontError = null;
+  });
   afterEach(() => jest.useRealTimers());
 
   it('fontes não prontas: a abertura continua mesmo depois dos 600 ms da animação', async () => {
@@ -44,6 +48,15 @@ describe('_layout: a abertura cobre fontes e sessão', () => {
     await act(async () => void jest.advanceTimersByTime(1000));
     expect(r.queryByTestId('abertura', { includeHiddenElements: true })).not.toBeNull();
     expect(r.queryByTestId('stack')).toBeNull();
+  });
+
+  it('erro ao carregar fonte: a abertura sai e o app aparece (fonte do sistema), sem prender o arranque', async () => {
+    mockFontsLoaded = false;
+    mockFontError = new Error('falha de rede ao baixar a fonte');
+    const r = render(<RootLayout />);
+    await act(async () => void jest.advanceTimersByTime(1000));
+    expect(r.queryByTestId('abertura', { includeHiddenElements: true })).toBeNull();
+    expect(r.queryByTestId('stack')).not.toBeNull();
   });
 
   it('fontes e sessão prontas: a abertura sai e o app aparece, sem esperar a animação', async () => {
