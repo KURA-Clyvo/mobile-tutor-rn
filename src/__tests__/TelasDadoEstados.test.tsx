@@ -22,6 +22,21 @@ jest.mock('../store/authStore', () => ({
 }));
 
 const base = { isLoading: false, isError: false, refetch: jest.fn(), fetchStatus: 'idle', dataUpdatedAt: 0 };
+// G2 BR-TUT-T04 (M4): o mock inteiro de um `useQuery`, com os campos que o React Query de verdade preenche, COERENTES por estado.
+// Sem eles, uma tela que lê `isFetched`, `failureReason`, `status` ou `error` via `undefined` passa em qualquer estado (mutações A09/A12).
+const rq = (e: Record<string, unknown> = {}) => {
+  const q: any = { ...base, ...e };
+  const erro = q.isError ? new Error('503') : null;
+  return {
+    ...q,
+    status: q.isError ? 'error' : q.isLoading ? 'pending' : 'success',
+    isFetched: !q.isLoading,
+    isFetching: q.fetchStatus === 'fetching',
+    isRefetchError: !!q.isError && q.data !== undefined,
+    error: erro,
+    failureReason: erro,
+  };
+};
 let mockAgenda: any;
 let mockPets: any;
 let mockNotifs: any;
@@ -90,35 +105,35 @@ const CASOS: Caso[] = [
   {
     nome: 'Agenda',
     tela: () => <AgendaScreen />,
-    usar: e => { mockAgenda = { ...base, ...e }; mockNotifs = { ...base, data: [] }; },
+    usar: e => { mockAgenda = rq({ ...e }); mockNotifs = rq({ data: [] }); },
     dado: [AGENDAMENTO], comDado: /Bóbi/, tituloErro: /Não consegui carregar a sua agenda/,
     vazio: /Você ainda não tem agendamentos/, dadoVazio: [],
   },
   {
     nome: 'Meus pets',
     tela: () => <MeusPetsScreen />,
-    usar: e => { mockPets = { ...base, ...e }; mockNotifs = { ...base, data: [] }; },
+    usar: e => { mockPets = rq({ ...e }); mockNotifs = rq({ data: [] }); },
     dado: [PET], comDado: /Bóbi/, tituloErro: /Não consegui carregar os seus pets/,
     vazio: /Nenhum pet cadastrado ainda/, dadoVazio: [],
   },
   {
     nome: 'Notificações',
     tela: () => <NotificacoesScreen />,
-    usar: e => { mockNotifs = { ...base, ...e }; },
+    usar: e => { mockNotifs = rq({ ...e }); },
     dado: [NOTIF], comDado: /Vacina do Bóbi/, tituloErro: /Não consegui carregar as notificações/,
     vazio: /Nenhuma notificação ainda/, dadoVazio: [],
   },
   {
     nome: 'Aba Consultas do pet',
     tela: () => <ConsultasTab petId={1} />,
-    usar: e => { mockTimeline = { ...base, ...e }; },
+    usar: e => { mockTimeline = rq({ ...e }); },
     dado: [EVENTO], comDado: /Dra\. Ana/, tituloErro: /Não consegui carregar as consultas/,
     vazio: /Nenhuma consulta registrada ainda/, dadoVazio: [],
   },
   {
     nome: 'Aba Vacinas do pet',
     tela: () => <VacinasTab petId={1} />,
-    usar: e => { mockVacinas = { ...base, ...e }; },
+    usar: e => { mockVacinas = rq({ ...e }); },
     dado: VACINAS, comDado: /Vacinação em dia/, tituloErro: /Não consegui carregar as vacinas/,
     // aqui o "vazio" é a lista vazia COM o resumo do servidor
     vazio: /Sem registro de vacinas ainda/, dadoVazio: { ...VACINAS, vacinas: [] },
@@ -182,16 +197,16 @@ describe.each(CASOS)('$nome — estados', caso => {
 
 describe('Meus pets — contador do sino', () => {
   it('erro na contagem de notificações (sem dado) => o sino diz que não conseguiu contar e NÃO inventa número', () => {
-    mockPets = { ...base, data: [PET] };
-    mockNotifs = { ...base, data: undefined, isError: true };
+    mockPets = rq({ data: [PET] });
+    mockNotifs = rq({ data: undefined, isError: true });
     const r = render(<MeusPetsScreen />, { wrapper: W });
     expect(r.getByLabelText('Notificações (não consegui contar as novas)')).toBeTruthy();
     expect(r.queryByLabelText('Notificações')).toBeNull();
   });
 
   it('contagem ok => rótulo simples e o número das não lidas', () => {
-    mockPets = { ...base, data: [PET] };
-    mockNotifs = { ...base, data: [NOTIF] };
+    mockPets = rq({ data: [PET] });
+    mockNotifs = rq({ data: [NOTIF] });
     const r = render(<MeusPetsScreen />, { wrapper: W });
     expect(r.getByLabelText('Notificações')).toBeTruthy();
     expect(r.getByText('1')).toBeTruthy();
@@ -200,8 +215,8 @@ describe('Meus pets — contador do sino', () => {
 
 describe('Consulta aberta (prontuário) — estados', () => {
   const abrir = (estado: Record<string, unknown>) => {
-    mockTimeline = { ...base, data: [EVENTO] };
-    mockEvento = { ...base, ...estado };
+    mockTimeline = rq({ data: [EVENTO] });
+    mockEvento = rq({ ...estado });
     const r = render(<ConsultasTab petId={1} />, { wrapper: W });
     fireEvent.press(r.getByText(/Dra\. Ana/));
     return r;
