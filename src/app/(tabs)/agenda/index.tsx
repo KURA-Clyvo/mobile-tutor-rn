@@ -14,7 +14,7 @@ import { isFuture } from '../../../utils/date';
 import type { AgendamentoTutorResponse } from '../../../types/api';
 
 export default function AgendaScreen() {
-  const { colors, fonts, fontSize } = useTheme();
+  const { colors, fonts } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const agendaQuery = useAgendamentos();
