@@ -19,7 +19,7 @@ import { formatDateBR } from '../../../../utils/date';
 
 type Tab = 'visao' | 'consultas' | 'vacinas' | 'docs';
 
-// BR-TUT-T03: não há mais `?? 'OK'` — status ausente ou desconhecido NÃO vira chip "Tudo certo" (a chip some).
+// BR-TUT-T03: o default "OK" sobre o status acabou — status ausente ou desconhecido NÃO vira chip "Tudo certo" (a chip some).
 const STATUS_CHIP = {
   OK:      { tone: 'sage'  as const, label: 'Tudo certo' },
   ALERTA:  { tone: 'amber' as const, label: 'Atenção'    },
