@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // ÂNCORA (regra 11): cópia de mobile-clinica-rn `scripts/check-query-state.mjs` no commit 080b1aa (BR-CLI-DET, merge de 2026-10-16),
-// arquivo de 577 linhas, conferida em 2026-10-16. A lógica de análise é a da origem, SEM alteração: origem 16-65 (regras e imports)
+// arquivo de 577 linhas, conferida em 2026-10-16. A lógica de análise é a da origem, SEM alteração (o `grep -v '^//'` do comando tira só as LINHAS DE COMENTÁRIO inteiras da comparação: o comentário de regras e limites do tutor é mais longo que o da origem desde a G2 da BR-TUT-T04, que acrescentou os limites I1/I2 e corrigiu duas frases que alegavam reprovar o que o detector não reprova): origem 16-65 (regras e imports)
 // e origem 73-577 (de `const RAZAO_MIN = 30` ao fim). Reproduz a igualdade (saída vazia = idêntico), da raiz do tutor:
-//   diff <(git -C D:/FIAP/KURA/mobile-clinica-rn show 080b1aa:scripts/check-query-state.mjs | sed -n '16,65p;73,577p' | tr -d '\r') <(sed -n '/^\/\/ Regra v7/,/^import { fileURLToPath/p;/^const RAZAO_MIN = 30/,$p' scripts/check-query-state.mjs | tr -d '\r')
-// DIVERGÊNCIAS do tutor: (1) este cabeçalho (substitui as linhas 1-13 da origem); (2) a ALLOWLIST é do tutor (origem 67-71 tem a
+//   diff <(git -C D:/FIAP/KURA/mobile-clinica-rn show 080b1aa:scripts/check-query-state.mjs | sed -n '16,65p;73,577p' | grep -v '^//' | tr -d '\r') <(sed -n '/^\/\/ Regra v7/,/^import { fileURLToPath/p;/^const RAZAO_MIN = 30/,$p' scripts/check-query-state.mjs | grep -v '^//' | tr -d '\r')
+// DIVERGÊNCIAS do tutor: (1) este cabeçalho (substitui as linhas 2-15 da origem); (2) a ALLOWLIST é do tutor (origem 67-71 tem a
 // entrada da clínica); (3) caminhos de tela `app/(tabs)/...` (a lógica não depende do caminho). As regras que o tutor tinha a mais que a
 // clínica 773ae66 (BR-TUT-T03 F3-I1 a-d, incluindo a desestruturação em 2ª instrução, 01887a9) estão no núcleo DNF da 080b1aa
 // (isca em src/__tests__/queryStateCoverage.test.ts). Roda por `node` puro: no Windows o `npm run` usa cmd.exe.
@@ -31,14 +31,25 @@
 //     `!d?.length`, `d?.length === 0`, `typeof d === 'undefined'`). A guarda de dado dentro de `||` NÃO vale (`!data || isError`,
 //     `q.data == null || q.isError`, `isError || data?.length === 0` reprovam). `d != null` e a mera menção ao dado NÃO são guarda.
 //     As negações iniciais contam por paridade: `!!d`, `!(d == null)` e `!(!d)` testam PRESENÇA e reprovam (reprodução do maestro).
-//   * ERRO NEGADO: `!erro ? <Lista/> : <Erro/>` (o ramo de erro vence o dado) e `{!erro && <Lista d={dado}/>}` (a lista some no erro) reprovam.
-//     `{!erro && vazio && <Vazio/>}` (só o vazio some) passa. Ramo `<FaixaDadosSalvos/>` do ternário passa.
+//   * ERRO NEGADO: `!erro ? <Lista/> : <Erro/>` (o ramo de erro vence o dado) reprova, e `{!erro && <Lista d={dado}/>}` reprova SÓ quando o DADO
+//     aparece textualmente no JSX escondido (`d={q.data}`, `data.map(...)`). Com `<QueryState>` o dado chega pela render prop e NUNCA aparece assim:
+//     `{!q.isError && <QueryState query={q}>...}` PASSA (limite I2, abaixo). `{!erro && vazio && <Vazio/>}` (só o vazio some) passa.
+//     Ramo `<FaixaDadosSalvos/>` do ternário passa.
 //   * erro e vazio coincidindo: componente com `{erro && <...}` SEM guarda de dado E um vazio `{x.length === 0 && <...}` sem o erro na
 //     cadeia (Review Focus §5). Erro só COM guarda (`if (isError && data == null) return <ErrorState/>`) não coincide com o vazio.
 //   * `useQueries`: o erro de CADA item tem de ser lido pelo próprio array e usado (`void x` não conta), e vale a mesma regra de erro
 //     vs. dado (guarda `r.isError && r.data == null`); o caminho aceito é agregar o erro num objeto entregue a `<QueryState query={...}>`.
 //
 // LIMITES DECLARADOS (o detector é TEXTUAL, não é análise de fluxo; o que está aqui passa mesmo sendo um defeito):
+//   * I1 (G2 BR-TUT-T04, medido na agenda real do tutor e fixado em `queryStateCoverage.test.ts`): `<QueryState query={q}>` ABSOLVE o objeto `q`.
+//     Uma leitura de erro que não seja o campo literal `q.isError|error|isRefetchError|status === 'error'` passa mesmo escondendo o dado:
+//     função auxiliar (`if (falhou(q)) return null`, A03), `q.status !== 'success'` (A04), cast na 2ª instrução
+//     (`const { isError: f } = q as {...}`, A05), `q.failureReason` (A09), spread que zera o erro (`query={{ ...q, isError: false }}` + 1 leitura
+//     inócua, A10), alias do objeto (`const q2 = q; if (q2.isError)`, A11). Nada disso é pego aqui.
+//   * I2 (idem): erro NEGADO em volta do próprio `<QueryState>` passa, porque a regra do erro negado só enxerga o dado textual:
+//     `{!q.isError && <QueryState query={q}>...}` (A01) e `const ok = !q.isError; {ok && <QueryState...>}` (A02). No erro a tela fica EM BRANCO.
+//     QUEM PROTEGE I1/I2 nas telas reais é o teste de estado por tela (`TelasDadoEstados.test.tsx`: carregando / erro sem dado / erro com dado /
+//     vazio), não este detector. `check-query-state = 0` sozinho NÃO prova que o erro nunca some de uma tela com `<QueryState>`.
 //   * M2: `switch (true) { case q.isError: ... }` e erro usado como efeito no render (`q.isError && navigation.goBack()`) não são sítios
 //     de condição reconhecidos. Erro negado em retorno antecipado (`if (!isError) return <Lista/>`) também não.
 //   * M3: o vazio só é reconhecido na forma `{x.length === 0 && <...}` / `!x.length && <...`. Vazio em ternário (`data.length === 0 ? <V/> : ...`),
@@ -47,8 +58,8 @@
 //     como uso mesmo que o ramo de erro seja inócuo. O erro lido só em ATRIBUIÇÃO (`const up = !isError && ...`) não é sítio de render.
 //   * Alias só por `const|let|var nome = <expr>;` terminado em `;` (a expressão é lida até o 1º `;`); objeto literal e arrow function não são alias.
 //     Variável derivada do dado (`const l = q.data ?? []`) conta como dado quando o alias de dado é definido assim.
-//   * `query={q}` só vale colado a `<QueryState`; `q` repassado por prop a um filho, a helper (`useEstado(q)`) ou espalhado (`query={{ ...q }}`) é
-//     violação (conservador). `useSuspenseQuery` lança o erro a um error boundary que este script não enxerga: exige allowlist com a razão.
+//   * `query={q}` só vale colado a `<QueryState`; `q` repassado por prop a um filho ou a helper (`useEstado(q)`) é violação (conservador) QUANDO
+//     NÃO HÁ `<QueryState query={q}>` no componente. COM ele, `q` é ABSOLVIDO: ver I1 abaixo. `useSuspenseQuery` lança o erro a um error boundary que este script não enxerga: exige allowlist com a razão.
 //   * Hook que não começa por `use`, ou chamado por ALIAS importado (`import { useX as useY }`), não é descoberto.
 //   * `useQueries` com o resultado desestruturado (`const [a, b] = useQueries(...)`) ou sem variável simples é violação; o detector não prova
 //     que o erro lido chega ao render, só que ele é lido, usado e não vence o dado.
