@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, useToggleTheme } from '@theme/index';
+import { KuraMark } from '@components/brand/KuraMark';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KButton } from '@components/primitives/KButton';
 import { KCard }   from '@components/primitives/KCard';
@@ -213,7 +214,7 @@ export default function PerfilScreen() {
       <Modal visible={aboutVisible} transparent animationType="slide" onRequestClose={() => setAboutVisible(false)}>
         <Pressable style={[styles.modalBg, { backgroundColor: colors.scrim }]} onPress={() => setAboutVisible(false)}>
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 24, marginBottom: 12 }}>Kura.</Text>
+            <View style={{ marginBottom: 12 }}><KuraMark size={36} variante="sobreNeutro" /></View>
             <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, marginBottom: 8 }}>Versão 1.0.0 — Tutor App</Text>
             <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm }}>KURA Vet · Clyvo · FIAP Challenge 2026</Text>
             <KButton variant="ghost" block onPress={() => setAboutVisible(false)} style={{ marginTop: 20 }}>Fechar</KButton>

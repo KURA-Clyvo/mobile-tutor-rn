@@ -3,6 +3,7 @@ import { View, Text, FlatList, RefreshControl, Pressable, StyleSheet } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
+import { KuraMark } from '@components/brand/KuraMark';
 import { KIcon }        from '@components/primitives/KIcon';
 import { KBadge }       from '@components/primitives/KBadge';
 import { KButton }      from '@components/primitives/KButton';
@@ -36,7 +37,7 @@ export default function MeusPetsScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 14, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerLeft}>
-          <Text style={{ fontFamily: fonts.display, color: colors.primary, fontSize: 24 }}>Kura.</Text>
+          <KuraMark size={28} variante="sobreNeutro" />
         </View>
         <Pressable
           onPress={() => router.push('/notificacoes' as any)}
