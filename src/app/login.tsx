@@ -10,6 +10,7 @@ import { KButton }     from '@components/primitives/KButton';
 import { KTextField }  from '@components/primitives/KTextField';
 import { KIcon }       from '@components/primitives/KIcon';
 import { useDialog }   from '@components/primitives/KDialog';
+import { useToast }    from '@components/feedback/Toast';
 import { useAuthStore }  from '../store/authStore';
 import { login }         from '../services/auth.service';
 import { loginSchema, type LoginFormData } from '../utils/validators';
@@ -20,6 +21,7 @@ export default function LoginScreen() {
   const insets  = useSafeAreaInsets();
   const setSession = useAuthStore(s => s.setSession);
   const { alerta } = useDialog();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
@@ -34,13 +36,13 @@ export default function LoginScreen() {
       setSession(res.accessToken, res.expiresAt, res.tutor);
       router.replace('/(tabs)/pets');
     } catch (err: any) {
+      // BR-TUT-T05: só diz "sem conexão" quando a rede é comprovada (code NETWORK_ERROR, ver errors.ts).
       const msg = err?.status === 401
         ? 'E-mail ou senha incorretos'
-        : 'Erro de conexão. Verifique sua internet.';
-      // TASK-F06: `void` de propósito — o `finally` abaixo desliga o loading do
-      // botão e não pode esperar o tutor fechar o diálogo (o Alert nativo era
-      // fire-and-forget).
-      void alerta('Atenção', msg);
+        : err?.code === 'NETWORK_ERROR'
+          ? 'Sem conexão com o servidor. Verifique sua internet e tente de novo.'
+          : 'Não foi possível entrar agora. Tente de novo em instantes.';
+      toast.show({ tipo: 'erro', texto: msg });
     } finally {
       setLoading(false);
     }

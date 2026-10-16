@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@theme/index';
 import { KButton } from './KButton';
+import { registrarDialogo } from '../feedback/confirmar';
 
 // TASK-F05: substituto do `Alert.alert` nativo com a identidade visual do app.
 //
@@ -289,6 +290,9 @@ export function KDialogProvider({ children }: { children?: React.ReactNode }) {
       return escolha === '__confirmar__';
     },
   }), [mostrar]);
+
+  // BR-TUT-T05: canal por módulo (`feedback/confirmar.ts`) aponta para este provider.
+  useEffect(() => registrarDialogo(api), [api]);
 
   return (
     <KDialogContext.Provider value={api}>

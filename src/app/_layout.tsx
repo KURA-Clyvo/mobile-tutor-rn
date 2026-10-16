@@ -10,6 +10,7 @@ import * as Linking from 'expo-linking';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { ThemeProvider, useTheme } from '@theme/index';
 import { KDialogProvider } from '@components/primitives/KDialog';
+import { ToastProvider } from '@components/feedback/Toast';
 import { Abertura } from '@components/brand/Abertura';
 import { queryClient, asyncStoragePersister } from '@services/queryClient';
 import { useAuthStore } from '../store/authStore';
@@ -116,7 +117,9 @@ export default function RootLayout() {
               montagem, toda tela migrada lançaria "useDialog precisa estar
               dentro de <KDialogProvider>". */}
           <KDialogProvider>
-            <RootLayoutInner />
+            <ToastProvider>
+              <RootLayoutInner />
+            </ToastProvider>
           </KDialogProvider>
         </ThemeProvider>
       </PersistQueryClientProvider>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
@@ -7,6 +7,7 @@ import { KButton }    from '@components/primitives/KButton';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
 import { KIcon }      from '@components/primitives/KIcon';
 import { useDialog }  from '@components/primitives/KDialog';
+import { useToast }   from '@components/feedback/Toast';
 import { usePets }    from '../../../hooks/usePets';
 import { useSolicitarAgendamento } from '../../../hooks/useAgendamentos';
 import { useVoltar } from '../../../hooks/useVoltar';
@@ -25,7 +26,8 @@ export default function NovoAgendamentoScreen() {
   // TASK-F02: destino de fallback quando esta tela é alcançada sem
   // histórico (ex.: deep link direto pra "novo agendamento").
   const voltar  = useVoltar('/(tabs)/agenda');
-  const { alerta, mostrar } = useDialog();
+  const { alerta } = useDialog();
+  const toast = useToast();
   const { idPet: idPetParam, tipo: tipoParam } = useLocalSearchParams<{ idPet?: string; tipo?: string }>();
 
   const { data: pets = [] } = usePets();
@@ -49,7 +51,11 @@ export default function NovoAgendamentoScreen() {
     return d.toISOString();
   }, [selectedDay, selectedSlot, days]);
 
+  // BR-TUT-T05 (m3): trava síncrona — `isPending` só vale depois do re-render, e dois toques seguidos chamam o serviço 2×.
+  const emVoo = useRef(false);
+
   const handleSubmit = async () => {
+    if (emVoo.current) return;
     if (!selectedPet || !selectedSlot || !dtPreferida) {
       await alerta('Atenção', 'Selecione o pet, uma data e um horário.');
       return;
@@ -64,25 +70,17 @@ export default function NovoAgendamentoScreen() {
       dsMotivo:       motivo,
       dtPreferida,
     };
+    emVoo.current = true;
     try {
       await solicitar(req);
-      // TASK-F02: voltar() é seguro aqui porque lê canGoBack()/despacha no
-      // momento do toque, não no momento em que este onSubmit foi criado.
-      // TASK-F06: o container deixou de ser o Alert nativo, mas a lógica
-      // de fallback do voltar() NÃO foi reescrita — só o container.
-      // Decisão I1 (ver task-F06-report.md): `mostrar()` em vez de `alerta()`
-      // porque `alerta()` resolve TAMBÉM quando o diálogo é dispensado sem
-      // escolha (back-button do Android), o que faria voltar() rodar num caso
-      // em que o Alert nativo não voltava. Comparar com 'OK' preserva o
-      // comportamento anterior: só o toque no botão navega.
-      const acao = await mostrar({
-        titulo:   'Solicitação enviada!',
-        mensagem: 'A clínica confirmará em até 24h.',
-        acoes:    [{ label: 'OK' }],
-      });
-      if (acao === 'OK') voltar();
+      // BR-TUT-T05: o retorno é um toast com o verbo (substitui o diálogo "Solicitação enviada!" com promessa
+      // de prazo) e a tela volta na hora. TASK-F02: voltar() lê canGoBack() no momento da chamada.
+      toast.show({ tipo: 'sucesso', texto: 'Horário solicitado' });
+      voltar();
     } catch {
-      await alerta('Erro', 'Não foi possível solicitar. Tente novamente.');
+      toast.show({ tipo: 'erro', texto: 'Não foi possível solicitar o horário. Tente novamente.' });
+    } finally {
+      emVoo.current = false;
     }
   };
 
