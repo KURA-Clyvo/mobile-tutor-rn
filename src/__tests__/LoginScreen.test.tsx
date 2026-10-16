@@ -90,7 +90,7 @@ describe('LoginScreen', () => {
     });
 
     it('rede comprovada (axios sem resposta) => "Sem conexão"', async () => {
-      const u = await entrar(normalizeError(new AxiosError('Network Error', 'ERR_NETWORK')));
+      const u = await entrar(normalizeError(new AxiosError('Network Error', 'ERR_NETWORK', undefined, {})));
       expect(await u.findByText(/Sem conexão/)).toBeTruthy();
     });
 
@@ -102,7 +102,7 @@ describe('LoginScreen', () => {
 
     it('normalizeError: Error comum não vira NETWORK_ERROR', () => {
       expect(normalizeError(new TypeError('boom')).code).toBe('UNKNOWN_ERROR');
-      expect(normalizeError(new AxiosError('Network Error', 'ERR_NETWORK')).code).toBe('NETWORK_ERROR');
+      expect(normalizeError(new AxiosError('Network Error', 'ERR_NETWORK', undefined, {})).code).toBe('NETWORK_ERROR');
     });
   });
 });
