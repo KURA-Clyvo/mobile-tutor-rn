@@ -6,6 +6,7 @@ import { lightColors } from '../theme/tokens';
 import { ThemeProvider } from '../theme/index';
 import SaudeScreen from '../app/(tabs)/saude/index';
 import PetDetailScreen from '../app/(tabs)/pets/[id]/index';
+import MeusPetsScreen from '../app/(tabs)/pets/index';
 import { VacinasTab } from '../components/domain/VacinasTab';
 import { PetListCard } from '../components/domain/PetListCard';
 import { classificarVacina, fraseSaude, piorEstado, quandoVacina } from '../utils/vacinas';
@@ -14,6 +15,11 @@ import { mapPetDetailDto, mapPetDto } from '../utils/mappers';
 import { mapListaPets } from '../services/pets.service';
 import { VacinaItem } from '../components/domain/VacinaItem';
 
+// Só a lista de pets (MeusPetsScreen) usa estes dois.
+jest.mock('../hooks/useNotifications', () => ({ useNotifications: () => ({ data: [], isError: false, isLoading: false, refetch: jest.fn() }) }));
+jest.mock('../store/authStore', () => ({
+  useAuthStore: (sel: any) => sel({ tutor: { id: 1, nmTutor: 'Guilherme', dsEmail: 'g@k.com', dsTelefone: '', dtCadastro: '' }, isAuthenticated: () => true, themeOverride: null, setThemeOverride: jest.fn() }),
+}));
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn(), back: jest.fn(), replace: jest.fn(), canGoBack: jest.fn(() => true) }),
   useLocalSearchParams: () => ({ id: '1' }),
@@ -300,6 +306,22 @@ describe('modo real: a lista paginada do Java não traz status nem alertas (I1 d
     expect(r.queryByText(/Nenhum alerta ativo/)).toBeNull();
     expect(r.queryByText('Tudo certo')).toBeNull();
     expect(r.getByText('Nenhuma vacina vence nos próximos 30 dias.')).toBeTruthy();
+  });
+
+  // Re-G2 BR-TUT-T06 I-1/m-c: no modo real nenhum contador ou seção de alerta é montado a partir de status/alerta ausente.
+  it('Saúde: sem seção "PETS COM ALERTA" e nenhum "undefined" na tela', () => {
+    mockPets = { ...base, data: pets() };
+    mockVacinas = [{ ...base, data: [] }];
+    const r = render(<SaudeScreen />, { wrapper: W });
+    expect(r.queryByText(/^PETS COM ALERTA/)).toBeNull();
+    expect(r.queryByText(/undefined/)).toBeNull();
+  });
+
+  it('lista de pets: "N PETS" sem "ALERTAS" (nada de "0 ALERTAS" inventado)', () => {
+    mockPets = { ...base, data: pets() };
+    const r = render(<MeusPetsScreen />, { wrapper: W });
+    expect(r.getByText(/^1 PETS?$/)).toBeTruthy();
+    expect(r.queryByText(/ALERTAS/)).toBeNull();
   });
 
   // Reprodução do maestro (BR-TUT-T06): `pets.every` → `pets.some` sobrevivia (659/659) porque só havia "todos conhecidos" ou
