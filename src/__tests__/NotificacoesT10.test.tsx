@@ -1,11 +1,16 @@
 // BR-TUT-T10 (B-20) — notificações: data junto da hora, tipo opcional (só LEMBRETE_VACINA é reconhecido),
 // "Aviso" neutro sem link para todo o resto. Fuso: o jest fixa America/Sao_Paulo (jest.global-setup.js); o
-// `dtCriacao` do Java vem SEM fuso (LocalDateTime) e é lido como relógio de parede do aparelho (= SP para o tutor).
+// `dtCriacao` do Java vem SEM fuso (LocalDateTime) e é lido como relógio de parede do aparelho. SUPOSIÇÃO DECLARADA:
+// quem escreve a linha define o fuso (a Luna, DEFAULT CURRENT_TIMESTAMP; o TZ do kura-tutor não muda isso) — ver BE-09.
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '../theme/index';
 import NotificacoesScreen from '../app/notificacoes';
+import { StyleSheet } from 'react-native';
+import { lightColors } from '../theme/tokens';
+import { KChip } from '../components/primitives/KChip';
+import { KIcon } from '../components/primitives/KIcon';
 import { formatQuandoBR } from '../utils/date';
 import { mapNotificacaoDto } from '../utils/mappers';
 import { getNotificacoes } from '../services/notifications.service';
@@ -28,7 +33,7 @@ const W = ({ children }: any) => <QueryClientProvider client={new QueryClient()}
 
 // Resposta LITERAL do Java de hoje (NotificacaoResponse.java: 5 campos, sem dsTipo/idPet).
 const JAVA_HOJE: NotificacaoRaw[] = [
-  { idNotificacao: 1, dsTitulo: 'Vacina vencendo', dsMensagem: 'A Gripe Canina vence em 20 dias.', dtCriacao: '2026-10-17T06:23:00', flLida: false },
+  { idNotificacao: 1, dsTitulo: 'Vacina vencendo', dsMensagem: 'A Gripe Canina vence em 20 dias.', dtCriacao: '2026-10-17T06:23:45.123456', flLida: false },
   { idNotificacao: 2, dsTitulo: 'Agendamento confirmado', dsMensagem: 'Check-up da Luna confirmado.', dtCriacao: '2026-10-16T08:23:00', flLida: true },
   { idNotificacao: 3, dsTitulo: 'Retorno', dsMensagem: 'Retorno do Bóbi.', dtCriacao: '2026-10-12T14:32:00', flLida: true },
 ];
@@ -47,6 +52,13 @@ describe('formatQuandoBR', () => {
     expect(formatQuandoBR('2026-10-15T23:59:00', meiaNoite)).toBe('15 out · 23:59');
     const quaseMeiaNoite = new Date(2026, 9, 16, 23, 59);
     expect(formatQuandoBR('2026-10-16T23:58:00', quaseMeiaNoite)).toBe('Hoje · 23:58');
+  });
+  it('fração de 6 dígitos (o que o Java manda, Oracle TIMESTAMP): hora e dia não mudam, inclusive na meia-noite', () => {
+    expect(formatQuandoBR('2026-10-17T06:23:45.123456', agora)).toBe('Hoje · 06:23');
+    expect(formatQuandoBR('2026-10-16T08:23:05.120000', agora)).toBe('Ontem · 08:23');
+    const meiaNoite = new Date(2026, 9, 17, 0, 10);
+    expect(formatQuandoBR('2026-10-16T23:59:59.999999', meiaNoite)).toBe('Ontem · 23:59');
+    expect(formatQuandoBR('2026-10-17T00:00:00.000001', meiaNoite)).toBe('Hoje · 00:00');
   });
   it('ontem na virada de mês e de ano', () => {
     expect(formatQuandoBR('2026-09-30T10:00:00', new Date(2026, 9, 1, 9, 0))).toBe('Ontem · 10:00');
@@ -160,5 +172,48 @@ describe('NotificacoesScreen (T10)', () => {
     expect(u.queryByText(/VER SAÚDE/)).toBeNull();
     fireEvent.press(u.getByText('Vacina vencendo'));
     expect(mockPush).not.toHaveBeenCalled();
+  });
+});
+
+// BR-TUT-T10 fix wave (I-2): "Aviso" != "Vacina" em tom, icone e rotulo de acessibilidade (B-20: neutro, sem link).
+describe('NotificacoesScreen — Aviso é neutro, Vacina é âmbar com link (I-2)', () => {
+  beforeEach(() => { jest.useFakeTimers({ now: new Date(2026, 9, 17, 12, 0) }); });
+  afterEach(() => jest.useRealTimers());
+
+  const um = (extra: object) => { mockRaw = [{ ...JAVA_HOJE[0]!, ...extra }]; return render(<NotificacoesScreen />, { wrapper: W }); };
+  const iconesDoItem = (u: ReturnType<typeof render>) => u.UNSAFE_getAllByType(KIcon).map(i => i.props.name).filter(n => n !== 'back');
+  const fundoDoChip = (u: ReturnType<typeof render>, rotulo: string) => {
+    let n: any = u.getByText(rotulo);
+    while (n && !StyleSheet.flatten(n.props.style)?.backgroundColor) n = n.parent;
+    return StyleSheet.flatten(n.props.style).backgroundColor;
+  };
+
+  it('tom: Aviso usa o chip neutro (surface2), Vacina o âmbar', () => {
+    const aviso = um({});
+    expect(aviso.UNSAFE_getByType(KChip).props.tone).toBe('mute');
+    expect(fundoDoChip(aviso, 'Aviso')).toBe(lightColors.surface2);
+    expect(fundoDoChip(aviso, 'Aviso')).not.toBe(lightColors.amberPale);
+    const vacina = um({ dsTipo: 'LEMBRETE_VACINA', idPet: 5 });
+    expect(vacina.UNSAFE_getByType(KChip).props.tone).toBe('amber');
+    expect(fundoDoChip(vacina, 'Vacina')).toBe(lightColors.amberPale);
+  });
+
+  it('ícone: Aviso é o sino (cor neutra), Vacina é a seringa (âmbar)', () => {
+    const aviso = um({});
+    expect(iconesDoItem(aviso)).toEqual(['bell']);
+    expect(aviso.UNSAFE_getAllByType(KIcon).find(i => i.props.name === 'bell')!.props.color).toBe(lightColors.textSoft);
+    const vacina = um({ dsTipo: 'LEMBRETE_VACINA', idPet: 5 });
+    expect(iconesDoItem(vacina)).toEqual(['vaccine']);
+    expect(vacina.UNSAFE_getAllByType(KIcon).find(i => i.props.name === 'vaccine')!.props.color).toBe(lightColors.amberInk);
+  });
+
+  it('leitor de tela: só a Vacina anuncia "Ver saúde"; o Aviso não promete link', () => {
+    const aviso = um({});
+    const rAviso = aviso.getByRole('button', { name: /Vacina vencendo/ }).props.accessibilityLabel as string;
+    expect(rAviso).toMatch(/^Não lida: Vacina vencendo\./);
+    expect(rAviso).not.toMatch(/ver saúde/i);
+    const vacina = um({ dsTipo: 'LEMBRETE_VACINA', idPet: 5 });
+    const rVac = vacina.getAllByRole('button', { name: /Vacina vencendo/ })[0]!.props.accessibilityLabel as string;
+    expect(rVac).toMatch(/\. Ver saúde$/);
   });
 });

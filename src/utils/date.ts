@@ -28,8 +28,11 @@ const doisDig = (n: number) => String(n).padStart(2, '0');
 
 /**
  * "Hoje · 06:23", "Ontem · 08:23", "12 out · 14:32" (com ano se não for o corrente). BR-TUT-T10.
- * FUSO: `dtCriacao` do Java é LocalDateTime SEM fuso — `new Date()` o lê como relógio de parede do aparelho
- * (= São Paulo para o tutor); com `Z`/offset vale o instante. "Hoje/Ontem" compara o dia de calendário local.
+ * FUSO: `dtCriacao` do Java é LocalDateTime SEM fuso (fração de 0 a 6 casas) — `new Date()` o lê como relógio de parede
+ * do aparelho; com `Z`/offset vale o instante. Quem escreve a linha define o fuso do valor (a Luna, via
+ * `DEFAULT CURRENT_TIMESTAMP`; o `TZ` do kura-tutor NÃO muda um TIMESTAMP sem fuso), então ler como hora de São Paulo é
+ * SUPOSIÇÃO declarada, não fato: o BE-09 (KURA_BACKLOG_BRANDING_BACKEND.md) deve fazer o Java mandar offset.
+ * "Hoje/Ontem" compara o dia de calendário local.
  */
 export function formatQuandoBR(iso: string, now: Date = new Date()): string {
   const d = new Date(iso);

@@ -93,7 +93,7 @@ export function setupHandlers(qc: QueryClient, router: Router): () => void {
   const fgSub = Notifications.addNotificationReceivedListener(notification => {
     const tipo = notification.request.content.data?.dsTipo as string;
     const idPet = notification.request.content.data?.idPet as number | undefined;
-    if (tipo === 'VACINA_VENCENDO' && idPet) qc.invalidateQueries({ queryKey: ['pets', idPet, 'vacinas'] });
+    if (tipo === 'LEMBRETE_VACINA' && idPet) qc.invalidateQueries({ queryKey: ['pets', idPet, 'vacinas'] });
     if (tipo?.startsWith('AGENDAMENTO')) qc.invalidateQueries({ queryKey: ['agendamentos'] });
     if (tipo === 'RETORNO_PENDENTE') qc.invalidateQueries({ queryKey: ['pets'] });
   });
