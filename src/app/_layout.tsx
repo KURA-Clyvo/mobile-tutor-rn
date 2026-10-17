@@ -12,7 +12,7 @@ import { ThemeProvider, useTheme } from '@theme/index';
 import { KDialogProvider } from '@components/primitives/KDialog';
 import { ToastProvider } from '@components/feedback/Toast';
 import { Abertura } from '@components/brand/Abertura';
-import { queryClient, asyncStoragePersister } from '@services/queryClient';
+import { queryClient, asyncStoragePersister, dehydrateOptions } from '@services/queryClient';
 import { useAuthStore } from '../store/authStore';
 import { parseInviteLink } from '../utils/invite';
 import { setupHandlers } from '../services/notifications.service';
@@ -109,7 +109,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
+      <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister, dehydrateOptions }}>
         <ThemeProvider>
           {/* TASK-F06: KDialogProvider vive DENTRO do ThemeProvider porque o
               KDialog lê `useTheme()`; e envolve o RootLayoutInner para que
