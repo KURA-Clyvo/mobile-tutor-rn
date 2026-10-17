@@ -35,7 +35,7 @@ export default function NotificacoesScreen() {
   const handleTap = (n: NotificacaoTutorResponse) => {
     if (!n.flLida) marcarLida(n.id);
     if (n.dsTipo !== 'LEMBRETE_VACINA') return;
-    router.push((n.idPet ? `/(tabs)/pets/${n.idPet}` : '/(tabs)/saude') as any);
+    router.push((n.idPet ? `/(tabs)/pets/${n.idPet}?tab=vacinas` : '/(tabs)/saude') as any);
   };
 
   return (
@@ -101,7 +101,7 @@ export default function NotificacoesScreen() {
                     pressed && { opacity: 0.8 },
                   ]}
                   accessibilityRole="button"
-                  accessibilityLabel={`${n.flLida ? 'Lida' : 'Não lida'}: ${n.dsTitulo}. ${n.dsMensagem}. ${formatQuandoBR(n.dtEnvio)}${vacina ? '. Ver saúde' : ''}`}
+                  accessibilityLabel={`${n.flLida ? 'Lida' : 'Não lida'}: ${n.dsTitulo}. ${/[.!?]$/.test(n.dsMensagem.trim()) ? n.dsMensagem.trim() : `${n.dsMensagem}.`} ${formatQuandoBR(n.dtEnvio)}${vacina ? '. Ver saúde' : ''}`}
                 >
                   {!n.flLida && <View style={[styles.unreadDot, { backgroundColor: colors.clay }]} />}
                   <View style={[styles.ico, vacina ? { backgroundColor: colors.amberPale } : { borderWidth: 1, borderColor: contorno }]}>

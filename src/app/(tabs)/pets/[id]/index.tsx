@@ -31,7 +31,7 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 export default function PetDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, tab: tabInicial } = useLocalSearchParams<{ id: string; tab?: string }>();
   const petId  = parseInt(id ?? '0', 10);
   const { colors, fonts, fontSize, spacing } = useTheme();
   const router  = useRouter();
@@ -46,7 +46,7 @@ export default function PetDetailScreen() {
   // sem o pet na lista, a chip some (nunca um "Tudo certo" inventado).
   const listaQuery = usePets();
   const statusGeral = listaQuery.isError && !listaQuery.data ? undefined : listaQuery.data?.find(p => p.id === petId)?.statusGeral;
-  const [tab, setTab] = useState<Tab>('visao');
+  const [tab, setTab] = useState<Tab>(tabInicial === 'vacinas' ? 'vacinas' : 'visao');
   // F5-M4 (G2): no erro sem dado a barra não fica em '…' (lê como carregando): título neutro.
 
   return (
