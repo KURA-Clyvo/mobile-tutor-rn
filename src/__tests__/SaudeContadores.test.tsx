@@ -22,9 +22,10 @@ const em = (dias: number) => new Date(Date.now() + dias * DIA + 3_600_000).toISO
 const vac = (id: number, nmVacina: string, dias: number) =>
   ({ id, nmVacina, dtAplicacao: em(dias), dtProximaDose: em(dias), nmClinica: 'KURA', sgStatus: 'VENCENDO' as const });
 
-const THOR = { id: 1, nome: 'Thor', especie: 'Cão', raca: 'SRD', idadeAnos: 3, sexo: 'M', porte: 'M', statusGeral: 'ALERTA' as const, alertasAtivos: 1, chips: [], nmClinica: 'KURA' };
-const MEL = { ...THOR, id: 2, nome: 'Mel', especie: 'Gato', statusGeral: 'URGENTE' as const, alertasAtivos: 2 };
-const BIA = { ...THOR, id: 3, nome: 'Bia', statusGeral: 'OK' as const, alertasAtivos: 0 };
+type PetFx = { id: number; nome: string; especie: string; raca: string; idadeAnos: number; sexo: string; porte: string; statusGeral: 'OK' | 'ALERTA' | 'URGENTE'; alertasAtivos: number; chips: never[]; nmClinica: string };
+const THOR: PetFx = { id: 1, nome: 'Thor', especie: 'Cão', raca: 'SRD', idadeAnos: 3, sexo: 'M', porte: 'M', statusGeral: 'ALERTA', alertasAtivos: 1, chips: [], nmClinica: 'KURA' };
+const MEL: PetFx = { ...THOR, id: 2, nome: 'Mel', especie: 'Gato', statusGeral: 'URGENTE', alertasAtivos: 2 };
+const BIA: PetFx = { ...THOR, id: 3, nome: 'Bia', statusGeral: 'OK', alertasAtivos: 0 };
 const VACINAS_POR_PET: Record<number, ReturnType<typeof vac>[]> = {
   1: [vac(10, 'Antirrábica', 12), vac(11, 'V10', 200)],
   2: [vac(20, 'V4 felina', -7)],
@@ -45,7 +46,7 @@ jest.mock('../hooks/usePetVacinas', () => ({ usePetVacinas: () => mockTab }));
 const W = ({ children }: any) => <ThemeProvider>{children}</ThemeProvider>;
 const numero = (r: ReturnType<typeof render>, re: RegExp) =>
   Number(String(r.getByText(re).props.children).match(/(\d+)$/)?.[1]);
-const resp = (pets: (typeof THOR)[]) => pets.map(p => ({ ...base, data: VACINAS_POR_PET[p.id] }));
+const resp = (pets: PetFx[]) => pets.map(p => ({ ...base, data: VACINAS_POR_PET[p.id] }));
 
 describe('Saúde — contadores derivam da lista exibida', () => {
   it('cada contador = itens desenhados (3 pets, vencida / vencendo / em dia)', () => {
