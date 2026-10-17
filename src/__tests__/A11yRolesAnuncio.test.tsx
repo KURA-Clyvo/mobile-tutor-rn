@@ -46,6 +46,15 @@ describe('roles', () => {
   });
 });
 
+describe('rótulos de botões só-ícone (G2 M-1)', () => {
+  it('"Compartilhar prontuário" tem rótulo (o botão é só ícone; sem rótulo o leitor diz "botão")', () => {
+    mockTimeline = rq([{ idEventoClinico: 7, nmTipo: 'CONSULTA', dtEvento: '2026-09-01T10:00:00Z', nmClinica: 'KURA', nmVeterinario: 'Dra. Ana', dsResumoPublico: 'Rotina' }]);
+    const r = render(<ConsultasTab petId={1} />, { wrapper: W });
+    fireEvent.press(r.getByRole('button', { name: /Consulta de .*Dra\. Ana/ }));
+    expect(r.getByRole('button', { name: 'Compartilhar prontuário' })).toBeTruthy();
+  });
+});
+
 describe('KSwitchRow', () => {
   it('a LINHA alterna (alvo = linha) e anuncia role switch + checked', () => {
     const fn = jest.fn();
@@ -56,14 +65,31 @@ describe('KSwitchRow', () => {
     fireEvent.press(linha);
     expect(fn).toHaveBeenCalledWith(true);
   });
-  it('falha e nova tentativa: a linha continua respondendo depois de um toque que o dono recusou', () => {
-    let valor = false;
-    const fn = jest.fn((v: boolean) => { if (fn.mock.calls.length === 1) return; valor = v; });
-    const r = render(<KSwitchRow value={valor} onValueChange={fn} accessibilityLabel="Notificações" testID="sw2"><></></KSwitchRow>, { wrapper: W });
+  it('dois toques seguidos chegam ao dono 2x: o primitivo NÃO trava (a trava, se existir, é do chamador)', () => {
+    const fn = jest.fn();
+    const r = render(<KSwitchRow value={false} onValueChange={fn} accessibilityLabel="Notificações" testID="sw2"><></></KSwitchRow>, { wrapper: W });
     fireEvent.press(r.getByTestId('sw2-row'));
     fireEvent.press(r.getByTestId('sw2-row'));
     expect(fn).toHaveBeenCalledTimes(2);
-    expect(valor).toBe(true);
+  });
+  // G2 M-1: o RN-web desta versão NÃO converte `accessibilityState` em `aria-checked`; a prop explícita e a tecla Espaço
+  // (role=switch não responde ao Espaço no RN-web) são do primitivo e não tinham teste.
+  it('aria-checked espelha o valor e a tecla Espaço alterna', () => {
+    // Lê as props do COMPOSTO `Pressable`: o Pressable do RN funde `aria-checked` em `accessibilityState` no nó nativo, então
+    // o host não as mostra. LIMITE: o DOM do RN-web (aria-checked/Espaço de verdade) só a sonda de DOM mede (R3 da G2).
+    const fn = jest.fn();
+    const monta = (v: boolean) => <KSwitchRow value={v} onValueChange={fn} accessibilityLabel="Modo escuro" testID="sw3"><></></KSwitchRow>;
+    const r = render(monta(true), { wrapper: W });
+    expect(r.UNSAFE_getAllByProps({ testID: 'sw3-row' })[0]!.props['aria-checked']).toBe(true);
+    const prevent = jest.fn();
+    r.UNSAFE_getAllByProps({ testID: 'sw3-row' })[0]!.props.onKeyDown({ key: ' ', preventDefault: prevent });
+    expect(prevent).toHaveBeenCalled();
+    expect(fn).toHaveBeenCalledWith(false);
+    fn.mockClear();
+    r.UNSAFE_getAllByProps({ testID: 'sw3-row' })[0]!.props.onKeyDown({ key: 'a', preventDefault: jest.fn() });
+    expect(fn).not.toHaveBeenCalled();
+    r.rerender(monta(false));
+    expect(r.UNSAFE_getAllByProps({ testID: 'sw3-row' })[0]!.props['aria-checked']).toBe(false);
   });
 });
 
@@ -81,6 +107,11 @@ describe('m8 — toast anunciado no iOS', () => {
     const { spy, r } = mostrar('ios');
     expect(spy).toHaveBeenCalledWith('Horário solicitado');
     expect(r.getByTestId('toast')).toBeTruthy();
+  });
+  it('iOS: toasts em sequência anunciam OS DOIS (m8 só anunciava o primeiro)', () => {
+    const { spy } = mostrar('ios');
+    act(() => { mostrarToast({ tipo: 'erro', texto: 'Segundo aviso' }); });
+    expect(spy.mock.calls.map((c) => c[0])).toEqual(['Horário solicitado', 'Segundo aviso']);
   });
   it.each(['android', 'web'])('%s: NÃO chama (liveRegion / role=alert já anunciam; chamar falaria 2×)', (os) => {
     const { spy, r } = mostrar(os);

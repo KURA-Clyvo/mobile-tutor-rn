@@ -57,7 +57,7 @@ describe('PerfilScreen — notificações push (TASK-70)', () => {
     mockGetPermissionStatus.mockResolvedValue(true);
     const { getByTestId } = render(<PerfilScreen />, { wrapper: W });
 
-    await waitFor(() => expect(getByTestId('switch-notificacoes', { includeHiddenElements: true }).props.value).toBe(true));
+    await waitFor(() => expect(getByTestId('switch-notificacoes-row').props.accessibilityState.checked).toBe(true));
   }, 20000);
 
   it('reflete permissão NEGADA quando a tela abre', async () => {
@@ -65,7 +65,7 @@ describe('PerfilScreen — notificações push (TASK-70)', () => {
     const { getByTestId } = render(<PerfilScreen />, { wrapper: W });
 
     await waitFor(() => expect(mockGetPermissionStatus).toHaveBeenCalled());
-    expect(getByTestId('switch-notificacoes', { includeHiddenElements: true }).props.value).toBe(false);
+    expect(getByTestId('switch-notificacoes-row').props.accessibilityState.checked).toBe(false);
   });
 
   it('MORDIDA: tocar o switch com permissão concedida registra o token no servidor', async () => {
@@ -77,10 +77,10 @@ describe('PerfilScreen — notificações push (TASK-70)', () => {
     const { getByTestId } = render(<PerfilScreen />, { wrapper: W });
     await waitFor(() => expect(mockGetPermissionStatus).toHaveBeenCalledTimes(1));
 
-    fireEvent(getByTestId('switch-notificacoes', { includeHiddenElements: true }), 'valueChange', true);
+    fireEvent.press(getByTestId('switch-notificacoes-row')); // toca a LINHA (o Switch fica escondido, pointerEvents none)
 
     await waitFor(() => expect(mockRegisterDeviceToken).toHaveBeenCalledWith('ExponentPushToken[abc123]'));
-    expect(getByTestId('switch-notificacoes', { includeHiddenElements: true }).props.value).toBe(true);
+    expect(getByTestId('switch-notificacoes-row').props.accessibilityState.checked).toBe(true);
   });
 
   it('tocar o switch com permissão negada não registra token e alerta o tutor', async () => {
@@ -90,7 +90,7 @@ describe('PerfilScreen — notificações push (TASK-70)', () => {
     const { getByTestId } = render(<PerfilScreen />, { wrapper: W });
     await waitFor(() => expect(mockGetPermissionStatus).toHaveBeenCalledTimes(1));
 
-    fireEvent(getByTestId('switch-notificacoes', { includeHiddenElements: true }), 'valueChange', true);
+    fireEvent.press(getByTestId('switch-notificacoes-row')); // toca a LINHA (o Switch fica escondido, pointerEvents none)
 
     await waitFor(() => expect(mockRequestPermission).toHaveBeenCalled());
     expect(mockGetDeviceToken).not.toHaveBeenCalled();
@@ -107,12 +107,12 @@ describe('PerfilScreen — notificações push (TASK-70)', () => {
     mockGetPermissionStatus.mockResolvedValue(true);
 
     const { getByTestId } = render(<PerfilScreen />, { wrapper: W });
-    await waitFor(() => expect(getByTestId('switch-notificacoes', { includeHiddenElements: true }).props.value).toBe(true));
+    await waitFor(() => expect(getByTestId('switch-notificacoes-row').props.accessibilityState.checked).toBe(true));
 
-    fireEvent(getByTestId('switch-notificacoes', { includeHiddenElements: true }), 'valueChange', false);
+    fireEvent.press(getByTestId('switch-notificacoes-row')); // toca a LINHA (o Switch fica escondido, pointerEvents none)
 
     await waitFor(() => expect(mockGetPermissionStatus).toHaveBeenCalledTimes(2));
-    expect(getByTestId('switch-notificacoes', { includeHiddenElements: true }).props.value).toBe(true);
+    expect(getByTestId('switch-notificacoes-row').props.accessibilityState.checked).toBe(true);
     // Antes: expect(alertSpy).toHaveBeenCalled() — só provava "algum alerta
     // apareceu", sem dizer qual. Agora o título e o corpo exatos são asserados
     // sobre o diálogo renderizado.
@@ -176,4 +176,14 @@ describe('PerfilScreen — marca (BR-TUT-T02)', () => {
     expect(queryByText('Kura.')).toBeNull();
   });
 });
+});
+
+describe('PerfilScreen — scrim do "Sobre o app" (G2 M-1)', () => {
+  it('o scrim sai da ordem de foco: tabIndex -1 (RN-web ignora accessible={false})', () => {
+    useAuthStore.setState({ token: 'jwt-valido', expiresAt: new Date(Date.now() + 3600_000).toISOString(), tutor: TUTOR });
+    mockGetPermissionStatus.mockResolvedValue(false);
+    const { getByText, getByTestId } = render(<PerfilScreen />, { wrapper: W });
+    fireEvent.press(getByText('Sobre o app'));
+    expect(getByTestId('sobre-scrim').props.tabIndex).toBe(-1);
+  });
 });

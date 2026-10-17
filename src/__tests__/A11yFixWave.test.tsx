@@ -1,7 +1,7 @@
 // BR-TUT-T09 fix wave (pós-G2). Cada teste mata uma mutação que a G2 mostrou viva (ver diário `br-tut-t09-fixwave.md`).
 import React from 'react';
 import { StyleSheet, Text, type ViewStyle } from 'react-native';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { KButton } from '../components/primitives/KButton';
 import { KCard } from '../components/primitives/KCard';
