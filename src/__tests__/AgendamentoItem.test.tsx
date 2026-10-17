@@ -84,6 +84,11 @@ describe('AgendamentoItem — quando (BR-TUT-T07 I-5)', () => {
     expect(r.getByText(/10:30/)).toBeTruthy();
     expect(r.queryByText(/preferência/)).toBeNull();
   });
+  it('não confirmado na hora da âncora mas com minutos (14:30, a clínica mexeu) mostra a hora, não "Tarde · preferência"', () => {
+    const r = render1({ sgStatus: 'AGENDADO', dtInicio: em(14, 30) });
+    expect(r.getByText(/14:30/)).toBeTruthy();
+    expect(r.queryByText(/preferência/)).toBeNull();
+  });
   it('tipo Vacina aparece como "Vacina"', () => {
     const r = render1({ sgTipoConsulta: 'VACINA', sgStatus: 'SOLICITADO', dtInicio: em(9) });
     expect(r.getByText(/^Vacina · KURA/)).toBeTruthy();
