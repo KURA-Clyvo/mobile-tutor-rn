@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Linking, StyleSheet } from 'react-native';
 import { ThemeProvider } from '../theme/index';
+import { lightColors } from '../theme/tokens';
 import { AgendamentoItem } from '../components/domain/AgendamentoItem';
 import type { AgendamentoTutorResponse } from '../types/api';
 
@@ -118,6 +119,12 @@ describe('AgendamentoItem — botão Cancelar agendamento (BR-TUT-T10)', () => {
     const { queryByA11yHint, queryAllByRole } = comStatus('SOLICITADO');
     expect(queryByA11yHint(/longo/i)).toBeNull();
     expect(queryAllByRole('button')).toHaveLength(1);
+  });
+
+  it('o botão é destrutivo (variante danger: fundo = token danger, texto textOnPrimary)', () => {
+    const { getByRole, getByText } = comStatus('SOLICITADO');
+    expect(StyleSheet.flatten(getByRole('button').props.style).backgroundColor).toBe(lightColors.danger);
+    expect(StyleSheet.flatten(getByText('Cancelar agendamento').props.style).color).toBe(lightColors.textOnPrimary);
   });
 
   it('alvo do botão >= 44', () => {

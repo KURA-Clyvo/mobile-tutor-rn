@@ -15,10 +15,11 @@ import type { NotificacaoRaw } from '../types/api';
 const mockPush = jest.fn();
 const mockMarcarLida = jest.fn();
 let mockRaw: any[] = [];
+let mockDireto: any[] | null = null; // dado já no formato do app, sem passar pelo mapper
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, back: jest.fn(), replace: jest.fn(), canGoBack: jest.fn(() => true) }) }));
 jest.mock('../services/api/client', () => ({ apiClient: { get: jest.fn() } }));
 jest.mock('../hooks/useNotifications', () => ({
-  useNotifications: () => ({ data: mockRaw.map(r => jest.requireActual('../utils/mappers').mapNotificacaoDto(r)), isLoading: false }),
+  useNotifications: () => ({ data: mockDireto ?? mockRaw.map(r => jest.requireActual('../utils/mappers').mapNotificacaoDto(r)), isLoading: false }),
   useMarcarLida:       () => ({ mutate: mockMarcarLida }),
   useMarcarTodasLidas: () => ({ mutate: jest.fn(), isPending: false }),
 }));
@@ -100,7 +101,7 @@ describe('getNotificacoes — resposta literal do Java', () => {
 describe('NotificacoesScreen (T10)', () => {
   beforeEach(() => {
     jest.useFakeTimers({ now: new Date(2026, 9, 17, 12, 0) });
-    mockPush.mockClear(); mockMarcarLida.mockClear();
+    mockPush.mockClear(); mockMarcarLida.mockClear(); mockDireto = null;
   });
   afterEach(() => jest.useRealTimers());
 
@@ -143,6 +144,13 @@ describe('NotificacoesScreen (T10)', () => {
     const u = render(<NotificacoesScreen />, { wrapper: W });
     fireEvent.press(u.getByText('Vacina vencendo'));
     expect(mockPush).toHaveBeenCalledWith('/(tabs)/saude');
+  });
+
+  it('defesa na tela: um AVISO que chegue com idPet (sem passar pelo mapper) também não navega', () => {
+    mockDireto = [{ id: 1, dsTipo: 'AVISO', dsTitulo: 'Aviso direto', dsMensagem: 'x', dtEnvio: '2026-10-17T06:23:00', flLida: false, idPet: 5 }];
+    const u = render(<NotificacoesScreen />, { wrapper: W });
+    fireEvent.press(u.getByText('Aviso direto'));
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('tipo desconhecido com idPet: "Aviso", sem link, sem navegação', () => {
