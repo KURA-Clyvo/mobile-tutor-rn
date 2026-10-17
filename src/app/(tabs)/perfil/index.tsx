@@ -212,7 +212,7 @@ export default function PerfilScreen() {
 
       {/* About modal */}
       <Modal visible={aboutVisible} transparent animationType="slide" onRequestClose={() => setAboutVisible(false)}>
-        <Pressable accessible={false} style={[styles.modalBg, { backgroundColor: colors.scrim }]} onPress={() => setAboutVisible(false)}>
+        <Pressable accessible={false} {...({ tabIndex: -1 } as object)} style={[styles.modalBg, { backgroundColor: colors.scrim }]} onPress={() => setAboutVisible(false)}>
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={{ marginBottom: 12 }}><KuraMark size={36} variante="sobreNeutro" /></View>
             <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, marginBottom: 8 }}>Versão 1.0.0 — Tutor App</Text>
