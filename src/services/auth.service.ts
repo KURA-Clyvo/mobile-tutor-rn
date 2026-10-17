@@ -65,7 +65,7 @@ export interface RegisterInviteApiResponse {
 // aceito: boolean, textoTermo?: string }. `tipo` é o enum Java
 // (consentimento/lgpd/TipoConsentimento.java) — os nomes abaixo têm que bater exatamente
 // com os valores do enum (TELEORIENTACAO, LEMBRETES, DADOS_ANONIMOS,
-// COMPARTILHAR_SEGURADORA, MARKETING), senão o Jackson rejeita o payload com 400.
+// COMPARTILHAR_SEGURADORA, MARKETING), senão o Java recusa o payload — medido na G2 da BR-TUT-T08 (@WebMvcTest, d1522ee): tipo fora do enum devolve 500, não 400 (FIXES_PENDENTES.md).
 // `versaoTermo` tem que bater com a versão vigente no servidor (TermoVigente.java —
 // hoje 'v1.0' para todos os tipos) ou o registro falha com RegraDeNegocioException.
 interface AceiteInviteApi {

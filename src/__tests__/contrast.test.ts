@@ -238,7 +238,7 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'app/(tabs)/pets/novo.tsx|textMuteInk': {
-      sitios: {'color: colors.textMuteInk': 7, 'color: active ? colors.primary : colors.textMuteInk': 1},
+      sitios: {'color: colors.textMuteInk': 6, 'color: active ? colors.primary : colors.textMuteInk': 1},
       fundos: {
         'claro|primarySoft': 'primarySoft só no ícone da foto (KIcon) e na espécie ativa (texto primary); textMuteInk só no estado inativo (surface)',
         'claro|surface2': 'segmento de sexo (surface2) só tem texto textSoft/textOnPrimary',
@@ -264,15 +264,16 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'app/register.tsx|textMuteInk': {
-      sitios: {'color: c.textMuteInk': 4},
+      sitios: {'color: c.textMuteInk': 2},
       fundos: {
         'claro|primarySoft': 'inviteBanner (primarySoft) só tem texto primary',
+        'claro|surface2': 'aviso "Necessário para o serviço" (surface2) só tem texto text/textSoft; textMuteInk fica no passo e no rodapé, sobre bg',
       },
     },
-    'app/register.tsx|danger': {
-      sitios: {'color: c.danger': 1},
+    'app/(tabs)/perfil/consentimentos.tsx|textMuteInk': {
+      sitios: {'color: colors.textMuteInk': 2},
       fundos: {
-        'claro|primarySoft': 'danger é erro de campo em bg; inviteBanner só tem texto primary',
+        'claro|surface2': 'caixa "Necessário para o serviço" (surface2) só tem texto text/textSoft; textMuteInk fica no kicker e na nota, sobre bg',
       },
     },
     'components/domain/ConsultasTab.tsx|textMuteInk': {
@@ -413,7 +414,14 @@ const USOS: UsoAncorado[] = [
   // bordas de controle (não-texto, 3:1)
   { arq: 'components/primitives/KTextField.tsx', ancora: /: theme\.colors\.borderControl;/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
   { arq: 'components/primitives/KButton.tsx', ancora: /secondary:.*borderColor: theme\.colors\.borderControl/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
-  { arq: 'app/(tabs)/perfil/consentimentos.tsx', ancora: /trackColor=\{\{ false: colors\.borderControl/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
+  // BR-TUT-T08: o Switch saiu; o botão Revogar é o KButton secondary (borderControl/bg, acima). Texto das linhas e da caixa "Necessário".
+  { arq: 'app/(tabs)/perfil/consentimentos.tsx', ancora: /status\.ativo \? colors\.primary : colors\.textSoft/, texto: 'primary', fundo: 'bg' },
+  { arq: 'app/(tabs)/perfil/consentimentos.tsx', ancora: /status\.ativo \? colors\.primary : colors\.textSoft/, texto: 'textSoft', fundo: 'bg' },
+  { arq: 'app/(tabs)/perfil/consentimentos.tsx', ancora: /necessario, \{ backgroundColor: colors\.surface2/, texto: 'textSoft', fundo: 'surface2' },
+  { arq: 'app/(tabs)/perfil/consentimentos.tsx', ancora: /necessario, \{ backgroundColor: colors\.surface2/, texto: 'text', fundo: 'surface2' },
+  { arq: 'app/(tabs)/perfil/consentimentos.tsx', ancora: /PRIVACIDADE/, texto: 'textMuteInk', fundo: 'bg' },
+  { arq: 'app/register.tsx', ancora: /necessario, \{ backgroundColor: c\.surface2/, texto: 'textSoft', fundo: 'surface2' },
+  { arq: 'app/register.tsx', ancora: /necessario, \{ backgroundColor: c\.surface2/, texto: 'text', fundo: 'surface2' },
   { arq: 'app/(tabs)/perfil/index.tsx', ancora: /trackColor=\{\{ false: colors\.borderControl/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
   { arq: 'app/register.tsx', ancora: /: c\.borderControl, backgroundColor: value/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
   { arq: 'app/(tabs)/pets/novo.tsx', ancora: /borderColor: colors\.borderControl, borderRadius: radius\.md/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },

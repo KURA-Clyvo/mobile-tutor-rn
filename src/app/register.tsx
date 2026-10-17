@@ -37,8 +37,8 @@ export default function RegisterScreen() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       nmTutor: '', dsEmail: '', dsSenha: '', dsSenhaConfirm: '', dsTelefone: '',
-      // TASK-61: LGPD exige opt-in explícito — nunca pré-marcado, mesmo o obrigatório.
-      aceiteLembretes: false, aceiteTeleorientacao: false,
+      // TASK-61: LGPD exige opt-in explícito — nunca pré-marcado.
+      aceiteTeleorientacao: false,
     },
   });
 
@@ -62,7 +62,9 @@ export default function RegisterScreen() {
         nmTutor:              data.nmTutor,
         dsSenha:              data.dsSenha,
         dsTelefone:           data.dsTelefone,
-        aceiteLembretes:      data.aceiteLembretes,
+        // BR-TUT-T08: lembretes é o necessário ao serviço (o .NET só envia lembrete com esse registro: LunaService.cs:414-416),
+        // então segue no cadastro sem caixa para marcar.
+        aceiteLembretes:      true,
         aceiteTeleorientacao: data.aceiteTeleorientacao,
       });
       setSession(res.accessToken, res.expiresAt, {
@@ -182,31 +184,12 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.consentGroup}>
-          <Controller control={control} name="aceiteLembretes"
-            render={({ field: { onChange, value } }) => (
-              <Pressable
-                onPress={() => onChange(!value)}
-                style={styles.consentRow}
-                hitSlop={4}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: value }}
-                accessibilityLabel="Aceito receber lembretes de vacina e consulta (obrigatório)"
-              >
-                <View style={[styles.checkbox, { borderColor: errors.aceiteLembretes ? c.danger : c.borderControl, backgroundColor: value ? c.primary : 'transparent' }]}>
-                  {value && <KIcon name="check" size={12} color={c.textOnPrimary} strokeWidth={2.5} />}
-                </View>
-                <Text style={{ fontFamily: theme.fonts.body, color: c.textSoft, fontSize: theme.fontSize.xs, flex: 1, lineHeight: 18 }}>
-                  Aceito receber lembretes de vacina, consultas e comunicados da clínica.{' '}
-                  <Text style={{ fontFamily: theme.fonts.bodyMedium, color: c.textMuteInk }}>Obrigatório.</Text>
-                </Text>
-              </Pressable>
-            )}
-          />
-          {errors.aceiteLembretes && (
-            <Text style={[styles.consentError, { color: c.danger, fontFamily: theme.fonts.body, fontSize: theme.fontSize.xs }]}>
-              {errors.aceiteLembretes.message}
+          <View style={[styles.necessario, { backgroundColor: c.surface2 }]}>
+            <Text style={{ fontFamily: theme.fonts.bodyMedium, color: c.text, fontSize: theme.fontSize.sm }}>Necessário para o serviço</Text>
+            <Text style={{ fontFamily: theme.fonts.body, color: c.textSoft, fontSize: theme.fontSize.xs, lineHeight: 18 }}>
+              Ao criar a conta, você passa a receber lembretes de vacina e de horário da clínica. Eles fazem parte do atendimento e não bloqueiam o cadastro.
             </Text>
-          )}
+          </View>
 
           <Controller control={control} name="aceiteTeleorientacao"
             render={({ field: { onChange, value } }) => (
@@ -240,10 +223,6 @@ export default function RegisterScreen() {
         >
           Criar conta
         </KButton>
-
-        <Text style={[styles.footerMono, { fontFamily: theme.fonts.mono, color: c.textMuteInk, fontSize: theme.fontSize.xs }]}>
-          ⌧ DADOS CIFRADOS · LGPD COMPLIANT
-        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -263,6 +242,5 @@ const styles = StyleSheet.create({
   consentGroup: { gap: 4, marginTop: 12, marginBottom: 4 },
   consentRow:   { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8, minHeight: 44 },
   checkbox:     { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-  consentError: { marginLeft: 30, marginTop: -4, marginBottom: 4 },
-  footerMono:   { textAlign: 'center', letterSpacing: 1.2, marginTop: 20 },
+  necessario:   { gap: 4, padding: 14, borderRadius: 14, marginBottom: 8 },
 });

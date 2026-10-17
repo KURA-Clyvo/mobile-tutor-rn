@@ -36,43 +36,55 @@ export const LGPD_CONSENTIMENTOS = {
       'Você pode revogar este consentimento a qualquer momento nesta tela.\n' +
       'Base legal: Legítimo interesse (Art. 7º, IX, LGPD).',
   },
+  // BR-TUT-T08 (m9): os 3 tipos abaixo SÓ existem como registro. Nenhum código dos 3 backends os consome
+  // (grep DADOS_ANONIMOS|SEGURADORA|MARKETING em backend-clinica-dotnet/src e kura-luna-ai/luna/src => 0, 2026-10-17,
+  // dotnet 33dc567, luna e011335). A cópia diz o que a autorização registra e que ainda não há uso; não promete
+  // anonimização, compartilhamento nem envio. TELEORIENTACAO é real (TeleconsultaService.cs:77-86 recusa a sala sem ela).
   DADOS_ANONIMOS: {
-    titulo: 'Uso de dados anonimizados',
-    resumo: 'Autorizo o uso de dados anonimizados do meu pet para pesquisa e melhoria dos serviços.',
+    titulo: 'Dados anonimizados para pesquisa',
+    resumo: 'Registra que você aceita que dados anonimizados do seu pet sejam usados em pesquisa.',
     textoCompleto:
-      'Ao aceitar, você autoriza que a KURA utilize dados clínicos do seu pet, após processo de ' +
-      'anonimização (remoção de qualquer informação que identifique você ou seu pet), para ' +
-      'pesquisa veterinária, geração de estatísticas de saúde animal e melhoria contínua dos ' +
-      'serviços e algoritmos da plataforma, incluindo o subsistema de inteligência artificial ' +
-      'Luna.\n\n' +
-      'Dado anonimizado deixa de ser dado pessoal e não permite, em nenhuma hipótese, identificar ' +
-      'você ou seu pet novamente.\n' +
+      'Ao autorizar, você registra que aceita que dados clínicos do seu pet, depois de anonimizados ' +
+      '(sem nada que identifique você ou seu pet), possam ser usados em pesquisa veterinária e em ' +
+      'estatísticas de saúde animal.\n\n' +
+      'Hoje a KURA ainda não usa dados dessa forma: este registro só vale como autorização para o ' +
+      'futuro, e você pode revogá-la quando quiser. Dado anonimizado deixa de ser dado pessoal.\n' +
       'Base legal: Consentimento (Art. 7º, I, LGPD) e anonimização (Art. 12, LGPD).',
   },
   COMPARTILHAR_SEGURADORA: {
-    titulo: 'Compartilhamento com seguradora',
-    resumo: 'Autorizo o compartilhamento de dados do meu pet com a seguradora vinculada ao meu plano.',
+    titulo: 'Compartilhar com seguradora',
+    resumo: 'Registra que você aceita que dados do seu pet sejam compartilhados com a seguradora do seu plano.',
     textoCompleto:
-      'Ao aceitar, você autoriza que a clínica veterinária compartilhe os dados necessários (nome ' +
-      'do pet, espécie, raça, histórico de consultas e exames) com a seguradora de saúde animal ' +
-      'vinculada ao seu plano, exclusivamente para fins de análise, autorização e reembolso de ' +
-      'procedimentos cobertos.\n\n' +
-      'Os dados são transmitidos via canal seguro (TLS 1.3) e limitados ao necessário para a ' +
-      'execução do contrato de seguro.\n' +
+      'Ao autorizar, você registra que aceita que a clínica compartilhe dados do seu pet (nome, ' +
+      'espécie, raça, histórico de consultas e exames) com a seguradora de saúde animal do seu plano, ' +
+      'só para análise, autorização e reembolso de procedimentos cobertos.\n\n' +
+      'Hoje a KURA ainda não compartilha dados com nenhuma seguradora: este registro só vale como ' +
+      'autorização para o futuro, e você pode revogá-la quando quiser.\n' +
       'Base legal: Execução de contrato (Art. 7º, V, LGPD).',
   },
   MARKETING: {
-    titulo: 'Comunicações de marketing',
-    resumo: 'Autorizo o envio de ofertas, promoções e novidades da KURA e clínicas parceiras.',
+    titulo: 'Novidades e ofertas',
+    resumo: 'Registra que você aceita receber novidades e ofertas da KURA e das clínicas parceiras.',
     textoCompleto:
-      'Ao aceitar, você autoriza a KURA e a clínica veterinária parceira a enviar ofertas, ' +
-      'promoções, pesquisas de satisfação e novidades sobre produtos e serviços, por canais como ' +
-      'e-mail, WhatsApp ou notificação push. Este consentimento é independente do envio de ' +
-      'lembretes e comunicados operacionais sobre o atendimento do seu pet.\n\n' +
-      'Você pode revogar este consentimento a qualquer momento nesta tela, sem impacto nos demais ' +
-      'serviços.\n' +
+      'Ao autorizar, você registra que aceita receber novidades, ofertas e pesquisas de satisfação da ' +
+      'KURA e da clínica parceira. Este consentimento é independente dos lembretes sobre o atendimento ' +
+      'do seu pet.\n\n' +
+      'Hoje a KURA ainda não envia ofertas: este registro só vale como autorização para o futuro, e ' +
+      'você pode revogá-la quando quiser, sem efeito nos demais serviços.\n' +
       'Base legal: Consentimento (Art. 7º, I, LGPD).',
   },
 } as const;
 
 export type TipoConsentimento = keyof typeof LGPD_CONSENTIMENTOS;
+
+// BR-TUT-T08 (T2): LEMBRETES é parte do atendimento (aviso "Necessário para o serviço", sem Revogar); os outros 4 são opcionais.
+export type TipoOpcional = Exclude<TipoConsentimento, 'LEMBRETES'>;
+export const TIPOS_OPCIONAIS: TipoOpcional[] = ['TELEORIENTACAO', 'DADOS_ANONIMOS', 'COMPARTILHAR_SEGURADORA', 'MARKETING'];
+
+// O que muda para o tutor ao revogar. Só TELEORIENTACAO tem efeito real; nos outros 3 a frase diz só o que fica registrado.
+export const CONSEQUENCIA_REVOGAR: Record<TipoOpcional, string> = {
+  TELEORIENTACAO:          'Você deixa de poder fazer teleorientação por vídeo com a clínica.',
+  DADOS_ANONIMOS:          'Fica registrado que você não autoriza o uso de dados anonimizados do seu pet em pesquisa.',
+  COMPARTILHAR_SEGURADORA: 'Fica registrado que você não autoriza o compartilhamento de dados do seu pet com seguradora.',
+  MARKETING:               'Fica registrado que você não quer receber novidades e ofertas.',
+};

@@ -228,10 +228,6 @@ export default function AddPetScreen() {
         >
           Cadastrar pet
         </KButton>
-
-        <Text style={[styles.footerMono, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
-          ⌧ DADOS CIFRADOS · LGPD COMPLIANT
-        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -253,5 +249,4 @@ const styles = StyleSheet.create({
   sexoSegmented: { flexDirection: 'row', padding: 4, marginTop: 0 },
   sexoOption:    { flex: 1, alignItems: 'center', paddingVertical: 10 },
   cta:           { marginTop: 32 },
-  footerMono:    { textAlign: 'center', letterSpacing: 1.2, marginTop: 16 },
 });
