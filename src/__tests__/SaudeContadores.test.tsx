@@ -264,6 +264,32 @@ describe('data ausente ou ilegível (I2 do G2): nunca "em dia"', () => {
     expect(r.queryByText(/^EM DIA/)).toBeNull();
     expect(r.queryByText(/Invalid/)).toBeNull();
   });
+
+  // BR-TUT-T11 (m-d da T06): SEM_DATA não pode ir para "PEDEM ATENÇÃO" (duplicada, e com Agendar) — antes só a Saúde era travada.
+  it('aba Vacinas (m-d): vacina sem data fica só em "SEM DATA PREVISTA", fora de "PEDEM ATENÇÃO" e sem Agendar', () => {
+    mockTab = { ...base, data: [SEM, vac(1, 'V10', 12)] };
+    const r = render(<VacinasTab petId={1} />, { wrapper: W });
+    expect(numero(r, /^PEDEM ATENÇÃO · \d+$/)).toBe(1);
+    expect(numero(r, /^SEM DATA PREVISTA · \d+$/)).toBe(1);
+    expect(r.getAllByText('Raiva')).toHaveLength(1);
+    expect(r.queryByLabelText('Agendar Raiva')).toBeNull();
+    expect(r.getByLabelText('Agendar V10')).toBeTruthy();
+  });
+
+  // BR-TUT-T11 (m-e da T06): em modo real (alertas dos pets desconhecidos) uma vacina sem data NÃO autoriza "Nenhuma vacina vence...".
+  it('Saúde (m-e): alertas desconhecidos + vacina sem data => não afirma "Nenhuma vacina vence nos próximos 30 dias."', () => {
+    const SEM_ALERTAS: PetFx = { ...BIA, id: 1, alertasAtivos: undefined, statusGeral: undefined };
+    mockPets = { ...base, data: [SEM_ALERTAS] };
+    mockVacinas = [{ ...base, data: [SEM] }];
+    const r = render(<SaudeScreen />, { wrapper: W });
+    expect(numero(r, /^SEM DATA PREVISTA · \d+$/)).toBe(1);
+    expect(r.queryByText(/Nenhuma vacina vence/)).toBeNull();
+    expect(r.queryByText('Tudo em dia!')).toBeNull();
+    // controle positivo: sem a vacina sem data, a frase aparece (o detector enxerga o que busca)
+    mockVacinas = [{ ...base, data: [vac(1, 'V10', 200)] }];
+    const ok = render(<SaudeScreen />, { wrapper: W });
+    expect(ok.getByText(/Nenhuma vacina vence/)).toBeTruthy();
+  });
 });
 
 describe('YYYY-MM-DD é data de calendário LOCAL (m2 do G2)', () => {
