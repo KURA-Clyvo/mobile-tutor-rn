@@ -51,3 +51,46 @@ describe('AgendamentoItem — teleconsulta', () => {
     expect(openURLSpy).toHaveBeenCalledWith('https://kura.daily.co/room-1');
   });
 });
+
+// BR-TUT-T07 fix wave (I-5): pedido não confirmado mostra o PERÍODO, nunca a hora âncora como horário marcado.
+describe('AgendamentoItem — quando (BR-TUT-T07 I-5)', () => {
+  const em = (h: number, min = 0) => new Date(2026, 9, 20, h, min, 0).toISOString();
+  const render1 = (over: Partial<AgendamentoTutorResponse>) =>
+    render(<AgendamentoItem item={{ ...BASE, sgTipoConsulta: 'ROTINA', dsSalaUrl: null, ...over }} />, { wrapper: W });
+
+  it('Aguardando (SOLICITADO) com âncora 14:00 => "Tarde · preferência", sem "14:00"', () => {
+    const r = render1({ sgStatus: 'SOLICITADO', dtInicio: em(14) });
+    expect(r.getByText(/Tarde · preferência/)).toBeTruthy();
+    expect(r.queryByText(/14:00/)).toBeNull();
+  });
+  it('Aguardando com âncora 09:00 => "Manhã · preferência"', () => {
+    const r = render1({ sgStatus: 'SOLICITADO', dtInicio: em(9) });
+    expect(r.getByText(/Manhã · preferência/)).toBeTruthy();
+  });
+  it('AGENDADO (o status que o Java grava no pedido do tutor) também é Aguardando, não Confirmado', () => {
+    const r = render1({ sgStatus: 'AGENDADO', dtInicio: em(14) });
+    expect(r.getByText('Aguardando')).toBeTruthy();
+    expect(r.queryByText('Confirmado')).toBeNull();
+    expect(r.getByText(/Tarde · preferência/)).toBeTruthy();
+  });
+  it('CONFIRMADO continua com a hora marcada', () => {
+    const r = render1({ sgStatus: 'CONFIRMADO', dtInicio: em(14) });
+    expect(r.getByText(/14:00/)).toBeTruthy();
+    expect(r.queryByText(/preferência/)).toBeNull();
+    expect(r.getByText('Confirmado')).toBeTruthy();
+  });
+  it('não confirmado com hora que NÃO é âncora (10:30) mostra a hora', () => {
+    const r = render1({ sgStatus: 'SOLICITADO', dtInicio: em(10, 30) });
+    expect(r.getByText(/10:30/)).toBeTruthy();
+    expect(r.queryByText(/preferência/)).toBeNull();
+  });
+  it('não confirmado na hora da âncora mas com minutos (14:30, a clínica mexeu) mostra a hora, não "Tarde · preferência"', () => {
+    const r = render1({ sgStatus: 'AGENDADO', dtInicio: em(14, 30) });
+    expect(r.getByText(/14:30/)).toBeTruthy();
+    expect(r.queryByText(/preferência/)).toBeNull();
+  });
+  it('tipo Vacina aparece como "Vacina"', () => {
+    const r = render1({ sgTipoConsulta: 'VACINA', sgStatus: 'SOLICITADO', dtInicio: em(9) });
+    expect(r.getByText(/^Vacina · KURA/)).toBeTruthy();
+  });
+});

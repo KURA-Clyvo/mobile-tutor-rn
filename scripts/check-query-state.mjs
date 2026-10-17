@@ -69,12 +69,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// ALLOWLIST EXATA (BR-TUT-T04): a BR-TUT-T04 zerou as 7 entradas "T04" (telas migradas para `QueryState`). Sobram 2:
-// `agenda/novo.tsx::usePets` (sai na BR-TUT-T07) e `useAgendamentoBadgeCount` (PERMANENTE). Entrada nova aqui é
+// ALLOWLIST EXATA (BR-TUT-T04): a BR-TUT-T04 zerou as 7 entradas "T04" (telas migradas para `QueryState`). Sobrou 1 depois da BR-TUT-T07 (que tirou `agenda/novo.tsx::usePets`):
+// `useAgendamentoBadgeCount` (PERMANENTE). Entrada nova aqui é
 // regressão: `src/__tests__/queryStateCoverage.test.ts` trava a lista inteira por igualdade, não por tamanho.
 export const ALLOWLIST = {
-  'app/(tabs)/agenda/novo.tsx::usePets':
-    'T07: seletor de pet do pedido de horário (hoje fixa pets[0]); a BR-TUT-T07 reescreve a tela e remove esta entrada',
   'app/(tabs)/_layout.tsx::useAgendamentoBadgeCount':
     'PERMANENTE (ruling do maestro, 16/10): badge numérico da aba Agenda; no erro o número some em vez de afirmar "tudo certo", então ignorar o erro é o comportamento correto e esta entrada não sai com nenhuma task',
 };

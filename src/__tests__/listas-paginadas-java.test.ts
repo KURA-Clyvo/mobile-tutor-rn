@@ -34,7 +34,7 @@ describe('listas paginadas da API Java', () => {
       nmClinica: 'Clínica Demo', dtAgendamento: '2026-09-20T10:00:00', nrDuracaoMinutos: 30,
       tipo: 'VACINA', status: 'INTENCAO', observacoes: null, dsSalaUrl: null,
     }]) as never);
-    expect(ag).toMatchObject({ id: 5, sgStatus: 'SOLICITADO', sgTipoConsulta: 'ROTINA', dsMotivo: '' });
+    expect(ag).toMatchObject({ id: 5, sgStatus: 'SOLICITADO', sgTipoConsulta: 'VACINA', dsMotivo: '' });
     expect(ag?.pet.id).toBe(103);
   });
 

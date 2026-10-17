@@ -54,9 +54,10 @@ describe('Solicitar horário — retorno', () => {
 
   async function preencher() {
     const u = render(<NovoAgendamentoScreen />, { wrapper: W });
-    fireEvent.press(u.getByText('09:00'));
-    fireEvent.changeText(u.getByLabelText('Motivo da consulta'), 'Vacina anual');
-    fireEvent.press(u.getByText('Confirmar agendamento'));
+    fireEvent.press(u.getByLabelText('Vacina'));
+    fireEvent.press(u.getAllByLabelText(/^(seg|ter|qua|qui|sex) \d+$/)[0]!); // 1º dia oferecido: independe da hora do dia
+    fireEvent.press(u.getAllByLabelText(/^(Manhã|Tarde)$/)[0]!);
+    fireEvent.press(u.getByText('Pedir horário para Bóbi'));
     return u;
   }
 
@@ -87,11 +88,11 @@ describe('Solicitar horário — retorno', () => {
     expect(mockBack).not.toHaveBeenCalled();
   });
 
-  it('duplo toque em "Confirmar agendamento" chama o serviço 1x', async () => {
+  it('duplo toque em "Pedir horário" chama o serviço 1x', async () => {
     const d = adiada();
     mockSolicitar = jest.fn(() => d.p);
     const u = await preencher();
-    fireEvent.press(u.getByText('Confirmar agendamento'));
+    fireEvent.press(u.getByText('Pedir horário para Bóbi'));
     await assentar();
     expect(mockSolicitar).toHaveBeenCalledTimes(1);
     await act(async () => { d.ok(); });

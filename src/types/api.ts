@@ -68,7 +68,7 @@ export interface VacinaStatusResponse {
 export interface AgendamentoTutorResponse {
   id: number; dtInicio: string; nrDuracaoMinutos: number;
   sgStatus: 'SOLICITADO' | 'AGENDADO' | 'CONFIRMADO' | 'CANCELADO' | 'CONCLUIDO';
-  sgTipoConsulta: 'RETORNO' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
+  sgTipoConsulta: 'RETORNO' | 'VACINA' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
   pet: { id: number; nmPet: string; nmEspecie: string; nmRaca: string };
   nmClinica: string; dsMotivo: string; nmVeterinario?: string; dsMensagemClinica?: string;
   // Sala de teleconsulta (Daily.co), preenchida pelo backend-clinica-dotnet — null até o
@@ -77,7 +77,7 @@ export interface AgendamentoTutorResponse {
   dsSalaUrl?: string | null;
 }
 export interface SolicitarAgendamentoRequest {
-  idPet: number; sgTipoConsulta: 'RETORNO' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
+  idPet: number; sgTipoConsulta: 'RETORNO' | 'VACINA' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
   dsMotivo: string; dtPreferida: string; dtAlternativa?: string; idClinica?: number;
 }
 export interface SolicitarAgendamentoResponse { id: number; sgStatus: 'SOLICITADO'; dtSolicitacao: string; }
