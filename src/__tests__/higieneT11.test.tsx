@@ -64,8 +64,8 @@ describe('F2 — PetListCard com a câmera da Luna: selo por ícone, sem emoji',
   it('o selo aparece (KIcon dentro do retrato) e a árvore não tem emoji', () => {
     const r = render(<PetListCard pet={pet} onPress={jest.fn()} />, { wrapper: W });
     expect(JSON.stringify(r.toJSON())).not.toMatch(EMOJI);
-    const portrait = r.getByTestId('k-pet-portrait');
-    expect(portrait.findAll(n => n.type === (KIcon as any)).length).toBeGreaterThan(0);
+    const selo = r.getByTestId('k-pet-portrait-selo');
+    expect(selo.findAll(n => n.type === (KIcon as any)).length).toBe(1);
   });
   it('sem o chip da câmera não há selo', () => {
     const r = render(<PetListCard pet={{ ...pet, chips: [] }} onPress={jest.fn()} />, { wrapper: W });
