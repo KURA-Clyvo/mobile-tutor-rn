@@ -26,8 +26,9 @@ export function mapListaAgendamentos(
     dtInicio: a.dtAgendamento,
     nrDuracaoMinutos: a.nrDuracaoMinutos,
     sgStatus: STATUS_JAVA[a.status] ?? 'AGENDADO',
+    // Todo tipo que o app envia volta com o mesmo nome (BR-TUT-T07 I-1); CONSULTA/desconhecido => ROTINA.
     sgTipoConsulta:
-      a.tipo === 'TELEORIENTACAO' ? 'TELEORIENTACAO' : a.tipo === 'RETORNO' ? 'RETORNO' : 'ROTINA',
+      a.tipo === 'TELEORIENTACAO' || a.tipo === 'RETORNO' || a.tipo === 'VACINA' ? a.tipo : 'ROTINA',
     pet: { id: a.idPet, nmPet: a.nmPet, nmEspecie: a.nmEspecie ?? '', nmRaca: a.nmRaca ?? '' },
     nmClinica: a.nmClinica ?? '',
     dsMotivo: a.observacoes ?? '',

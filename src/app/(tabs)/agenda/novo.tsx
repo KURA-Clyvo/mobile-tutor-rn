@@ -12,7 +12,7 @@ import { QueryState } from '@components/feedback/QueryState';
 import { usePets }    from '../../../hooks/usePets';
 import { useSolicitarAgendamento } from '../../../hooks/useAgendamentos';
 import { useVoltar } from '../../../hooks/useVoltar';
-import { diasOferecidos, instanteDoPeriodo, PERIODOS, type Periodo } from '../../../utils/horariosPedido';
+import { diasOferecidos, instanteDoPeriodo, periodoOferecido, PERIODOS, type Periodo } from '../../../utils/horariosPedido';
 import type { SolicitarAgendamentoRequest } from '../../../types/api';
 
 type Motivo = 'VACINA' | 'ROTINA' | 'RETORNO' | 'TELEORIENTACAO';
@@ -73,6 +73,7 @@ function Formulario({ pets, voltar }: { pets: Pet[]; voltar: () => void }) {
   const [motivo, setMotivo] = useState<Motivo | null>(MOTIVOS.some((m) => m.key === tipoParam) ? (tipoParam as Motivo) : null);
   const [diaKey, setDiaKey] = useState<number | null>(null);
   const [periodo, setPeriodo] = useState<Periodo | null>(null);
+  const [expirou, setExpirou] = useState(false);
 
   // O pet marcado é: o que o tutor tocou; senão o do perfil (params.idPet); senão o único pet. Com 2+ pets e sem params
   // nada vem marcado — o tutor escolhe, em vez de o app mandar o pedido do pet errado em silêncio.
@@ -90,7 +91,14 @@ function Formulario({ pets, voltar }: { pets: Pet[]; voltar: () => void }) {
   const handleSubmit = async () => {
     if (emVoo.current) return;
     if (!selectedPet || !motivoSel || !dia || !periodoEf) {
-      await alerta('Atenção', 'Escolha o pet, o motivo, o dia e o período.');
+      const faltas = [!selectedPet && 'o pet', !motivoSel && 'o motivo', !dia && 'o dia', !periodoEf && 'o período'].filter(Boolean);
+      await alerta('Atenção', faltas.map((f) => `Escolha ${f}.`).join(' '));
+      return;
+    }
+    // A tela pode ter ficado aberta: reconfere com o relógio de AGORA (BR-TUT-T07 I-4). Período que passou: desmarca, avisa, não envia.
+    if (!periodoOferecido(dia.data, periodoEf, new Date())) {
+      setPeriodo(null);
+      setExpirou(true);
       return;
     }
     const preferencia = `${DIAS_SEMANA[dia.data.getDay()]} ${dia.data.getDate()}, ${PERIODOS.find((p) => p.key === periodoEf)!.rotulo.toLowerCase()}`;
@@ -124,7 +132,8 @@ function Formulario({ pets, voltar }: { pets: Pet[]; voltar: () => void }) {
       accessibilityLabel={rotulo}
       style={[styles.opcao, estilo, {
         backgroundColor: marcado ? colors.primarySoft : colors.surface,
-        borderColor:     marcado ? colors.primary : colors.border,
+        borderColor:     marcado ? colors.primary : colors.borderControl,
+        borderWidth:     marcado ? 2 : 1.5,
         borderRadius: radius.md,
       }]}
     >
@@ -163,11 +172,11 @@ function Formulario({ pets, voltar }: { pets: Pet[]; voltar: () => void }) {
       </Text>
 
       <Text style={rotuloSecao}>Quando fica bom para você</Text>
-      <View accessibilityRole={'radiogroup' as any} accessibilityLabel="Dia" style={styles.dias}>
+      <View accessibilityRole={'radiogroup' as any} accessibilityLabel="Quando fica bom para você" style={styles.dias}>
         {dias.map((d) => {
           const rotulo = `${DIAS_SEMANA[d.data.getDay()]} ${d.data.getDate()}`;
           const marcado = dia?.data.getTime() === d.data.getTime();
-          return radio(d.data.getTime(), rotulo, marcado, () => setDiaKey(d.data.getTime()), (
+          return radio(d.data.getTime(), rotulo, marcado, () => { setDiaKey(d.data.getTime()); setExpirou(false); }, (
             <Text style={texto(marcado)}>{rotulo}</Text>
           ), styles.dia);
         })}
@@ -175,17 +184,22 @@ function Formulario({ pets, voltar }: { pets: Pet[]; voltar: () => void }) {
       {dia && (
         <View accessibilityRole={'radiogroup' as any} accessibilityLabel="Período" style={styles.dias}>
           {PERIODOS.filter((p) => dia.periodos.includes(p.key)).map((p) =>
-            radio(p.key, p.rotulo, periodoEf === p.key, () => setPeriodo(p.key), (
+            radio(p.key, p.rotulo, periodoEf === p.key, () => { setPeriodo(p.key); setExpirou(false); }, (
               <Text style={texto(periodoEf === p.key)}>{p.rotulo}</Text>
             ), styles.dia))}
         </View>
       )}
 
+      {expirou && (
+        <Text accessibilityRole="alert" style={[styles.nota, { fontFamily: fonts.body, color: colors.clayInk, fontSize: fontSize.sm, textAlign: 'left' }]}>
+          Esse período já passou. Escolha outro para pedir o horário.
+        </Text>
+      )}
       <KButton variant="primary" block loading={isPending} onPress={handleSubmit} style={{ marginTop: 20 }}>
         {selectedPet ? `Pedir horário para ${selectedPet.nome}` : 'Pedir horário'}
       </KButton>
       <Text style={[styles.nota, { fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
-        O pedido vai para a agenda da clínica. Quando ela marcar o horário, ele aparece em Agenda.
+        O pedido aparece em Agenda como Aguardando até a clínica confirmar.
       </Text>
     </>
   );
@@ -199,7 +213,7 @@ const styles = StyleSheet.create({
   sectionLabel:{ marginTop: 20, marginBottom: 10 },
   coluna:      { gap: 8 },
   dias:        { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
-  opcao:       { minHeight: ALVO, minWidth: ALVO, justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1 },
+  opcao:       { minHeight: ALVO, minWidth: ALVO, justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10 },
   linha:       { flexDirection: 'row', alignItems: 'center', gap: 12 },
   dia:         { alignItems: 'center' },
   nota:        { textAlign: 'center', marginTop: 12, lineHeight: 18 },

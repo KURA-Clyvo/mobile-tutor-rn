@@ -6,10 +6,13 @@ import { KChip } from '@components/primitives/KChip';
 import { KButton } from '@components/primitives/KButton';
 import type { AgendamentoTutorResponse } from '../../types/api';
 import { formatDateBR, formatTimeBR } from '../../utils/date';
+import { PERIODOS } from '../../utils/horariosPedido';
 
 const STATUS_CHIP: Record<AgendamentoTutorResponse['sgStatus'], { tone: 'amber' | 'sage' | 'clay' | 'mute'; label: string }> = {
   SOLICITADO: { tone: 'amber', label: 'Aguardando' },
-  AGENDADO:   { tone: 'sage',  label: 'Confirmado' },
+  // O Java grava o pedido do tutor como AGENDADO (Agendamento.criar, d1522ee:109) e só a clínica leva a CONFIRMADO (:137):
+  // AGENDADO ainda NÃO é confirmado.
+  AGENDADO:   { tone: 'amber', label: 'Aguardando' },
   CONFIRMADO: { tone: 'sage',  label: 'Confirmado' },
   CANCELADO:  { tone: 'clay',  label: 'Cancelado'  },
   CONCLUIDO:  { tone: 'mute',  label: 'Concluído'  },
@@ -17,6 +20,7 @@ const STATUS_CHIP: Record<AgendamentoTutorResponse['sgStatus'], { tone: 'amber' 
 
 const TIPO_LABEL: Record<AgendamentoTutorResponse['sgTipoConsulta'], string> = {
   RETORNO:        'Retorno',
+  VACINA:         'Vacina',
   ROTINA:         'Rotina',
   URGENCIA:       'Urgência',
   TELEORIENTACAO: 'Teleorientação',
@@ -25,6 +29,15 @@ const TIPO_LABEL: Record<AgendamentoTutorResponse['sgTipoConsulta'], string> = {
 interface AgendamentoItemProps {
   item:         AgendamentoTutorResponse;
   onLongPress?: () => void;
+}
+
+// Pedido não confirmado: o servidor guarda só a âncora do período (09:00/14:00); a hora é da clínica marcar.
+// Âncora conhecida => "Tarde · preferência"; outra hora (a clínica já mexeu) => a hora mesmo.
+function quando(item: AgendamentoTutorResponse): string {
+  const naoConfirmado = item.sgStatus === 'SOLICITADO' || item.sgStatus === 'AGENDADO';
+  const d = new Date(item.dtInicio);
+  const p = naoConfirmado && d.getMinutes() === 0 ? PERIODOS.find((x) => x.hora === d.getHours()) : undefined;
+  return p ? `${p.rotulo} · preferência` : formatTimeBR(item.dtInicio);
 }
 
 export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
@@ -52,7 +65,7 @@ export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
       <View style={styles.info}>
         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{item.pet.nmPet}</Text>
         <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }}>
-          {formatDateBR(item.dtInicio)} · {formatTimeBR(item.dtInicio)}
+          {formatDateBR(item.dtInicio)} · {quando(item)}
         </Text>
         <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>
           {TIPO_LABEL[item.sgTipoConsulta]} · {item.nmClinica}
