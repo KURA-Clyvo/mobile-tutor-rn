@@ -10,6 +10,7 @@ import { Skeleton } from '@components/feedback/Skeleton';
 import { useNotifications, useMarcarLida, useMarcarTodasLidas } from '../hooks/useNotifications';
 import { useVoltar } from '../hooks/useVoltar';
 import type { NotificacaoTutorResponse } from '../types/api';
+import { touchTarget } from '@theme/tokens';
 
 type Tone = 'amber' | 'sage' | 'clay' | 'ocean';
 
@@ -60,7 +61,7 @@ export default function NotificacoesScreen() {
           onPress={() => marcarTodas()}
           disabled={markingAll || naoLidas === 0}
           hitSlop={8}
-          style={{ minHeight: 44, justifyContent: 'center' }}
+          style={{ minHeight: touchTarget.min, minWidth: touchTarget.min, justifyContent: 'center' }}
           accessibilityRole="button"
           accessibilityLabel="Marcar todas como lidas"
         >
@@ -135,11 +136,11 @@ export default function NotificacoesScreen() {
 const styles = StyleSheet.create({
   flex:        { flex: 1 },
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
-  circle:      { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  circle:      { width: touchTarget.min, height: touchTarget.min, borderRadius: touchTarget.min / 2, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, paddingHorizontal: 12 },
   list:        { padding: 16, paddingBottom: 40 },
   faixa:       { marginHorizontal: 16, marginTop: 12 },
-  item:        { flexDirection: 'row', padding: 14, borderWidth: 1, marginBottom: 10, gap: 10 },
+  item:        { minHeight: touchTarget.min, minWidth: touchTarget.min, flexDirection: 'row', padding: 14, borderWidth: 1, marginBottom: 10, gap: 10 },
   unreadDot:   { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
   itemContent: { flex: 1 },
   itemTop:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

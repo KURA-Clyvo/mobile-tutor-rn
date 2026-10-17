@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, Switch, ScrollView, StyleSheet, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,6 +8,8 @@ import { KuraMark } from '@components/brand/KuraMark';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KButton } from '@components/primitives/KButton';
 import { KCard }   from '@components/primitives/KCard';
+import { KSwitchRow } from '@components/primitives/KSwitchRow';
+import { touchTarget } from '@theme/tokens';
 import { useDialog } from '@components/primitives/KDialog';
 import { useAuthStore } from '../../../store/authStore';
 import { queryClient  } from '../../../services/queryClient';
@@ -139,32 +141,30 @@ export default function PerfilScreen() {
         {/* Configurações */}
         <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>CONFIGURAÇÕES</Text>
         <KCard style={styles.card}>
-          <View style={[styles.row, { borderBottomColor: colors.border }]}>
-            <KIcon name="saude" size={16} color={colors.textMuteInk} />
-            <View style={styles.rowInfo}>
+          <KSwitchRow
+            value={isDark}
+            onValueChange={toggleTheme}
+            accessibilityLabel="Alternar modo escuro"
+            testID="switch-modo-escuro"
+            style={[styles.row, { borderBottomColor: colors.border }]}
+          >
+            <View style={styles.rowConteudo}>
+              <KIcon name="saude" size={16} color={colors.textMuteInk} />
               <Text style={{ fontFamily: fonts.body, color: colors.text, fontSize: fontSize.sm }}>Modo escuro</Text>
             </View>
-            <Switch
-              value={isDark}
-              onValueChange={toggleTheme}
-              trackColor={{ false: colors.borderControl, true: colors.primary }}
-              thumbColor={colors.surface}
-              accessibilityLabel="Alternar modo escuro"
-            />
-          </View>
-          <View style={styles.row}>
-            <KIcon name="bell" size={16} color={colors.textMuteInk} />
-            <View style={styles.rowInfo}>
+          </KSwitchRow>
+          <KSwitchRow
+            value={notifEnabled}
+            onValueChange={handleNotifToggle}
+            accessibilityLabel="Ativar notificações"
+            testID="switch-notificacoes"
+            style={styles.row}
+          >
+            <View style={styles.rowConteudo}>
+              <KIcon name="bell" size={16} color={colors.textMuteInk} />
               <Text style={{ fontFamily: fonts.body, color: colors.text, fontSize: fontSize.sm }}>Notificações push</Text>
             </View>
-            <Switch
-              value={notifEnabled}
-              onValueChange={handleNotifToggle}
-              trackColor={{ false: colors.borderControl, true: colors.primary }}
-              thumbColor={colors.surface}
-              accessibilityLabel="Ativar notificações"
-            />
-          </View>
+          </KSwitchRow>
         </KCard>
 
         {/* Links */}
@@ -212,7 +212,7 @@ export default function PerfilScreen() {
 
       {/* About modal */}
       <Modal visible={aboutVisible} transparent animationType="slide" onRequestClose={() => setAboutVisible(false)}>
-        <Pressable style={[styles.modalBg, { backgroundColor: colors.scrim }]} onPress={() => setAboutVisible(false)}>
+        <Pressable accessible={false} style={[styles.modalBg, { backgroundColor: colors.scrim }]} onPress={() => setAboutVisible(false)}>
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={{ marginBottom: 12 }}><KuraMark size={36} variante="sobreNeutro" /></View>
             <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, marginBottom: 8 }}>Versão 1.0.0 — Tutor App</Text>
@@ -232,8 +232,9 @@ const styles = StyleSheet.create({
   avatarWrap:  { width: 80, height: 80, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   sectionTitle:{ letterSpacing: 1.2, marginTop: 24, marginBottom: 8 },
   card:        { padding: 0, overflow: 'hidden' },
-  row:         { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  row:         { minHeight: touchTarget.min, minWidth: touchTarget.min, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   rowInfo:     { flex: 1 },
+  rowConteudo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   logoutBtn:   { marginTop: 32 },
   footer:      { textAlign: 'center', letterSpacing: 1.5, marginTop: 24 },
   modalBg:     { flex: 1, justifyContent: 'flex-end' },

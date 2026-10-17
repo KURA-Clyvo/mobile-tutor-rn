@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '@theme/index';
+import { touchTarget } from '@theme/tokens';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size    = 'sm' | 'md' | 'lg';
@@ -32,7 +33,7 @@ export function KButton({
   };
 
   const sizeStyles: Record<Size, { paddingVertical: number; paddingHorizontal: number; minHeight: number; fontSize: number; gap: number }> = {
-    sm: { paddingVertical: 10, paddingHorizontal: 16, minHeight: 40, fontSize: theme.fontSize.sm,   gap: 6 },
+    sm: { paddingVertical: 10, paddingHorizontal: 16, minHeight: touchTarget.min, fontSize: theme.fontSize.sm,   gap: 6 },
     md: { paddingVertical: 14, paddingHorizontal: 22, minHeight: 48, fontSize: theme.fontSize.base, gap: 8 },
     lg: { paddingVertical: 18, paddingHorizontal: 28, minHeight: 56, fontSize: theme.fontSize.md,   gap: 8 },
   };
@@ -50,7 +51,7 @@ export function KButton({
       style={({ pressed }) => [
         styles.base,
         cv.container,
-        { borderRadius: theme.radius.full, minHeight: sz.minHeight, paddingVertical: sz.paddingVertical, paddingHorizontal: sz.paddingHorizontal, gap: sz.gap },
+        { borderRadius: theme.radius.full, minHeight: Math.max(sz.minHeight, touchTarget.min), minWidth: touchTarget.min, paddingVertical: sz.paddingVertical, paddingHorizontal: sz.paddingHorizontal, gap: sz.gap },
         block && { width: '100%' as const },
         isDisabled && { opacity: 0.5 },
         pressed && !isDisabled && { opacity: 0.7 },

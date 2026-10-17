@@ -18,6 +18,7 @@ import { usePets } from '../../../../hooks/usePets';
 import { STATUS_PET, type StatusPet } from '../../../../utils/statusPet';
 import { useVoltar } from '../../../../hooks/useVoltar';
 import { formatDateBR } from '../../../../utils/date';
+import { touchTarget } from '@theme/tokens';
 
 type Tab = 'visao' | 'consultas' | 'vacinas' | 'docs';
 
@@ -55,7 +56,7 @@ export default function PetDetailScreen() {
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{pet?.nmPet ?? (petQuery.isError && !pet ? 'Perfil do pet' : '…')}</Text>
-        <View style={{ width: 36 }} />
+        <View style={{ width: touchTarget.min }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -278,7 +279,7 @@ function VisaoTab({ pet }: { pet: NonNullable<ReturnType<typeof usePetDetail>['d
 const styles = StyleSheet.create({
   flex:        { flex: 1 },
   hdr:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1 },
-  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  backBtn:     { width: touchTarget.min, height: touchTarget.min, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingBottom: 16 },
   skeletonPet: { paddingHorizontal: 20, paddingTop: 20 },
   hero:        { flexDirection: 'row', alignItems: 'flex-start', padding: 20, gap: 16 },
@@ -286,7 +287,7 @@ const styles = StyleSheet.create({
   heroInfo:    { flex: 1, gap: 6 },
   chipsRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   tabsScroll:  { paddingHorizontal: 20, gap: 0, borderBottomWidth: 1 },
-  tabPill:     { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabPill:     { minHeight: touchTarget.min, minWidth: touchTarget.min, justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabLabel:    {},
   tabContent:  { padding: 20 },
   vitaisRow:   { flexDirection: 'row', gap: 10 },
@@ -295,5 +296,5 @@ const styles = StyleSheet.create({
   apptRow:     { flexDirection: 'row', alignItems: 'center', gap: 10 },
   obsCard:     { borderWidth: 1, padding: 16 },
   fabZona:     { alignItems: 'flex-end', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
-  fab:         { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 14, borderRadius: 9999, elevation: 4 },
+  fab:         { minHeight: touchTarget.min, minWidth: touchTarget.min, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 14, borderRadius: 9999, elevation: 4 },
 });

@@ -7,6 +7,7 @@ import { KButton } from '@components/primitives/KButton';
 import type { AgendamentoTutorResponse } from '../../types/api';
 import { formatDateBR, formatTimeBR } from '../../utils/date';
 import { PERIODOS } from '../../utils/horariosPedido';
+import { touchTarget } from '@theme/tokens';
 
 const STATUS_CHIP: Record<AgendamentoTutorResponse['sgStatus'], { tone: 'amber' | 'sage' | 'clay' | 'mute'; label: string }> = {
   SOLICITADO: { tone: 'amber', label: 'Aguardando' },
@@ -93,7 +94,7 @@ export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { flexDirection: 'row', alignItems: 'center', padding: 14, borderWidth: 1, marginBottom: 10, gap: 14 },
+  card: { minHeight: touchTarget.min, minWidth: touchTarget.min, flexDirection: 'row', alignItems: 'center', padding: 14, borderWidth: 1, marginBottom: 10, gap: 14 },
   info: { flex: 1, gap: 2 },
   teleBtn: { alignSelf: 'flex-start', marginTop: 6 },
 });

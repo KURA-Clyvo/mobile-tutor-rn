@@ -14,6 +14,7 @@ import { useSolicitarAgendamento } from '../../../hooks/useAgendamentos';
 import { useVoltar } from '../../../hooks/useVoltar';
 import { diasOferecidos, instanteDoPeriodo, periodoOferecido, PERIODOS, type Periodo } from '../../../utils/horariosPedido';
 import type { SolicitarAgendamentoRequest } from '../../../types/api';
+import { touchTarget } from '@theme/tokens';
 
 type Motivo = 'VACINA' | 'ROTINA' | 'RETORNO' | 'TELEORIENTACAO';
 
@@ -25,7 +26,6 @@ const MOTIVOS: { key: Motivo; rotulo: string }[] = [
   { key: 'TELEORIENTACAO', rotulo: 'Teleorientação' },
 ];
 const DIAS_SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-const ALVO = 44;
 
 type Pet = NonNullable<ReturnType<typeof usePets>['data']>[number];
 
@@ -43,7 +43,7 @@ export default function NovoAgendamentoScreen() {
           <KIcon name="close" size={18} color={colors.text} />
         </Pressable>
         <Text accessibilityRole="header" style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>Pedir horário</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: touchTarget.min }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -208,12 +208,12 @@ function Formulario({ pets, voltar }: { pets: Pet[]; voltar: () => void }) {
 const styles = StyleSheet.create({
   flex:        { flex: 1 },
   headerRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
-  circle:      { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  circle:      { width: touchTarget.min, height: touchTarget.min, borderRadius: touchTarget.min / 2, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   scroll:      { padding: 20, paddingBottom: 40 },
   sectionLabel:{ marginTop: 20, marginBottom: 10 },
   coluna:      { gap: 8 },
   dias:        { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
-  opcao:       { minHeight: ALVO, minWidth: ALVO, justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10 },
+  opcao:       { minHeight: touchTarget.min, minWidth: touchTarget.min, justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10 },
   linha:       { flexDirection: 'row', alignItems: 'center', gap: 12 },
   dia:         { alignItems: 'center' },
   nota:        { textAlign: 'center', marginTop: 12, lineHeight: 18 },

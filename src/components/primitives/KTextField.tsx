@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput, View, Text, Pressable, StyleSheet, type TextInputProps, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '@theme/index';
+import { touchTarget } from '@theme/tokens';
 
 interface KTextFieldProps extends Omit<TextInputProps, 'style'> {
   label:           string;
@@ -44,6 +45,7 @@ export function KTextField({ label, error, helperText, secureTextEntry, containe
           <Pressable
             onPress={() => setHidden(h => !h)}
             style={styles.toggle}
+            accessibilityRole="button"
             accessibilityLabel={hidden ? 'Mostrar senha' : 'Ocultar senha'}
           >
             <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: theme.colors.primary, letterSpacing: 1.2 }}>
@@ -68,5 +70,5 @@ export function KTextField({ label, error, helperText, secureTextEntry, containe
 
 const styles = StyleSheet.create({
   wrapper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, paddingHorizontal: 16 },
-  toggle:  { paddingLeft: 12, paddingVertical: 14 },
+  toggle:  { minHeight: touchTarget.min, minWidth: touchTarget.min, paddingLeft: 12, alignItems: 'center', justifyContent: 'center' },
 });

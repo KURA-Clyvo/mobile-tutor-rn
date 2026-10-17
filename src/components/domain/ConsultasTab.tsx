@@ -10,6 +10,7 @@ import { ConsultaSection } from './ConsultaSection';
 import { usePetTimeline, usePetTimelineEvent } from '@hooks/usePetTimeline';
 import { formatDateBR } from '../../utils/date';
 import type { TimelineTutorEventResponse } from '../../types/api';
+import { touchTarget } from '@theme/tokens';
 
 type Filter = 'all' | 'pres' | 'tele';
 
@@ -126,7 +127,12 @@ function TimelineRow({ ev, isLast, onPress, mostrarTipo }: { ev: TimelineTutorEv
     <View style={styles.timelineRow}>
       {!isLast && <View style={[styles.connector, { backgroundColor: colors.border }]} />}
       <View style={[styles.dot, { backgroundColor: dotBg, borderColor: dotBorder }]} />
-      <Pressable onPress={onPress} style={[styles.evCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
+      <Pressable
+        onPress={onPress}
+        style={[styles.evCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}
+        accessibilityRole="button"
+        accessibilityLabel={`Consulta de ${formatDateBR(ev.dtEvento)}${ev.nmVeterinario ? ` com ${ev.nmVeterinario}` : ''}${isTele ? ', telemedicina' : ''}. Ver prontuário`}
+      >
         <View style={styles.evMeta}>
           <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>
             {formatDateBR(ev.dtEvento)}
@@ -157,13 +163,13 @@ function ConsultaDetail({ petId, idEvento, onBack }: { petId: number; idEvento: 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.detailHdr}>
-        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Voltar">
+        <Pressable onPress={onBack} style={styles.icone} accessibilityRole="button" accessibilityLabel="Voltar">
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
         <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
           {`PRONTUÁRIO · #CONS-${idEvento}`}
         </Text>
-        <Pressable onPress={() => Share.share({ message: `Prontuário #CONS-${idEvento}` })} accessibilityRole="button">
+        <Pressable onPress={() => Share.share({ message: `Prontuário #CONS-${idEvento}` })} style={styles.icone} accessibilityRole="button" accessibilityLabel="Compartilhar prontuário">
           <KIcon name="share" size={18} color={colors.textSoft} />
         </Pressable>
       </View>
@@ -235,12 +241,13 @@ function ConsultaDetail({ petId, idEvento, onBack }: { petId: number; idEvento: 
 
 const styles = StyleSheet.create({
   filterRow:   { flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
-  filterPill:  { paddingHorizontal: 14, minHeight: 44, justifyContent: 'center', borderRadius: 9999, borderWidth: 1 },
+  icone:       { minHeight: touchTarget.min, minWidth: touchTarget.min, alignItems: 'center', justifyContent: 'center' },
+  filterPill:  { paddingHorizontal: 14, minHeight: touchTarget.min, minWidth: touchTarget.min, justifyContent: 'center', borderRadius: 9999, borderWidth: 1 },
   filterLabel: {},
   timelineRow: { flexDirection: 'row', gap: 12, marginBottom: 0 },
   connector:   { position: 'absolute', left: 7, top: 32, bottom: -12, width: 1 },
   dot:         { width: 15, height: 15, borderRadius: 8, borderWidth: 1.5, marginTop: 6 },
-  evCard:      { flex: 1, borderWidth: 1, padding: 14, marginBottom: 14 },
+  evCard:      { flex: 1, minHeight: touchTarget.min, borderWidth: 1, padding: 14, marginBottom: 14 },
   evMeta:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   detailHdr:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16 },
   vitaisGrid:  { flexDirection: 'row', gap: 10 },

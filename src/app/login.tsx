@@ -14,6 +14,7 @@ import { useToast }    from '@components/feedback/Toast';
 import { useAuthStore }  from '../store/authStore';
 import { login }         from '../services/auth.service';
 import { loginSchema, type LoginFormData } from '../utils/validators';
+import { touchTarget } from '@theme/tokens';
 
 export default function LoginScreen() {
   const theme   = useTheme();
@@ -116,7 +117,7 @@ export default function LoginScreen() {
             accessibilityRole="link"
             accessibilityLabel="Esqueci minha senha"
             hitSlop={8}
-            style={{ alignSelf: 'flex-end', marginBottom: 20, minHeight: 44, justifyContent: 'center' }}
+            style={{ alignSelf: 'flex-end', marginBottom: 20, minHeight: touchTarget.min, minWidth: touchTarget.min, justifyContent: 'center' }}
             onPress={() => void alerta(
               'Recuperar senha',
               'Entre em contato com a clínica para redefinir sua senha de acesso.',
