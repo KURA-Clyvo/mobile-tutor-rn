@@ -110,7 +110,7 @@ describe('a11y-alvos — fecha o barato (G2 I-1): role de controle, role undefin
 describe('a11y-alvos — iscas de LIMITE: o gate NÃO vê estas formas (cegueira declarada, não aprovação)', () => {
   const ok = `style={{ minHeight: 44, minWidth: 44 }}`;
   const R = `accessibilityRole="button"`;
-  const casos: Array<[string, string, string]> = [
+  const casos: [string, string, string][] = [
     ['piso + props.style (vence no render)', `<Pressable ${R} style={[{ minHeight: 44, minWidth: 44 }, props.style]} />`, ''],
     ['piso + estilo importado', `<Pressable ${R} style={[{ minHeight: 44, minWidth: 44 }, estilosExternos.pequeno]} />`, `import { estilosExternos } from './outro';`],
     ['piso + constante numérica', `<Pressable ${R} style={[{ minHeight: 44, minWidth: 44 }, { minHeight: PEQUENO }]} />`, `const PEQUENO = 20;`],
