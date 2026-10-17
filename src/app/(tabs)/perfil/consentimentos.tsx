@@ -1,11 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, Switch, Pressable, ScrollView, Modal, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, Modal, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@theme/index';
 import { KIcon }   from '@components/primitives/KIcon';
-import { KChip }   from '@components/primitives/KChip';
 import { KButton } from '@components/primitives/KButton';
-import { KCard }   from '@components/primitives/KCard';
 import { useDialog } from '@components/primitives/KDialog';
 import { confirmar } from '@components/feedback/confirmar';
 import { useToast } from '@components/feedback/Toast';
@@ -13,7 +11,7 @@ import { QueryState } from '@components/feedback/QueryState';
 import { Skeleton } from '@components/feedback/Skeleton';
 import { useConsentimentos, useAssinar, useRevogar } from '../../../hooks/useConsentimentos';
 import { useVoltar } from '../../../hooks/useVoltar';
-import { LGPD_CONSENTIMENTOS, type TipoConsentimento } from '../../../constants/lgpd';
+import { LGPD_CONSENTIMENTOS, TIPOS_OPCIONAIS, CONSEQUENCIA_REVOGAR, type TipoOpcional } from '../../../constants/lgpd';
 import type { ConsentimentoResponse } from '../../../types/api';
 
 function generateUUID(): string {
@@ -21,18 +19,12 @@ function generateUUID(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
-// TASK-73 (FIX_7): 5 tipos reais (enum Java TipoConsentimento), não mais os 3
-// inventados que não existiam no backend (ver constants/lgpd.ts).
-const TIPOS: TipoConsentimento[] = ['TELEORIENTACAO', 'LEMBRETES', 'DADOS_ANONIMOS', 'COMPARTILHAR_SEGURADORA', 'MARKETING'];
+// BR-TUT-T08 (T2): 4 opcionais em linhas (Revogar/Autorizar); LEMBRETES é o 5º tipo do enum Java e fica no aviso
+// "Necessário para o serviço", sem botão. A consequência de cada revogação mora em constants/lgpd.ts (m9).
 
-// BR-TUT-T05: o diálogo de revogar diz o que muda para o tutor (a consequência), não repete o texto do termo.
-const CONSEQUENCIA_REVOGAR: Record<TipoConsentimento, string> = {
-  TELEORIENTACAO:          'Você deixa de poder fazer teleorientação por vídeo com a clínica.',
-  LEMBRETES:               'Você deixa de receber lembretes de vacina, consultas e comunicados da clínica.',
-  DADOS_ANONIMOS:          'Seus dados deixam de ser usados de forma anonimizada.',
-  COMPARTILHAR_SEGURADORA: 'Seus dados deixam de ser compartilhados com a seguradora.',
-  MARKETING:               'Você deixa de receber ofertas e novidades.',
-};
+// "Autorizado hoje" / "Autorizado em 01/10/2026" — dtAceite vem sem fuso do Java (LocalDateTime): é lido como horário local.
+const ddmmaaaa = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const ehHoje = (iso: string) => new Date(iso).toDateString() === new Date().toDateString();
 
 export default function ConsentimentosScreen() {
   const { colors, fonts, fontSize } = useTheme();
@@ -48,16 +40,16 @@ export default function ConsentimentosScreen() {
   const { mutateAsync: assinar,  isPending: assinando } = useAssinar();
   const { mutateAsync: revogar,  isPending: revogando } = useRevogar();
 
-  const [modalTipo,    setModalTipo]    = useState<TipoConsentimento | null>(null);
+  const [modalTipo,    setModalTipo]    = useState<TipoOpcional | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
 
-  const getStatus = (tipo: TipoConsentimento): ConsentimentoResponse | undefined =>
+  const getStatus = (tipo: TipoOpcional): ConsentimentoResponse | undefined =>
     lista.find(c => c.tipo === tipo);
 
   // BR-TUT-T05 (m3): trava síncrona para revogar (diálogo + chamada) e assinar; `isPending`/`disabled` só valem após o re-render.
   const emVoo = useRef(false);
 
-  const handleSwitch = async (tipo: TipoConsentimento, currentlyActive: boolean) => {
+  const handleToggle = async (tipo: TipoOpcional, currentlyActive: boolean) => {
     if (emVoo.current) return;
     if (currentlyActive) {
       emVoo.current = true;
@@ -71,14 +63,14 @@ export default function ConsentimentosScreen() {
     }
   };
 
-  const revogarComConfirmacao = async (tipo: TipoConsentimento) => {
+  const revogarComConfirmacao = async (tipo: TipoOpcional) => {
     const c = getStatus(tipo);
     if (!c) return;
     // LGPD — a confirmação é obrigatória: `revogar(...)` só roda com `confirmado === true`; dispensar o
     // diálogo (voltar do Android, toque fora) resolve false.
     const confirmado = await confirmar({
       titulo:     'Revogar consentimento?',
-      mensagem:   `${CONSEQUENCIA_REVOGAR[tipo]} Você pode aceitar de novo quando quiser.`,
+      mensagem:   `${CONSEQUENCIA_REVOGAR[tipo]} Você pode autorizar de novo quando quiser.`,
       verbo:      'Revogar consentimento',
       destrutivo: true,
     });
@@ -113,11 +105,12 @@ export default function ConsentimentosScreen() {
     }
   };
 
-  const chipForStatus = (tipo: TipoConsentimento) => {
+  // Estado em texto (canvas v13): nunca só cor. Sem registro no servidor = "Não autorizado".
+  const statusDe = (tipo: TipoOpcional): { texto: string; ativo: boolean } => {
     const c = getStatus(tipo);
-    if (!c)        return { tone: 'amber' as const, label: 'Pendente'  };
-    if (c.ativo)   return { tone: 'sage'  as const, label: 'Ativo'     };
-    return              { tone: 'clay'  as const, label: 'Revogado' };
+    if (!c)      return { texto: 'Não autorizado', ativo: false };
+    if (c.ativo) return { texto: ehHoje(c.dtAceite) ? 'Autorizado hoje' : `Autorizado em ${ddmmaaaa(c.dtAceite)}`, ativo: true };
+    return { texto: c.dtRevogacao ? `Revogado em ${ddmmaaaa(c.dtRevogacao)}` : 'Não autorizado', ativo: false };
   };
 
   return (
@@ -129,18 +122,15 @@ export default function ConsentimentosScreen() {
           </Pressable>
         </View>
 
-        <Text style={{ fontFamily: fonts.mono, color: colors.primary, fontSize: fontSize.xs, letterSpacing: 1.2, marginBottom: 4 }}>LGPD</Text>
-        <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 32, lineHeight: 38, marginBottom: 8 }}>
-          {'Seus '}
-          <Text style={{ fontStyle: 'italic', color: colors.primary }}>consentimentos.</Text>
-        </Text>
-        <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, marginBottom: 24, lineHeight: 20 }}>
-          Você controla como seus dados são usados. Pode revogar a qualquer momento.
+        <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1.8, marginBottom: 8 }}>PRIVACIDADE</Text>
+        <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 32, lineHeight: 35, marginBottom: 18 }}>
+          {'O que você autorizou. '}
+          <Text style={{ fontStyle: 'italic', color: colors.primary }}>Pode mudar quando quiser.</Text>
         </Text>
 
         {/* BR-TUT-T03: sem a lista vinda do servidor NÃO se sabe o que o tutor aceitou — carregando => skeleton; erro =>
-            ErrorState; erro com lista salva => lista + faixa. "Pendente" só aparece com a lista na mão. Lista vazia é dado
-            (nada registrado ainda), não "vazio" a esconder. */}
+            ErrorState; erro com lista salva => lista + faixa. "Não autorizado" só aparece com a lista na mão. Lista vazia é
+            dado (nada registrado ainda), não "vazio" a esconder. */}
         <QueryState
           query={consentimentosQuery}
           isEmpty={() => false}
@@ -150,43 +140,52 @@ export default function ConsentimentosScreen() {
         >
           {() => (
             <>
-              {TIPOS.map(tipo => {
-                const meta    = LGPD_CONSENTIMENTOS[tipo];
-                const chip    = chipForStatus(tipo);
-                const isAtivo = getStatus(tipo)?.ativo === true;
-
-                return (
-                  <KCard key={tipo} style={styles.consentCard}>
-                    <View style={styles.consentTop}>
+              <View>
+                {TIPOS_OPCIONAIS.map((tipo, i) => {
+                  const meta   = LGPD_CONSENTIMENTOS[tipo];
+                  const status = statusDe(tipo);
+                  return (
+                    <View
+                      key={tipo}
+                      style={[styles.row, { borderTopColor: colors.border }, i === TIPOS_OPCIONAIS.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}
+                    >
                       <View style={styles.consentInfo}>
                         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{meta.titulo}</Text>
-                        <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs, marginTop: 4, lineHeight: 18 }}>{meta.resumo}</Text>
+                        <Text style={{ fontFamily: fonts.body, color: status.ativo ? colors.primary : colors.textSoft, fontSize: fontSize.sm }}>{status.texto}</Text>
+                        <Pressable
+                          onPress={() => setModalTipo(tipo)}
+                          hitSlop={8}
+                          style={styles.verTexto}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Ver texto completo: ${meta.titulo}`}
+                        >
+                          <Text style={{ fontFamily: fonts.mono, color: colors.primary, fontSize: fontSize.xs, letterSpacing: 0.8 }}>VER TEXTO COMPLETO →</Text>
+                        </Pressable>
                       </View>
-                      <View style={{ alignItems: 'flex-end', gap: 8 }}>
-                        <KChip tone={chip.tone}>{chip.label}</KChip>
-                        <Switch
-                          value={isAtivo}
-                          onValueChange={() => void handleSwitch(tipo, isAtivo)}
-                          trackColor={{ false: colors.borderControl, true: colors.primary }}
-                          thumbColor={colors.surface}
-                          disabled={assinando || revogando}
-                          accessibilityLabel={`Consentimento ${meta.titulo}`}
-                        />
-                      </View>
+                      <KButton
+                        variant={status.ativo ? 'secondary' : 'primary'}
+                        size="sm"
+                        style={styles.acao}
+                        disabled={assinando || revogando}
+                        onPress={() => void handleToggle(tipo, status.ativo)}
+                        accessibilityLabel={`${status.ativo ? 'Revogar' : 'Autorizar'} ${meta.titulo}`}
+                      >
+                        {status.ativo ? 'Revogar' : 'Autorizar'}
+                      </KButton>
                     </View>
-                    <Pressable
-                      onPress={() => setModalTipo(tipo)}
-                      hitSlop={8}
-                      style={{ minHeight: 44, justifyContent: 'center', marginTop: 6 }}
-                      accessibilityRole="button"
-                    >
-                      <Text style={{ fontFamily: fonts.mono, color: colors.primary, fontSize: fontSize.xs, letterSpacing: 0.8 }}>
-                        VER TEXTO COMPLETO →
-                      </Text>
-                    </Pressable>
-                  </KCard>
-                );
-              })}
+                  );
+                })}
+              </View>
+
+              <View style={[styles.necessario, { backgroundColor: colors.surface2 }]}>
+                <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.sm }}>Necessário para o serviço</Text>
+                <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, lineHeight: 20 }}>
+                  Lembretes de vacina e de horário fazem parte do atendimento da clínica que cuida dos seus pets. Você os aceita ao criar a conta e não há botão para revogá-los aqui.
+                </Text>
+              </View>
+              <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs, lineHeight: 18 }}>
+                Cada mudança fica registrada com data e hora. Revogar não cancela consultas presenciais já marcadas.
+              </Text>
             </>
           )}
         </QueryState>
@@ -236,9 +235,11 @@ const styles = StyleSheet.create({
   scroll:      { padding: 20, paddingBottom: 40 },
   headerRow:   { marginBottom: 20 },
   circle:      { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  consentCard: { marginBottom: 14 },
-  consentTop:  { flexDirection: 'row', gap: 12 },
-  consentInfo: { flex: 1 },
+  row:         { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, borderTopWidth: 1 },
+  consentInfo: { flex: 1, gap: 3 },
+  verTexto:    { minHeight: 44, justifyContent: 'center' },
+  acao:        { minHeight: 44, paddingHorizontal: 16 },
+  necessario:  { gap: 6, padding: 16, borderRadius: 16, marginTop: 18, marginBottom: 14 },
   modalHeader: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, gap: 12 },
   modalScroll: { padding: 20 },
   modalFooter: { flexDirection: 'row', gap: 12, padding: 16, borderTopWidth: 1 },

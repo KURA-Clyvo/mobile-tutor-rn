@@ -154,9 +154,6 @@ export default function LoginScreen() {
 
         <View style={styles.footer}>
           <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: c.textMuteInk, letterSpacing: 1.2 }}>
-            LGPD · AES-256
-          </Text>
-          <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: c.textMuteInk, letterSpacing: 1.2 }}>
             Clyvo Vet
           </Text>
         </View>
