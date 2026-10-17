@@ -24,7 +24,7 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
   const lunaEmoji = hasLunaChip ? '✨' : undefined;
   const condicaoPrincipal = pet.condicoes?.[0];
 
-  const statusLabel = STATUS_PET[pet.statusGeral].label;
+  const statusLabel = pet.statusGeral ? STATUS_PET[pet.statusGeral].label : '—';
 
   const stats: StatCell[] = [
     { label: 'PRÓXIMO', value: pet.dtProximoAgendamento ? formatDateShortBR(pet.dtProximoAgendamento) : '—' },
@@ -40,7 +40,7 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
         pressed && { opacity: 0.8 },
       ]}
       accessibilityRole="button"
-      accessibilityLabel={`${pet.nome}, ${pet.especie}, ${pet.statusGeral}`}
+      accessibilityLabel={`${pet.nome}, ${pet.especie}${pet.statusGeral ? `, ${STATUS_PET[pet.statusGeral].label}` : ''}`}
     >
       <View style={styles.topRow}>
         <KPetPortrait

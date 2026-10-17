@@ -13,7 +13,7 @@ import { VacinaItem }   from '../../../components/domain/VacinaItem';
 import { usePets }      from '../../../hooks/usePets';
 import { getVacinas }   from '../../../services/vacinas.service';
 import type { VacinaTutorResponse } from '../../../types/api';
-import { classificarVacina, fraseSaude } from '../../../utils/vacinas';
+import { classificarVacina, fraseSaude, FRASE_NADA_VENCE } from '../../../utils/vacinas';
 import { STATUS_PET } from '../../../utils/statusPet';
 
 type PetSaude = NonNullable<ReturnType<typeof usePets>['data']>[number];
@@ -104,11 +104,14 @@ function SaudeConteudo({ pets, vacinas }: DadosSaude) {
   const { colors, fonts, fontSize } = useTheme();
   const router = useRouter();
   // BR-TUT-T06: todo número da tela sai destas três listas, as MESMAS que são desenhadas — nenhum contador é somado à parte.
-  const alertas = pets.filter(p => p.alertasAtivos > 0);
+  const alertas = pets.filter(p => (p.alertasAtivos ?? 0) > 0);
   const classificadas = vacinas.map(x => ({ ...x, estado: classificarVacina(x.vacina) }));
-  const atencao = classificadas.filter(x => x.estado !== 'EM_DIA');
+  const atencao = classificadas.filter(x => x.estado === 'VENCIDA' || x.estado === 'VENCENDO');
   const emDia = classificadas.filter(x => x.estado === 'EM_DIA');
-  const allClear = alertas.length === 0 && atencao.length === 0;
+  const semData = classificadas.filter(x => x.estado === 'SEM_DATA');
+  // "Tudo em dia!" afirma que NÃO há alerta: só com a contagem de alertas de TODOS os pets em mãos (o Java real não a manda).
+  const alertasConhecidos = pets.every(p => p.alertasAtivos !== undefined);
+  const allClear = alertasConhecidos && alertas.length === 0 && atencao.length === 0 && semData.length === 0;
   const agendar = (idPet: number) => () =>
     router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(idPet), tipo: 'RETORNO' } } as any);
   const rotulo = [styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }];
@@ -132,9 +135,16 @@ function SaudeConteudo({ pets, vacinas }: DadosSaude) {
           </View>
           <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: fontSize.xl }}>Tudo em dia!</Text>
           <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, textAlign: 'center' }}>
-            Nenhum alerta ativo e todas as vacinas em dia.
+            {`Nenhum alerta ativo. ${FRASE_NADA_VENCE}`}
           </Text>
         </View>
+      )}
+
+      {/* Sem a contagem de alertas, só se afirma o que a lista de vacinas sustenta. */}
+      {!alertasConhecidos && atencao.length === 0 && semData.length === 0 && (
+        <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: fontSize.xl, lineHeight: 30, marginBottom: 20 }}>
+          {FRASE_NADA_VENCE}
+        </Text>
       )}
 
       {alertas.length > 0 && (
@@ -144,8 +154,8 @@ function SaudeConteudo({ pets, vacinas }: DadosSaude) {
             <AlertaBanner
               key={p.id}
               tone={p.statusGeral === 'URGENTE' ? 'clay' : 'amber'}
-              title={`${p.nome} · ${p.alertasAtivos} alerta${p.alertasAtivos > 1 ? 's' : ''}`}
-              subtitle={`${STATUS_PET[p.statusGeral].label} · ${p.nmClinica}`}
+              title={`${p.nome} · ${p.alertasAtivos} alerta${(p.alertasAtivos ?? 0) > 1 ? 's' : ''}`}
+              subtitle={[p.statusGeral && STATUS_PET[p.statusGeral].label, p.nmClinica].filter(Boolean).join(' · ')}
               onPress={() => router.push(`/(tabs)/pets/${p.id}` as any)}
             />
           ))}
@@ -165,6 +175,15 @@ function SaudeConteudo({ pets, vacinas }: DadosSaude) {
         <View style={styles.section}>
           <Text style={rotulo}>{`EM DIA · ${emDia.length}`}</Text>
           {emDia.map(({ pet, vacina }) => (
+            <VacinaItem key={`${pet.id}-${vacina.id}`} vacina={vacina} petNome={pet.nome} />
+          ))}
+        </View>
+      )}
+
+      {semData.length > 0 && (
+        <View style={styles.section}>
+          <Text style={rotulo}>{`SEM DATA PREVISTA · ${semData.length}`}</Text>
+          {semData.map(({ pet, vacina }) => (
             <VacinaItem key={`${pet.id}-${vacina.id}`} vacina={vacina} petNome={pet.nome} />
           ))}
         </View>

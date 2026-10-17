@@ -39,7 +39,7 @@ export function mapPetDetailDto(raw: PetDetalheRaw): PetTutorDetailResponse {
     dtNascimento: raw.dtNascimento, sgSexo: raw.sgSexo, sgPorte: raw.sgPorte,
     nmClinica: raw.nmClinica,
     // BR-TUT-T06: o detalhe Java não tem status do pet — não se inventa 'OK'; a tela lê o status da LISTA.
-    nrAlertasAtivos: 0, nrConsultas: raw.nrConsultas,
+    nrConsultas: raw.nrConsultas,
     chips: [],
     // FT-09 (KURA_BACKLOG_FOTO_PET): o detalhe propaga as 2 variantes — regra
     // A5 do backlog (só o detalhe baixa a 1080; a lista, em mapPetDto acima,
