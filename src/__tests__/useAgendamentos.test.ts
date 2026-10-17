@@ -1,8 +1,9 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
-import { useAgendamentos, useAgendamentoBadgeCount } from '../hooks/useAgendamentos';
+import { useAgendamentos, useAgendamentoBadgeCount, useCancelarAgendamento } from '../hooks/useAgendamentos';
+import { listAgendamentos, cancelarAgendamento } from '../services/agendamentos.service';
 
 jest.mock('../services/agendamentos.service', () => ({
   listAgendamentos: jest.fn(() => Promise.resolve([
@@ -28,4 +29,16 @@ describe('useAgendamentos', () => {
     const { result } = renderHook(() => useAgendamentoBadgeCount(), { wrapper });
     await waitFor(() => expect(result.current).toBe(1));
   });
+});
+
+// BR-TUT-T10 (reprodução do maestro, MUT-T): cancelar tem que recarregar a lista, senão o pedido cancelado continua na agenda.
+it('cancelar com sucesso recarrega a lista de agendamentos', async () => {
+  (cancelarAgendamento as jest.Mock).mockResolvedValue(undefined);
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const w = ({ children }: any) => React.createElement(QueryClientProvider, { client: qc }, children);
+  const { result } = renderHook(() => ({ lista: useAgendamentos(), cancelar: useCancelarAgendamento() }), { wrapper: w });
+  await waitFor(() => expect(result.current.lista.isSuccess).toBe(true));
+  const antes = (listAgendamentos as jest.Mock).mock.calls.length;
+  await act(() => result.current.cancelar.mutateAsync(1));
+  await waitFor(() => expect((listAgendamentos as jest.Mock).mock.calls.length).toBe(antes + 1));
 });
