@@ -1,7 +1,8 @@
 // BR-TUT-T08 fix wave (G2 I-1, I-2, M-3, M-5): estado e botão POR LINHA, caixa "Necessário" com o estado do servidor, ordem do canvas.
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent, waitFor, within } from '@testing-library/react-native';
-import { ThemeProvider } from '../theme/index';
+import { ThemeProvider, useTheme } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
 import { ToastProvider } from '../components/feedback/Toast';
 import { LGPD_CONSENTIMENTOS } from '../constants/lgpd';
@@ -19,7 +20,9 @@ jest.mock('../hooks/useConsentimentos', () => ({
   useRevogar: () => ({ mutateAsync: jest.fn(), isPending: false }),
 }));
 
-const W = ({ children }: any) => <ThemeProvider><KDialogProvider><ToastProvider>{children}</ToastProvider></KDialogProvider></ThemeProvider>;
+let perigo = '';
+const Sonda = () => { perigo = useTheme().colors.danger; return null; };
+const W = ({ children }: any) => <ThemeProvider><Sonda /><KDialogProvider><ToastProvider>{children}</ToastProvider></KDialogProvider></ThemeProvider>;
 const c = (tipo: string, ativo: boolean, extra: any = {}) =>
   ({ idConsentimento: 1, tipo, versaoTermo: 'v1.0', aceito: ativo, ativo, dtAceite: '2026-01-05T10:00:00', dtRevogacao: null, ...extra });
 const tit = (t: keyof typeof LGPD_CONSENTIMENTOS) => LGPD_CONSENTIMENTOS[t].titulo;
@@ -72,6 +75,7 @@ describe('Consentimentos — caixa "Necessário para o serviço" (I-1)', () => {
 
   it.each([
     ['revogado', [c('LEMBRETES', false, { dtRevogacao: '2026-02-03T10:00:00' })]],
+    ['inativo sem data de revogação', [c('LEMBRETES', false)]],
     ['sem registro', []],
   ])('LEMBRETES %s => "Lembretes desligados" + "Ligar lembretes"', (_n, dados) => {
     mockData = dados as any[];
@@ -101,6 +105,7 @@ describe('Consentimentos — caixa "Necessário para o serviço" (I-1)', () => {
     const u = render(<ConsentimentosScreen />, { wrapper: W });
     fireEvent.press(u.getByText('Ligar lembretes'));
     expect(await u.findByText('Não foi possível ligar os lembretes. Tente novamente.')).toBeTruthy();
+    expect(StyleSheet.flatten(u.getByTestId('toast').props.style).borderColor).toBe(perigo); // tipo 'erro', não 'sucesso'
     expect(u.queryByText('Lembretes ligados')).toBeNull();
   });
 });
