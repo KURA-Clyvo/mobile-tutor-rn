@@ -127,9 +127,16 @@ describe('AgendamentoItem — botão Cancelar agendamento (BR-TUT-T10)', () => {
     expect(StyleSheet.flatten(getByText('Cancelar agendamento').props.style).color).toBe(lightColors.textOnPrimary);
   });
 
-  it('alvo do botão >= 44', () => {
+  it('o rótulo traz o pet e a data DO ITEM (outro pet, outra data), completo', () => {
+    const item = { ...BASE, sgTipoConsulta: 'ROTINA' as const, dsSalaUrl: null, sgStatus: 'SOLICITADO' as const,
+      pet: { id: 2, nmPet: 'Mel', nmEspecie: 'Gato', nmRaca: 'Siamês' }, dtInicio: new Date(2026, 10, 3, 9, 0).toISOString() };
+    const { getByRole } = render(<AgendamentoItem item={item} onCancel={jest.fn()} />, { wrapper: W });
+    expect(getByRole('button').props.accessibilityLabel).toBe('Cancelar agendamento de Mel em 03 de nov. de 2026');
+  });
+
+  it('alvo do botão Cancelar agendamento >= 44 (mira o botão pelo rótulo, não "algum botão")', () => {
     const { getByRole } = comStatus('SOLICITADO');
-    const st = StyleSheet.flatten(getByRole('button').props.style);
+    const st = StyleSheet.flatten(getByRole('button', { name: /^Cancelar agendamento de / }).props.style);
     expect(st.minHeight).toBeGreaterThanOrEqual(44);
     expect(st.minWidth).toBeGreaterThanOrEqual(44);
   });

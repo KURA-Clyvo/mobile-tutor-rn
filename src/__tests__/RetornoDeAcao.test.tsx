@@ -1,4 +1,6 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
+import { lightColors } from '../theme/tokens';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
@@ -129,6 +131,10 @@ describe('Cancelar agendamento — retorno', () => {
     await act(async () => { d.falha(new Error('500')); });
     expect(u.getByText(/Não foi possível cancelar/)).toBeTruthy();
     expect(u.queryByText('Agendamento cancelado')).toBeNull();
+    // BR-TUT-T10 M-2: o toast de falha é do tipo erro (borda danger), não sucesso.
+    const borda = StyleSheet.flatten(u.getByTestId('toast').props.style).borderColor;
+    expect(borda).toBe(lightColors.danger);
+    expect(borda).not.toBe(lightColors.success);
   });
 
   it('falha e nova tentativa: o segundo toque abre o diálogo e chama o serviço de novo (a trava solta no finally)', async () => {
