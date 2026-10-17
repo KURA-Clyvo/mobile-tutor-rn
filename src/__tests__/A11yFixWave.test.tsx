@@ -1,6 +1,6 @@
 // BR-TUT-T09 fix wave (pós-G2). Cada teste mata uma mutação que a G2 mostrou viva (ver diário `br-tut-t09-fixwave.md`).
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, type ViewStyle } from 'react-native';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { KButton } from '../components/primitives/KButton';
@@ -38,7 +38,7 @@ describe('M-3 — o piso de 44 vale DEPOIS do style do chamador', () => {
     const a = render(<KCard onPress={jest.fn()} style={{ minHeight: 30 }}>x</KCard>, { wrapper: W });
     expect(StyleSheet.flatten(a.getByRole('button').props.style).minHeight).toBe(touchTarget.min);
     const b = render(<KCard style={{ minHeight: 30, minWidth: 10 }}><Text>y</Text></KCard>, { wrapper: W });
-    const st = StyleSheet.flatten((b.toJSON() as { props: { style: unknown } }).props.style as never);
+    const st = StyleSheet.flatten((b.toJSON() as unknown as { props: { style: ViewStyle } }).props.style);
     expect(st.minHeight).toBe(touchTarget.min);
     expect(st.minWidth).toBe(touchTarget.min);
   });
