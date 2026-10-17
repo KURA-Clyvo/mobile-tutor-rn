@@ -499,7 +499,7 @@ describe('gate: tela que lê dado de servidor trata o erro (check-query-state)',
     });
   });
 
-  it('allowlist EXATA: 2 entradas (BR-TUT-T04), razão > 30 caracteres, cada entrada aponta para chamada que existe e as telas da T03/T04 nunca entram', () => {
+  it('allowlist EXATA: 1 entrada (BR-TUT-T04), razão > 30 caracteres, cada entrada aponta para chamada que existe e as telas da T03/T04 nunca entram', () => {
     const lista = JSON.parse(execFileSync(process.execPath, [SCRIPT, '--allowlist'], { encoding: 'utf8' })) as Record<string, string>;
     expect(Object.keys(lista).sort()).toEqual([...ALLOWLIST_EXATA].sort());
     const { r } = rodar(RAIZ);
