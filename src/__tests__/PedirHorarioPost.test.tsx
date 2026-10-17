@@ -6,7 +6,7 @@ import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
 import { ToastProvider } from '../components/feedback/Toast';
 import NovoAgendamentoScreen from '../app/(tabs)/agenda/novo';
-import { mapListaAgendamentos } from '../services/agendamentos.service';
+import { mapListaAgendamentos, solicitarAgendamento as mockSolicitar } from '../services/agendamentos.service';
 import { apiClient } from '../services/api/client';
 
 jest.setTimeout(30_000);
@@ -24,7 +24,7 @@ let mockPets: any;
 jest.mock('../hooks/usePets', () => ({ usePets: () => mockPets }));
 jest.mock('../hooks/useAgendamentos', () => ({
   // o hook real exige QueryClient; o que importa aqui é o service real por baixo
-  useSolicitarAgendamento: () => ({ mutateAsync: (r: any) => require('../services/agendamentos.service').solicitarAgendamento(r), isPending: false }),
+  useSolicitarAgendamento: () => ({ mutateAsync: (r: any) => mockSolicitar(r), isPending: false }),
 }));
 
 const W = ({ children }: any) => (
