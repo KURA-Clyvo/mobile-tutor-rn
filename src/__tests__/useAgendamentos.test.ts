@@ -39,6 +39,6 @@ it('cancelar com sucesso recarrega a lista de agendamentos', async () => {
   const { result } = renderHook(() => ({ lista: useAgendamentos(), cancelar: useCancelarAgendamento() }), { wrapper: w });
   await waitFor(() => expect(result.current.lista.isSuccess).toBe(true));
   const antes = (listAgendamentos as jest.Mock).mock.calls.length;
-  await act(() => result.current.cancelar.mutateAsync(1));
+  await act(async () => { await result.current.cancelar.mutateAsync(1); });
   await waitFor(() => expect((listAgendamentos as jest.Mock).mock.calls.length).toBe(antes + 1));
 });
