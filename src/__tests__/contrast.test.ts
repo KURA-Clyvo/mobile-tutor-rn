@@ -58,6 +58,10 @@ const PARES: Par[] = [
   ...par('clayInk', 'surface'),
   ...par('clayInk', 'bg'),
   ...par('primary', 'primarySoft'),
+  // S4-LOJA-05 (vitrine): chip selecionado, chip não selecionado, nome do produto sobre o card.
+  ...par('textOnPrimary', 'primary'),
+  ...par('textSoft', 'surface'),
+  ...par('text', 'surface'),
   ...par('textOnPrimary', 'primary'),
   ...par('textOnPrimary', 'danger'),
   ...par('textOnPrimary', 'clayInk'), // KBadge: contagem sobre clayInk (clay do DS reprovaria)
@@ -427,6 +431,16 @@ const USOS: UsoAncorado[] = [
   { arq: 'app/(tabs)/pets/novo.tsx', ancora: /borderColor: colors\.borderControl, borderRadius: radius\.md/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
   // BR-TUT-T07 (I-6): borda da opção NÃO marcada do pedido de horário (1.5px, como o canvas v13) — era `border`, 1.25:1 / 1.12:1.
   { arq: 'app/(tabs)/agenda/novo.tsx', ancora: /marcado \? colors\.primary : colors\.borderControl,/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
+  // S4-LOJA-05 (vitrine). Aviso: amberInk (texto e ícone) sobre amberPale — a mutação amberInk->amber derruba o texto abaixo de 4.5.
+  { arq: 'components/loja/AvisoLoja.tsx', ancora: /backgroundColor: colors\.amberPale/, texto: 'amberInk', fundo: 'amberPale' },
+  { arq: 'components/loja/AvisoLoja.tsx', ancora: /color: colors\.amberInk, fontFamily: fonts\.body/, texto: 'amberInk', fundo: 'amberPale' },
+  // Chip selecionado (textOnPrimary/primary) e não selecionado (textSoft/surface, borda borderControl 3:1).
+  { arq: 'components/loja/CategoriaChip.tsx', ancora: /backgroundColor: selecionado \? colors\.primary : colors\.surface/, texto: 'textOnPrimary', fundo: 'primary' },
+  { arq: 'components/loja/CategoriaChip.tsx', ancora: /color: selecionado \? colors\.textOnPrimary : colors\.textSoft/, texto: 'textSoft', fundo: 'surface' },
+  { arq: 'components/loja/CategoriaChip.tsx', ancora: /: colors\.borderControl/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
+  // Card: nome (text), rótulo do preço (textMuteInk), valor (text), tudo sobre surface.
+  { arq: 'components/loja/ProdutoCard.tsx', ancora: /backgroundColor: colors\.surface, borderColor/, texto: 'text', fundo: 'surface' },
+  { arq: 'components/loja/ProdutoCard.tsx', ancora: /color: colors\.textMuteInk\b/, texto: 'textMuteInk', fundo: 'surface' },
 ];
 
 describe('pares de uso real (âncora no arquivo)', () => {
