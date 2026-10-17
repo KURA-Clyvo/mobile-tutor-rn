@@ -18,7 +18,7 @@ let mockRaw: any[] = [];
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, back: jest.fn(), replace: jest.fn(), canGoBack: jest.fn(() => true) }) }));
 jest.mock('../services/api/client', () => ({ apiClient: { get: jest.fn() } }));
 jest.mock('../hooks/useNotifications', () => ({
-  useNotifications: () => ({ data: mockRaw.map(r => require('../utils/mappers').mapNotificacaoDto(r)), isLoading: false }),
+  useNotifications: () => ({ data: mockRaw.map(r => jest.requireActual('../utils/mappers').mapNotificacaoDto(r)), isLoading: false }),
   useMarcarLida:       () => ({ mutate: mockMarcarLida }),
   useMarcarTodasLidas: () => ({ mutate: jest.fn(), isPending: false }),
 }));

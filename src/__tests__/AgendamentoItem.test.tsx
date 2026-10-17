@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { ThemeProvider } from '../theme/index';
 import { AgendamentoItem } from '../components/domain/AgendamentoItem';
 import type { AgendamentoTutorResponse } from '../types/api';
@@ -122,7 +122,7 @@ describe('AgendamentoItem — botão Cancelar agendamento (BR-TUT-T10)', () => {
 
   it('alvo do botão >= 44', () => {
     const { getByRole } = comStatus('SOLICITADO');
-    const st = require('react-native').StyleSheet.flatten(getByRole('button').props.style);
+    const st = StyleSheet.flatten(getByRole('button').props.style);
     expect(st.minHeight).toBeGreaterThanOrEqual(44);
     expect(st.minWidth).toBeGreaterThanOrEqual(44);
   });

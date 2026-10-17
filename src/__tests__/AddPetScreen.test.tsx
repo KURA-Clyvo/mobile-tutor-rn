@@ -1,4 +1,5 @@
 import React from 'react';
+import { TextInput } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 
@@ -33,7 +34,7 @@ describe('AddPetScreen (informativa)', () => {
 
   it('não tem formulário, nem "Cadastrar pet", nem "1 DE 2", e não pede câmera/galeria', () => {
     const u = render(<AddPetScreen />, { wrapper: W });
-    expect(u.UNSAFE_queryAllByType(require('react-native').TextInput)).toHaveLength(0);
+    expect(u.UNSAFE_queryAllByType(TextInput)).toHaveLength(0);
     expect(u.queryByText('Cadastrar pet')).toBeNull();
     expect(u.queryByText(/1 DE 2/)).toBeNull();
     expect(u.queryByLabelText('Nome do pet')).toBeNull();
