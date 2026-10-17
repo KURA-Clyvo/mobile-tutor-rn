@@ -7,8 +7,10 @@ import AgendaScreen from '../app/(tabs)/agenda/index';
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn() }) }));
 const mockCancelar = jest.fn();
+let mockExtras: any[] = []; // pedidos a mais (BR-TUT-T10 fix wave I-1); vazio = fixture original de 1 item
 jest.mock('../hooks/useAgendamentos', () => ({
   useAgendamentos:          () => ({ data: [
+    ...mockExtras,
     { id: 1, dtInicio: new Date(Date.now() + 86400_000).toISOString(), nrDuracaoMinutos: 30, sgStatus: 'SOLICITADO', sgTipoConsulta: 'RETORNO', pet: { id: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador' }, nmClinica: 'KURA', dsMotivo: '' },
   ], isLoading: false, refetch: jest.fn() }),
   useCancelarAgendamento:   () => ({ mutateAsync: mockCancelar, isPending: false }),
@@ -74,5 +76,29 @@ describe('AgendaScreen — cancelamento exige confirmação (TASK-F06)', () => {
     fireEvent.press(destrutivo);
 
     await waitFor(() => expect(mockCancelar).toHaveBeenCalledWith(1));
+  });
+});
+
+// BR-TUT-T10 fix wave (I-1): com 2+ pedidos cancelaveis, o id cancelado e o do botao tocado (nao o 1o da lista).
+describe('AgendaScreen — cancela o pedido certo (BR-TUT-T10 I-1)', () => {
+  const dia = (n: number) => new Date(Date.now() + n * 86400_000).toISOString();
+  beforeEach(() => {
+    mockCancelar.mockClear();
+    mockExtras = [
+      { id: 2, dtInicio: dia(3), nrDuracaoMinutos: 30, sgStatus: 'AGENDADO', sgTipoConsulta: 'ROTINA', pet: { id: 2, nmPet: 'Mel', nmEspecie: 'Gato', nmRaca: 'Siamês' }, nmClinica: 'KURA', dsMotivo: '' },
+      { id: 3, dtInicio: dia(5), nrDuracaoMinutos: 30, sgStatus: 'SOLICITADO', sgTipoConsulta: 'VACINA', pet: { id: 3, nmPet: 'Thor', nmEspecie: 'Cão', nmRaca: 'Boxer' }, nmClinica: 'KURA', dsMotivo: '' },
+    ];
+  });
+  afterEach(() => { mockExtras = []; });
+
+  it.each([['Mel', 2], ['Thor', 3], ['Bóbi', 1]] as const)('tocar no botao do %s cancela o id %i', async (pet, id) => {
+    const u = render(<AgendaScreen />, { wrapper: W });
+    await waitFor(() => expect(u.getByText(pet)).toBeTruthy());
+    expect(u.getAllByText('Cancelar agendamento')).toHaveLength(3);
+    fireEvent.press(u.getByLabelText(new RegExp(`^Cancelar agendamento de ${pet} `)));
+    await waitFor(() => expect(u.getByTestId('kdialog-acao-__confirmar__')).toBeTruthy());
+    fireEvent.press(u.getByTestId('kdialog-acao-__confirmar__'));
+    await waitFor(() => expect(mockCancelar).toHaveBeenCalledTimes(1));
+    expect(mockCancelar).toHaveBeenCalledWith(id);
   });
 });
