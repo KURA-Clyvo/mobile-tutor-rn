@@ -33,6 +33,7 @@ jest.mock('../hooks/useConsentimentos', () => ({
     data: [
       { idConsentimento: 1, tipo: 'LEMBRETES', versaoTermo: 'v1.0', aceito: true, ativo: true, dtAceite: new Date().toISOString(), dtRevogacao: null },
       { idConsentimento: 2, tipo: 'DADOS_ANONIMOS', versaoTermo: 'v1.0', aceito: false, ativo: false, dtAceite: '2026-09-01T10:00:00', dtRevogacao: '2026-10-01T10:00:00' },
+      { idConsentimento: 4, tipo: 'COMPARTILHAR_SEGURADORA', versaoTermo: 'v1.0', aceito: true, ativo: true, dtAceite: '2026-08-15T09:00:00', dtRevogacao: null },
       { idConsentimento: 3, tipo: 'TELEORIENTACAO', versaoTermo: 'v1.0', aceito: true, ativo: true, dtAceite: new Date().toISOString(), dtRevogacao: null },
     ],
   }),
@@ -63,16 +64,17 @@ describe('ConsentimentosScreen (BR-TUT-T08)', () => {
     expect(u.getByText(/Lembretes de vacina e de horário/)).toBeTruthy();
     expect(u.queryByLabelText(/Lembretes/)).toBeNull();
     expect(u.UNSAFE_queryAllByType(Switch)).toHaveLength(0);
-    // 1 Revogar (Teleorientação ativa) + 3 Autorizar (anonimizados revogado, seguradora e novidades pendentes)
-    expect(u.getAllByLabelText(/^Revogar /)).toHaveLength(1);
-    expect(u.getAllByLabelText(/^Autorizar /)).toHaveLength(3);
+    // 2 Revogar (Teleorientação e seguradora ativas) + 2 Autorizar (anonimizados revogado e novidades pendente)
+    expect(u.getAllByLabelText(/^Revogar /)).toHaveLength(2);
+    expect(u.getAllByLabelText(/^Autorizar /)).toHaveLength(2);
   });
 
-  it('texto de estado por linha: Autorizado hoje / Revogado em data / Não autorizado', async () => {
+  it('texto de estado por linha: Autorizado hoje / Autorizado em data / Revogado em data / Não autorizado', async () => {
     const u = render(<ConsentimentosScreen />, { wrapper: W });
     await u.findByText('Autorizado hoje');
     expect(u.getByText('Revogado em 01/10/2026')).toBeTruthy();
-    expect(u.getAllByText('Não autorizado')).toHaveLength(2);
+    expect(u.getByText('Autorizado em 15/08/2026')).toBeTruthy();
+    expect(u.getAllByText('Não autorizado')).toHaveLength(1);
     expect(u.queryByText('Pendente')).toBeNull();
   });
 
