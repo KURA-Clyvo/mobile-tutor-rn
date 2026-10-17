@@ -10,6 +10,7 @@ import React from 'react';
 import { Platform, Pressable, StyleSheet, Switch, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '@theme/index';
 import { touchTarget } from '@theme/tokens';
+import { pisoDeAlvo } from '@theme/pisoDeAlvo';
 
 export interface KSwitchRowProps {
   value: boolean;
@@ -46,7 +47,7 @@ export function KSwitchRow({ value, onValueChange, accessibilityLabel, testID, c
       aria-checked={value}
       {...({ onKeyDown: aoTeclar } as object)}
       testID={`${testID}-row`}
-      style={[styles.row, style]}
+      style={[styles.row, style, pisoDeAlvo(style)]}
     >
       <View style={styles.conteudo}>{children}</View>
       <View

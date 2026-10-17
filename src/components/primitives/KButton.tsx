@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '@theme/index';
 import { touchTarget } from '@theme/tokens';
+import { pisoDeAlvo } from '@theme/pisoDeAlvo';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size    = 'sm' | 'md' | 'lg';
@@ -56,6 +57,7 @@ export function KButton({
         isDisabled && { opacity: 0.5 },
         pressed && !isDisabled && { opacity: 0.7 },
         style,
+        pisoDeAlvo(style, sz.minHeight),
       ]}
       {...rest}
     >
