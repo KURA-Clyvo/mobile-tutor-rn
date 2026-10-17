@@ -111,10 +111,15 @@ describe('KTabBar — aba ativa deriva de state.index', () => {
 
   it('acompanha a troca de state.index (Perfil ativa)', () => {
     const props = buildProps(3);
-    const { getByLabelText } = render(<KTabBar {...props} agendaBadgeCount={0} />, { wrapper: W });
+    const { getByLabelText, UNSAFE_root } = render(<KTabBar {...props} agendaBadgeCount={0} />, { wrapper: W });
 
     expect(getByLabelText('Perfil').props.accessibilityState.selected).toBe(true);
     expect(getByLabelText('Pets').props.accessibilityState.selected).toBe(false);
+    // BR-TUT-G4 I-2: prop web explícita (RN-web 0.21 ignora accessibilityState).
+    // (lido no composto Pressable: o host funde aria-* em accessibilityState, ver A11yRolesAnuncio.test).
+    const ariaSel = (l: string) => UNSAFE_root.findAll((n: any) => n.props?.accessibilityLabel === l && 'aria-selected' in n.props)[0]?.props['aria-selected'];
+    expect(ariaSel('Perfil')).toBe(true);
+    expect(ariaSel('Pets')).toBe(false);
   });
 });
 

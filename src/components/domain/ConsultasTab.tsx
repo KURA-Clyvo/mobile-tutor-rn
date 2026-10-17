@@ -27,7 +27,7 @@ export function ConsultasTab({ petId }: { petId: number }) {
     <View>
       <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 28, lineHeight: 34, marginBottom: 16 }}>
         {'Histórico de '}
-        <Text style={{ fontStyle: 'italic', color: colors.primary }}>consultas.</Text>
+        <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>consultas.</Text>
       </Text>
 
       <QueryState
@@ -88,6 +88,7 @@ function ConsultasLista({ eventos, onSelect }: { eventos: TimelineTutorEventResp
               }]}
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
+              aria-selected={active}
             >
               <Text style={[styles.filterLabel, { fontFamily: fonts.bodyMedium, fontSize: fontSize.xs, color: active ? colors.textOnPrimary : colors.textSoft }]}>
                 {f.label}

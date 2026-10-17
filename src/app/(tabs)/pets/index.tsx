@@ -65,7 +65,7 @@ export default function MeusPetsScreen() {
           </Text>
           <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 36, lineHeight: 42 }}>
             {'Meus '}
-            <Text style={{ fontStyle: 'italic', color: colors.primary }}>pets.</Text>
+            <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>pets.</Text>
           </Text>
         </View>
 

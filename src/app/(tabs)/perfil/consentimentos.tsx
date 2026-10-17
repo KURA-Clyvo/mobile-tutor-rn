@@ -147,7 +147,7 @@ export default function ConsentimentosScreen() {
         <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1.8, marginBottom: 8 }}>PRIVACIDADE</Text>
         <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 32, lineHeight: 35, marginBottom: 18 }}>
           {'O que você autorizou. '}
-          <Text style={{ fontStyle: 'italic', color: colors.primary }}>Pode mudar quando quiser.</Text>
+          <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>Pode mudar quando quiser.</Text>
         </Text>
 
         {/* BR-TUT-T03: sem a lista vinda do servidor NÃO se sabe o que o tutor aceitou — carregando => skeleton; erro =>

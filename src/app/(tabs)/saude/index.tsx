@@ -70,7 +70,7 @@ export default function SaudeScreen() {
         <View style={styles.titleArea}>
           <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 32, lineHeight: 38 }}>
             {'Saúde dos seus '}
-            <Text style={{ fontStyle: 'italic', color: colors.primary }}>pets.</Text>
+            <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>pets.</Text>
           </Text>
         </View>
 
@@ -113,7 +113,7 @@ function SaudeConteudo({ pets, vacinas }: DadosSaude) {
   const alertasConhecidos = pets.every(p => p.alertasAtivos !== undefined);
   const allClear = alertasConhecidos && alertas.length === 0 && atencao.length === 0 && semData.length === 0;
   const agendar = (idPet: number) => () =>
-    router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(idPet), tipo: 'VACINA' } } as any);
+    router.push({ pathname: '/agenda/novo', params: { idPet: String(idPet), tipo: 'VACINA' } } as any);
   const rotulo = [styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }];
 
   return (

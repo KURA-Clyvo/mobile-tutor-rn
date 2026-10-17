@@ -131,6 +131,17 @@ describe('NotificacoesScreen (T10)', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it('BR-TUT-G4 m-10: rótulo de acessibilidade sem pontuação dupla (mensagem já termina em ponto)', () => {
+    mockRaw = JAVA_HOJE;
+    const u = render(<NotificacoesScreen />, { wrapper: W });
+    const rotulos = u.UNSAFE_root.findAll((n: any) => typeof n.type === 'string' && typeof n.props?.accessibilityLabel === 'string' && /Vacina vencendo/.test(n.props.accessibilityLabel)).map((n: any) => n.props.accessibilityLabel);
+    expect(rotulos.length).toBeGreaterThan(0);
+    for (const r of rotulos) {
+      expect(r).not.toMatch(/[.!?]\./);
+      expect(r).toContain('A Gripe Canina vence em 20 dias. Hoje');
+    }
+  });
+
   it('tocar numa não lida continua marcando como lida (e numa lida não chama)', () => {
     mockRaw = JAVA_HOJE;
     const u = render(<NotificacoesScreen />, { wrapper: W });
@@ -148,7 +159,7 @@ describe('NotificacoesScreen (T10)', () => {
     expect(u.queryByText('Aviso')).toBeNull();
     expect(u.getByText(/VER SAÚDE/)).toBeTruthy();
     fireEvent.press(u.getByText('Vacina vencendo'));
-    expect(mockPush).toHaveBeenCalledWith('/(tabs)/pets/5');
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/pets/5?tab=vacinas'); // BR-TUT-G4 m-6: cai na aba Vacinas, não na Visão geral
   });
 
   it('LEMBRETE_VACINA sem idPet: vai à aba Saúde', () => {

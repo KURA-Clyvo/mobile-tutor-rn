@@ -7,7 +7,7 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
 import { ToastProvider } from '../components/feedback/Toast';
-import NovoAgendamentoScreen from '../app/(tabs)/agenda/novo';
+import NovoAgendamentoScreen from '../app/agenda/novo';
 import { mapListaAgendamentos, solicitarAgendamento as mockSolicitar } from '../services/agendamentos.service';
 import { apiClient } from '../services/api/client';
 

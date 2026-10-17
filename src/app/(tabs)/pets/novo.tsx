@@ -38,7 +38,7 @@ export default function AddPetScreen() {
         </View>
         <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 34, lineHeight: 38 }}>
           {'O cadastro do pet é '}
-          <Text style={{ fontStyle: 'italic', color: colors.primary }}>feito na clínica.</Text>
+          <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>feito na clínica.</Text>
         </Text>
         <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, lineHeight: 20, marginTop: 12 }}>
           O aplicativo ainda não cadastra pets. Quem registra é a clínica, e depois ele aparece aqui.

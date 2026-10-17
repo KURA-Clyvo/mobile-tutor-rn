@@ -31,7 +31,7 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 export default function PetDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, tab: tabInicial } = useLocalSearchParams<{ id: string; tab?: string }>();
   const petId  = parseInt(id ?? '0', 10);
   const { colors, fonts, fontSize, spacing } = useTheme();
   const router  = useRouter();
@@ -46,7 +46,7 @@ export default function PetDetailScreen() {
   // sem o pet na lista, a chip some (nunca um "Tudo certo" inventado).
   const listaQuery = usePets();
   const statusGeral = listaQuery.isError && !listaQuery.data ? undefined : listaQuery.data?.find(p => p.id === petId)?.statusGeral;
-  const [tab, setTab] = useState<Tab>('visao');
+  const [tab, setTab] = useState<Tab>(tabInicial === 'vacinas' ? 'vacinas' : 'visao');
   // F5-M4 (G2): no erro sem dado a barra não fica em '…' (lê como carregando): título neutro.
 
   return (
@@ -89,6 +89,7 @@ export default function PetDetailScreen() {
                 style={[styles.tabPill, active && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
+                aria-selected={active}
               >
                 <Text style={[styles.tabLabel, {
                   fontFamily: active ? fonts.bodyMedium : fonts.body,
@@ -115,7 +116,7 @@ export default function PetDetailScreen() {
           das abas em erro (G2 BR-TUT-T04 I4: alvos a ≥ 8 px). */}
       <View style={styles.fabZona}>
         <Pressable
-          onPress={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(petId) } } as any)}
+          onPress={() => router.push({ pathname: '/agenda/novo', params: { idPet: String(petId) } } as any)}
           style={[styles.fab, { backgroundColor: colors.primary }]}
           accessibilityRole="button"
           accessibilityLabel="Agendar consulta"

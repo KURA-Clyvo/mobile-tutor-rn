@@ -59,13 +59,13 @@ export default function AgendaScreen() {
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 32, lineHeight: 38 }}>
             {'Minha '}
-            <Text style={{ fontStyle: 'italic', color: colors.primary }}>agenda.</Text>
+            <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>agenda.</Text>
           </Text>
         </View>
         <KButton
           variant="primary"
           size="sm"
-          onPress={() => router.push('/(tabs)/agenda/novo' as any)}
+          onPress={() => router.push('/agenda/novo' as any)}
           iconLeft={<KIcon name="plus" size={14} color={colors.textOnPrimary} style={{ marginRight: 4 }} />}
         >
           Solicitar

@@ -64,7 +64,7 @@ export function VacinaItem({ vacina, petNome, onAgendar, now }: VacinaItemProps)
             onPress={onAgendar}
             style={styles.agendarAlvo}
             accessibilityRole="button"
-            accessibilityLabel={`Agendar ${vacina.nmVacina}`}
+            accessibilityLabel={`Agendar ${vacina.nmVacina}${petNome ? ` de ${petNome}` : ''}`}
           >
             <View style={[styles.agendarBtn, { backgroundColor: colors.primarySoft, borderColor: colors.primary }]}>
               <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.primary, letterSpacing: 0.8 }}>

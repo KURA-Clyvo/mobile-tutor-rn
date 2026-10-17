@@ -149,7 +149,7 @@ export default function RegisterScreen() {
           </Text>
           <Text style={{ fontFamily: theme.fonts.display, color: c.text, fontSize: 36, lineHeight: 42 }}>
             {'Vamos '}
-            <Text style={{ fontStyle: 'italic', color: c.primary }}>começar.</Text>
+            <Text style={{ fontFamily: theme.fonts.displayItalic, color: c.primary }}>começar.</Text>
           </Text>
           <Text style={{ fontFamily: theme.fonts.body, color: c.textSoft, fontSize: theme.fontSize.sm, marginTop: 4 }}>
             Com a conta você acompanha as vacinas e os horários dos seus pets.
@@ -200,6 +200,7 @@ export default function RegisterScreen() {
                 hitSlop={4}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: value }}
+                aria-checked={value}
                 accessibilityLabel="Autorizo o uso de teleorientação por chamada de vídeo (opcional)"
               >
                 <View style={[styles.checkbox, { borderColor: c.borderControl, backgroundColor: value ? c.primary : 'transparent' }]}>

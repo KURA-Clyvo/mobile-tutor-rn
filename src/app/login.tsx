@@ -72,7 +72,7 @@ export default function LoginScreen() {
           </Text>
           <Text style={[styles.h1, { fontFamily: theme.fonts.display, color: c.text, fontSize: 38, lineHeight: 44 }]}>
             {'Cada consulta,\ncada vacina,\n'}
-            <Text style={{ fontStyle: 'italic', color: c.primary }}>registrada.</Text>
+            <Text style={{ fontFamily: theme.fonts.displayItalic, color: c.primary }}>registrada.</Text>
           </Text>
           <Text style={[styles.sub, { fontFamily: theme.fonts.body, color: c.textSoft, fontSize: theme.fontSize.sm }]}>
             Acesse o histórico do seu pet, agende consultas e receba lembretes da clínica.

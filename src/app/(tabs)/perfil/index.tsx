@@ -158,7 +158,7 @@ export default function PerfilScreen() {
             onValueChange={handleNotifToggle}
             accessibilityLabel="Ativar notificações"
             testID="switch-notificacoes"
-            style={styles.row}
+            style={[styles.row, { borderBottomColor: colors.border }]}
           >
             <View style={styles.rowConteudo}>
               <KIcon name="bell" size={16} color={colors.textMuteInk} />
@@ -183,7 +183,7 @@ export default function PerfilScreen() {
           </Pressable>
           <Pressable
             onPress={() => setAboutVisible(true)}
-            style={styles.row}
+            style={[styles.row, { borderBottomColor: colors.border }]}
             accessibilityRole="button"
           >
             <KIcon name="alert" size={16} color={colors.textMuteInk} />

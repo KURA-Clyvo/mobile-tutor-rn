@@ -21,7 +21,7 @@ export function VacinasTab({ petId }: { petId: number }) {
       <View style={{ marginBottom: 6 }}><Kicker>Imunização</Kicker></View>
       <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 28, lineHeight: 34, marginBottom: 16 }}>
         {'Carteira de '}
-        <Text style={{ fontStyle: 'italic', color: colors.primary }}>vacinação.</Text>
+        <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>vacinação.</Text>
       </Text>
 
       <QueryState
@@ -90,7 +90,7 @@ function VacinasConteudo({ petId, vacinas }: { petId: number; vacinas: VacinaTut
             <VacinaItem
               key={v.id}
               vacina={v}
-              onAgendar={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(petId), tipo: 'VACINA' } } as any)}
+              onAgendar={() => router.push({ pathname: '/agenda/novo', params: { idPet: String(petId), tipo: 'VACINA' } } as any)}
             />
           ))}
         </>

@@ -1,4 +1,4 @@
-import { useFonts, Cormorant_500Medium } from '@expo-google-fonts/cormorant';
+import { useFonts, Cormorant_500Medium, Cormorant_500Medium_Italic } from '@expo-google-fonts/cormorant';
 import { Lexend_400Regular, Lexend_500Medium } from '@expo-google-fonts/lexend';
 import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
 import { SplashScreen, Stack, useRouter } from 'expo-router';
@@ -12,7 +12,7 @@ import { ThemeProvider, useTheme } from '@theme/index';
 import { KDialogProvider } from '@components/primitives/KDialog';
 import { ToastProvider } from '@components/feedback/Toast';
 import { Abertura } from '@components/brand/Abertura';
-import { queryClient, asyncStoragePersister } from '@services/queryClient';
+import { queryClient, asyncStoragePersister, dehydrateOptions } from '@services/queryClient';
 import { useAuthStore } from '../store/authStore';
 import { parseInviteLink } from '../utils/invite';
 import { setupHandlers } from '../services/notifications.service';
@@ -80,7 +80,7 @@ function RootLayoutInner() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({ Cormorant_500Medium, Lexend_400Regular, Lexend_500Medium, JetBrainsMono_400Regular });
+  const [fontsLoaded, fontError] = useFonts({ Cormorant_500Medium, Cormorant_500Medium_Italic, Lexend_400Regular, Lexend_500Medium, JetBrainsMono_400Regular });
   const [storeHydrated, setStoreHydrated] = useState(false);
   // Falha ao carregar fonte não pode prender o arranque: com erro, segue com a fonte do sistema.
   const appReady = (fontsLoaded || !!fontError) && storeHydrated;
@@ -109,7 +109,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
+      <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister, dehydrateOptions }}>
         <ThemeProvider>
           {/* TASK-F06: KDialogProvider vive DENTRO do ThemeProvider porque o
               KDialog lê `useTheme()`; e envolve o RootLayoutInner para que
