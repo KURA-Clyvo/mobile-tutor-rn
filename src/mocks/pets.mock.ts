@@ -8,7 +8,7 @@ export const PETS: PetTutorResponse[] = [
     sgSexo: 'M', sgPorte: 'G', nmClinica: 'Clínica KURA Pinheiros', dsStatusGeral: 'URGENTE',
     nrAlertasAtivos: 1, nrConsultas: 8, dtUltimaConsulta: new Date(Date.now() - 6 * 86400_000).toISOString(),
     dtProximoAgendamento: new Date(Date.now() + 2 * 86400_000).toISOString(),
-    chips: [{ tone: 'clay', label: '⚠ Retorno 2d' }, { tone: 'sage', label: 'Vacinado' }],
+    chips: [{ tone: 'clay', label: 'Retorno em 2 dias' }, { tone: 'sage', label: 'Vacinado' }],
     condicoes: [{ label: 'Displasia de quadril', tone: 'clay', desde: '2023-05-01', observacao: 'Acompanhamento contínuo, evitar esforço nas patas traseiras.' }],
     // FT-09 (KURA_BACKLOG_FOTO_PET): a URL abaixo é picsum.photos, NÃO uma URL
     // assinada real — mesmo achado do G2-6 da FT-08 (mobile-clinica-rn — ver
@@ -24,7 +24,7 @@ export const PETS: PetTutorResponse[] = [
     dsFotoThumbUrl: 'https://picsum.photos/seed/bobi-tutor/256',
   },
   {
-    id: 2, nmPet: 'Luna', nmEspecie: 'Gato', nmRaca: 'Siamesa', dtNascimento: '2019-07-22',
+    id: 2, nmPet: 'Mel', nmEspecie: 'Gato', nmRaca: 'Siamesa', dtNascimento: '2019-07-22',
     sgSexo: 'F', sgPorte: 'P', nmClinica: 'Clínica KURA Pinheiros', dsStatusGeral: 'OK',
     nrAlertasAtivos: 0, nrConsultas: 12,
     dtProximoAgendamento: new Date(Date.now() + 20 * 86400_000).toISOString(),
@@ -38,7 +38,7 @@ export const PETS: PetTutorResponse[] = [
     sgSexo: 'M', sgPorte: 'M', nmClinica: 'Clínica KURA Pinheiros', dsStatusGeral: 'ALERTA',
     nrAlertasAtivos: 1, nrConsultas: 2,
     dtProximoAgendamento: new Date(Date.now() + 5 * 86400_000).toISOString(),
-    chips: [{ tone: 'amber', label: '✨ Câmera Luna' }, { tone: 'mute', label: 'Em adaptação' }],
+    chips: [{ tone: 'amber', label: 'Câmera Luna' }, { tone: 'mute', label: 'Em adaptação' }],
     condicoes: [{ label: 'Alergia alimentar', tone: 'amber', desde: '2024-02-10', observacao: 'Evitar ração com frango. Substituído por dieta hipoalergênica.' }],
     dsFotoThumbUrl: 'https://picsum.photos/seed/thor-tutor/256',
   },

@@ -3,12 +3,12 @@ import { View } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { useTheme } from '@theme/index';
 
-// 17 icons: Tab (4) + Navigation (4) + Action (6) + Domain (3)
+// 21 icons: Tab (4) + Navigation (4) + Action (6) + Domain (7)
 export type IconName =
   | 'pets' | 'agenda' | 'saude' | 'perfil'
   | 'back' | 'close' | 'arrowR' | 'chevR'
   | 'bell' | 'check' | 'alert' | 'plus' | 'share' | 'download'
-  | 'vaccine' | 'calendar' | 'search';
+  | 'vaccine' | 'calendar' | 'search' | 'mail' | 'phone' | 'moon' | 'sparkle';
 
 interface KIconProps {
   name:         IconName;
@@ -104,6 +104,27 @@ export function KIcon({ name, size = 18, strokeWidth = 1.7, color, style }: KIco
       <Svg width={size} height={size} viewBox={vb} fill="none">
         <Circle cx="11" cy="11" r="7" {...s}/>
         <Path d="m21 21-4.35-4.35" {...s}/>
+      </Svg>
+    ),
+    mail: (
+      <Svg width={size} height={size} viewBox={vb} fill="none">
+        <Rect x="3" y="5" width="18" height="14" rx="2" {...s}/>
+        <Path d="M3 7l9 6 9-6" {...s}/>
+      </Svg>
+    ),
+    phone: (
+      <Svg width={size} height={size} viewBox={vb} fill="none">
+        <Path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" {...s}/>
+      </Svg>
+    ),
+    moon: (
+      <Svg width={size} height={size} viewBox={vb} fill="none">
+        <Path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" {...s}/>
+      </Svg>
+    ),
+    sparkle: (
+      <Svg width={size} height={size} viewBox={vb} fill="none">
+        <Path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3zM19 17l.7 1.8L21.5 19.5l-1.8.7L19 22l-.7-1.8-1.8-.7 1.8-.7L19 17z" {...s}/>
       </Svg>
     ),
   };

@@ -124,8 +124,8 @@ export default function PerfilScreen() {
         <KCard style={styles.card}>
           {[
             { label: 'Nome',     value: tutor?.nmTutor    ?? '—', icon: 'perfil' as const },
-            { label: 'E-mail',   value: tutor?.dsEmail    ?? '—', icon: 'search' as const },
-            { label: 'Telefone', value: tutor?.dsTelefone ?? '—', icon: 'bell'   as const },
+            { label: 'E-mail',   value: tutor?.dsEmail    ?? '—', icon: 'mail'   as const },
+            { label: 'Telefone', value: tutor?.dsTelefone ?? '—', icon: 'phone'  as const },
           ].map(row => (
             <View key={row.label} style={[styles.row, { borderBottomColor: colors.border }]}>
               <KIcon name={row.icon} size={16} color={colors.textMuteInk} />
@@ -149,7 +149,7 @@ export default function PerfilScreen() {
             style={[styles.row, { borderBottomColor: colors.border }]}
           >
             <View style={styles.rowConteudo}>
-              <KIcon name="saude" size={16} color={colors.textMuteInk} />
+              <KIcon name="moon" size={16} color={colors.textMuteInk} />
               <Text style={{ fontFamily: fonts.body, color: colors.text, fontSize: fontSize.sm }}>Modo escuro</Text>
             </View>
           </KSwitchRow>

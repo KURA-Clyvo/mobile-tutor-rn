@@ -55,7 +55,7 @@ export interface TimelineTutorEventDetailResponse {
 
 // ─── Vacinas ─────────────────────────────────────────────────
 export interface VacinaTutorResponse {
-  id: number; nmVacina: string; dtAplicacao: string; nmClinica: string;
+  id: number; nmVacina: string; dtAplicacao?: string; nmClinica: string;
   nmVeterinario?: string; nrLote?: string; dtProximaDose?: string;
   sgStatus: 'EM_DIA' | 'VENCENDO' | 'VENCIDA' | 'SEM_DATA';
 }

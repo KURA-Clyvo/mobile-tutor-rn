@@ -18,17 +18,17 @@ describe('Consultas — contadores', () => {
     const r = render(<ConsultasTab petId={1} />, { wrapper: W });
     expect(r.getByText('5 · VISITAS')).toBeTruthy();
     expect(r.queryByText(/^Presencial/)).toBeNull();
-    expect(r.queryByText(/^Telemedicina/)).toBeNull();
+    expect(r.queryByText(/^Teleorientação/)).toBeNull();
     expect(r.queryByText(/^Todas/)).toBeNull();
   });
 
-  it('com tipo: Presencial + Telemedicina = Todas = chips desenhados', () => {
+  it('com tipo: Presencial + Teleorientação = Todas = chips desenhados', () => {
     mockTimeline = rq([ev(1, 'pres'), ev(2, 'pres'), ev(3, 'tele'), ev(4, 'pres'), ev(5, 'pres')]);
     const r = render(<ConsultasTab petId={1} />, { wrapper: W });
     expect(r.getByText('Todas 5')).toBeTruthy();
     expect(r.getByText('Presencial 4')).toBeTruthy();
-    expect(r.getByText('Telemedicina 1')).toBeTruthy();
+    expect(r.getByText('Teleorientação 1')).toBeTruthy();
     expect(r.getAllByText('Presencial')).toHaveLength(4);
-    expect(r.getAllByText('Telemedicina')).toHaveLength(1);
+    expect(r.getAllByText('Teleorientação')).toHaveLength(1);
   });
 });

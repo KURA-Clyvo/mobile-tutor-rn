@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@theme/index';
 import { KIcon }     from '@components/primitives/KIcon';
 import { VacinaItem } from './VacinaItem';
+import { Kicker } from '@components/primitives/Kicker';
 import { QueryState } from '@components/feedback/QueryState';
 import { Skeleton } from '@components/feedback/Skeleton';
 import { usePetVacinas } from '@hooks/usePetVacinas';
@@ -12,14 +13,12 @@ import { parseData } from '../../utils/date';
 import type { VacinaTutorResponse } from '../../types/api';
 
 export function VacinasTab({ petId }: { petId: number }) {
-  const { colors, fonts, fontSize } = useTheme();
+  const { colors, fonts } = useTheme();
   const vacinasQuery = usePetVacinas(petId);
 
   return (
     <View>
-      <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1, marginBottom: 4 }}>
-        04 · IMUNIZAÇÃO
-      </Text>
+      <View style={{ marginBottom: 6 }}><Kicker>Imunização</Kicker></View>
       <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 28, lineHeight: 34, marginBottom: 16 }}>
         {'Carteira de '}
         <Text style={{ fontStyle: 'italic', color: colors.primary }}>vacinação.</Text>
@@ -47,7 +46,7 @@ function VacinasConteudo({ petId, vacinas }: { petId: number; vacinas: VacinaTut
   // (`/vacinas/status`: "0/N" com 0 sem fonte) deixou de ser exibido e de ser buscado: número sem fonte não entra.
   const classificadas = vacinas.map(v => ({ v, estado: classificarVacina(v) }));
   const porData = (a: { v: VacinaTutorResponse }, b: { v: VacinaTutorResponse }) =>
-    parseData(a.v.dtProximaDose || a.v.dtAplicacao).getTime() - parseData(b.v.dtProximaDose || b.v.dtAplicacao).getTime();
+    parseData(a.v.dtProximaDose || a.v.dtAplicacao || '').getTime() - parseData(b.v.dtProximaDose || b.v.dtAplicacao || '').getTime();
   const atencao = classificadas.filter(c => c.estado === 'VENCIDA' || c.estado === 'VENCENDO').sort(porData);
   const emDia = classificadas.filter(c => c.estado === 'EM_DIA').sort(porData);
   const semData = classificadas.filter(c => c.estado === 'SEM_DATA');

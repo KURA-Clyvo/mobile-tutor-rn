@@ -151,7 +151,7 @@ function Formulario({ pets, voltar }: { pets: Pet[]; voltar: () => void }) {
           return radio(p.id, `${p.nome}, ${p.raca}, ${p.idadeAnos} anos`, marcado, () => setEscolhido(p.id), (
             <>
               {/* Sem `nome` no retrato: o texto ao lado já diz o nome (evita leitura dupla no leitor de tela). */}
-              <KPetPortrait palette={racaToPalette(p.raca)} size={40} especie={p.especie} fotoUrl={p.fotoThumbUrl} />
+              <KPetPortrait palette={racaToPalette(p.raca)} size={40} fotoUrl={p.fotoThumbUrl} />
               <View style={{ flex: 1 }}>
                 <Text style={texto(marcado)}>{p.nome}</Text>
                 <Text style={{ fontFamily: fonts.body, color: marcado ? colors.textSoft : colors.textMuteInk, fontSize: fontSize.xs }}>{p.raca} · {p.idadeAnos}a</Text>

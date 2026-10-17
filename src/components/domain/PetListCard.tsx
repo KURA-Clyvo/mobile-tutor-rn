@@ -20,9 +20,8 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
   const { colors, fonts, fontSize, radius } = useTheme();
 
   const palette = racaToPalette(pet.raca);
-  const hasLunaChip = pet.chips.some(c => c.label.includes('✨'));
+  const hasLunaChip = pet.chips.some(c => c.label.includes('Câmera Luna'));
   const tier = hasLunaChip ? 'detected' : 'emoji';
-  const lunaEmoji = hasLunaChip ? '✨' : undefined;
   const condicaoPrincipal = pet.condicoes?.[0];
 
   const statusLabel = pet.statusGeral ? STATUS_PET[pet.statusGeral].label : '—';
@@ -45,7 +44,7 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
     >
       <View style={styles.topRow}>
         <KPetPortrait
-          palette={palette} size={56} tier={tier} badge={lunaEmoji} especie={pet.especie}
+          palette={palette} size={56} tier={tier} badge={hasLunaChip ? 'sparkle' : undefined}
           fotoUrl={pet.fotoThumbUrl} nome={pet.nome}
         />
         <View style={styles.info}>

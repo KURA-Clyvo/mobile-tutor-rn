@@ -53,7 +53,7 @@ export function AgendamentoItem({ item, onCancel }: AgendamentoItemProps) {
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.xl }]}>
       <View style={styles.row}>
-        <KPetPortrait palette={racaToPalette(item.pet.nmRaca)} size={44} especie={item.pet.nmEspecie} />
+        <KPetPortrait palette={racaToPalette(item.pet.nmRaca)} size={44} />
         <View style={styles.info}>
           <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{item.pet.nmPet}</Text>
           <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }}>
@@ -73,9 +73,9 @@ export function AgendamentoItem({ item, onCancel }: AgendamentoItemProps) {
               size="sm"
               style={styles.teleBtn}
               onPress={() => Linking.openURL(item.dsSalaUrl!)}
-              accessibilityLabel="Entrar na teleconsulta"
+              accessibilityLabel="Entrar na teleorientação"
             >
-              Entrar na teleconsulta
+              Entrar na teleorientação
             </KButton>
           )}
         </View>

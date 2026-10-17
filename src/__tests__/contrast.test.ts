@@ -244,7 +244,7 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'app/(tabs)/pets/[id]/index.tsx|textMuteInk': {
-      sitios: {'color: active ? colors.primary : colors.textMuteInk': 1, 'color: colors.textMuteInk': 7},
+      sitios: {'color: active ? colors.primary : colors.textMuteInk': 1, 'color: colors.textMuteInk': 3},
       fundos: {
         'claro|primarySoft': 'hero (primarySoft) não contém sítio de textMuteInk; os sítios estão em abas e seções sobre bg',
         'claro|surface2': 'vitalBox (surface2) só tem texto textSoft/text',
@@ -291,7 +291,7 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'components/domain/VacinasTab.tsx|textMuteInk': {
-      sitios: {'color: colors.textMuteInk': 5, 'color: bCfg.iconColor': 1},
+      sitios: {'color: colors.textMuteInk': 4, 'color: bCfg.iconColor': 1},
       fundos: {
         'claro|primarySoft': 'banner (bg tingido) tem título iconColor e subtítulo textSoft; textMuteInk só em cabeçalhos/vazio sobre bg; o tom SEM_DATA usa textMuteInk como iconColor sobre o PRÓPRIO surface, nunca sobre um tingido',
         'claro|clayPale': 'idem',
@@ -432,6 +432,14 @@ const USOS: UsoAncorado[] = [
   { arq: 'app/register.tsx', ancora: /necessario, \{ backgroundColor: c\.surface2/, texto: 'textSoft', fundo: 'surface2' },
   { arq: 'app/register.tsx', ancora: /necessario, \{ backgroundColor: c\.surface2/, texto: 'text', fundo: 'surface2' },
   { arq: 'components/primitives/KSwitchRow.tsx', ancora: /trackColor=\{\{ false: colors\.borderControl/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
+  // BR-TUT-T11 (BR-TUT-18): polegar do Switch por token (bgElev) — forma, 3:1, sobre o trilho ligado (primary) e o desligado (borderControl).
+  { arq: 'components/primitives/KSwitchRow.tsx', ancora: /thumbColor=\{colors\.bgElev\}/, texto: 'bgElev', fundo: 'primary', limiar: BORDA },
+  { arq: 'components/primitives/KSwitchRow.tsx', ancora: /thumbColor=\{colors\.bgElev\}/, texto: 'bgElev', fundo: 'borderControl', limiar: BORDA },
+  // BR-TUT-T11 (BR-TUT-14): Kicker (mono 10px) em textMuteInk sobre as telas (bg) e os cartões (surface).
+  { arq: 'components/primitives/Kicker.tsx', ancora: /const c = colors\.textMuteInk;/, texto: 'textMuteInk', fundo: 'bg' },
+  { arq: 'components/primitives/Kicker.tsx', ancora: /const c = colors\.textMuteInk;/, texto: 'textMuteInk', fundo: 'surface' },
+  // BR-TUT-T11 (BR-TUT-16): "Revogado em ..." é KChip mute (textSoft sobre surface2, ver a linha do KChip acima) e o selo da câmera usa amberInk sobre amberPale.
+  { arq: 'components/primitives/KPetPortrait.tsx', ancora: /backgroundColor: theme\.colors\.amberPale/, texto: 'amberInk', fundo: 'amberPale' },
   { arq: 'app/register.tsx', ancora: /: c\.borderControl, backgroundColor: value/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
   // BR-TUT-T07 (I-6): borda da opção NÃO marcada do pedido de horário (1.5px, como o canvas v13) — era `border`, 1.25:1 / 1.12:1.
   { arq: 'app/(tabs)/agenda/novo.tsx', ancora: /marcado \? colors\.primary : colors\.borderControl,/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },

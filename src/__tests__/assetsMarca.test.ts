@@ -11,20 +11,29 @@ import { lightColors, darkColors } from '../theme/tokens';
 // (2) o gerador em modo `--verificar` compara PIXELS (não bytes) com o que está em disco —
 // editar o KuraMark/tokens sem regerar, ou trocar um PNG à mão, derruba aqui.
 const RAIZ = join(__dirname, '..', '..');
+const TIMEOUT_GERADOR_MS = 120_000;
 const NOMES = ['icon.png', 'adaptive-icon.png', 'favicon.png', 'splash-icon.png', 'splash-icon-dark.png'];
 const sha = (n: string) => createHash('sha256').update(readFileSync(join(RAIZ, 'assets', n))).digest('hex');
 
 describe('assets de marca', () => {
+  // o `it` do gerador pode gastar até o timeout do spawn; o do Jest tem que ser MAIOR, senão o aviso nunca chega
+  jest.setTimeout(TIMEOUT_GERADOR_MS + 30_000);
   it('os PNG são todos distintos entre si (antes do BR-TUT-T02 `assets/` nem existia)', () => {
     const hashes = NOMES.map(sha);
     expect(new Set(hashes).size).toBe(NOMES.length);
   });
 
   it('gerar-assets --verificar: os PNG em disco batem com o que o gerador produz', () => {
+    // BR-TUT-T11 (F10): sem `timeout` o spawnSync podia travar a suíte INTEIRA (2 vezes em 2026-10-17, sem reproduzir isolado: o
+    // gerador roda em ~0,3 s e 12 em paralelo saem EXIT=0). Com timeout o teste FALHA com mensagem clara em vez de pendurar o Jest.
+    // `stdin` ignorado: o filho nunca lê entrada. ponytail: causa-raiz do travamento NÃO achada; a trava limita o dano.
     const r = spawnSync(process.execPath, [join(RAIZ, 'scripts/gerar-assets.mjs'), '--verificar'], {
       cwd: RAIZ,
       encoding: 'utf8',
+      timeout: TIMEOUT_GERADOR_MS,
+      stdio: ['ignore', 'pipe', 'pipe'],
     });
+    expect(`${r.error?.message ?? ''}${r.signal ?? ''}`).toBe(''); // estourou o timeout (ETIMEDOUT/SIGTERM) ou nem iniciou
     expect(`${r.stdout}${r.stderr}`).toContain('assets em dia');
     expect(r.status).toBe(0);
   });
