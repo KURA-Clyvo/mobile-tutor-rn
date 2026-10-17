@@ -13,6 +13,7 @@ import { useConsentimentos, useAssinar, useRevogar } from '../../../hooks/useCon
 import { useVoltar } from '../../../hooks/useVoltar';
 import { LGPD_CONSENTIMENTOS, TIPOS_OPCIONAIS, CONSEQUENCIA_REVOGAR, type TipoOpcional } from '../../../constants/lgpd';
 import type { ConsentimentoResponse, TipoConsentimentoApi } from '../../../types/api';
+import { touchTarget } from '@theme/tokens';
 
 function generateUUID(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -231,7 +232,7 @@ export default function ConsentimentosScreen() {
                 {LGPD_CONSENTIMENTOS[modalTipo].titulo}
               </Text>
               {!modalLoading && (
-                <Pressable onPress={() => setModalTipo(null)} accessibilityRole="button" accessibilityLabel="Fechar">
+                <Pressable onPress={() => setModalTipo(null)} style={styles.fechar} accessibilityRole="button" accessibilityLabel="Fechar">
                   <KIcon name="close" size={20} color={colors.textMuteInk} />
                 </Pressable>
               )}
@@ -263,11 +264,12 @@ const styles = StyleSheet.create({
   flex:        { flex: 1 },
   scroll:      { padding: 20, paddingBottom: 40 },
   headerRow:   { marginBottom: 20 },
-  circle:      { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  circle:      { width: touchTarget.min, height: touchTarget.min, borderRadius: touchTarget.min / 2, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   row:         { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, borderTopWidth: 1 },
   consentInfo: { flex: 1, gap: 3 },
-  verTexto:    { minHeight: 44, justifyContent: 'center' },
-  acao:        { minHeight: 44, paddingHorizontal: 16 },
+  fechar:      { minHeight: touchTarget.min, minWidth: touchTarget.min, alignItems: 'center', justifyContent: 'center' },
+  verTexto:    { minHeight: touchTarget.min, minWidth: touchTarget.min, justifyContent: 'center' },
+  acao:        { minHeight: touchTarget.min, minWidth: touchTarget.min, paddingHorizontal: 16 },
   necessario:  { gap: 6, padding: 16, borderRadius: 16, marginTop: 18, marginBottom: 14 },
   modalHeader: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, gap: 12 },
   modalScroll: { padding: 20 },

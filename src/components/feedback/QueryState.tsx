@@ -1,16 +1,17 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { useTheme } from '@theme/index';
+import { touchTarget } from '@theme/tokens';
 import { KButton } from '@components/primitives/KButton';
 import { formatRelativeTime } from '../../utils/date';
-import { ALVO_MINIMO, ErrorState, ROTULO_TENTAR_DE_NOVO } from './ErrorState';
+import { ErrorState, ROTULO_TENTAR_DE_NOVO } from './ErrorState';
 import { Skeleton } from './Skeleton';
 
 // ÂNCORA (regra 11): cópia de mobile-clinica-rn `src/components/feedback/QueryState.tsx`, linhas 1-107, commit 773ae66,
 // conferida em 2026-10-15:
 //   git -C mobile-clinica-rn show 773ae66:src/components/feedback/QueryState.tsx | sed -n '1,107p'
 // DIVERGÊNCIAS do tutor: (1) tema/botão do tutor (`useTheme()` sem `typography`; `KButton` no lugar de `KCButton`;
-// o botão da faixa sobe a 44 px por `ALVO_MINIMO`); (2) `QueryLike` ganha `dataUpdatedAt?` OPCIONAL e a faixa passa a dizer
+// o botão da faixa sobe a 44 px por `touchTarget.min`); (2) `QueryLike` ganha `dataUpdatedAt?` OPCIONAL e a faixa passa a dizer
 // "atualizados há 5min" (o canvas `TutorEstados` pede a hora do dado salvo; sem o campo a faixa fica como a da clínica) —
 // aditivo, a assinatura da clínica continua válida; (3) NENHUM `opacity` no conteúdo em cache (V2-I1: o canvas tinha
 // `opacity: 0.92` nos 2 cards e o ciclo o rejeitou; a clínica também não usa). Lógica de loading/erro/vazio idêntica.
@@ -64,7 +65,7 @@ const makeStyles = ({ colors, fonts, fontSize, radius, spacing }: Tema) =>
       backgroundColor: colors.infoBg,
     },
     faixaTexto: { fontFamily: fonts.body, fontSize: fontSize.base, color: colors.text, flexShrink: 1 },
-    alvo: { minHeight: ALVO_MINIMO },
+    alvo: { minHeight: touchTarget.min },
   });
 
 /** Faixa "Mostrando dados salvos. [Tentar de novo]": refetch falhou mas há dado em cache. Telas que não usam

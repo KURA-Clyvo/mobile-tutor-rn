@@ -96,6 +96,10 @@ export const darkColors = {
   scrimDialog:     'rgba(0,0,0,0.66)',
 } as const;
 
+// BR-TUT-T09 — alvo mínimo de toque (WCAG 2.5.8 AA = 24; 2.5.5 AAA e HIG/Material = 44). Fonte única: o gate
+// `__tests__/a11y-alvos-gate.test.tsx` exige este valor (ou literal >= 44) em todo tocável. Mesmo nome e valor da clínica (`tokens.ts:135`).
+export const touchTarget = { min: 44 } as const;
+
 export const spacing  = { 1:4, 2:8, 3:12, 4:16, 5:20, 6:24, 8:32, 10:40, 12:48, 16:64 } as const;
 export const radius   = { sm:6, md:10, lg:14, xl:20, '2xl':28, full:9999 } as const;
 export const fontSize = { xs:11, sm:13, base:15, md:17, lg:20, xl:26, '2xl':34, '3xl':44 } as const;

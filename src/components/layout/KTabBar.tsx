@@ -6,6 +6,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@theme/index';
 import { KIcon, type IconName } from '../primitives/KIcon';
 import { KBadge } from '../primitives/KBadge';
+import { touchTarget } from '@theme/tokens';
 
 // Metadados de exibição por nome de rota — a ORDEM e a lista de abas em si
 // vêm de `state.routes` (expo-router/(tabs)/_layout.tsx), não deste mapa.
@@ -87,7 +88,7 @@ export function KTabBar({ state, descriptors, navigation, agendaBadgeCount = 0 }
 
 const styles = StyleSheet.create({
   bar:       { flexDirection: 'row', borderTopWidth: 1, paddingHorizontal: 12 },
-  tab:       { flex: 1, alignItems: 'center', gap: 3 },
+  tab:       { flex: 1, minHeight: touchTarget.min, alignItems: 'center', justifyContent: 'center', gap: 3 },
   iconWrap:  { position: 'relative' },
   badgeWrap: { position: 'absolute', top: -4, right: -8 },
   label:     { fontWeight: '500' },

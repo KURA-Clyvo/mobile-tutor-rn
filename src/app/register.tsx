@@ -13,6 +13,7 @@ import { useAuthStore }  from '../store/authStore';
 import { register, isVersaoTermoDesatualizadaError } from '../services/auth.service';
 import { registerSchema, type RegisterFormData } from '../utils/validators';
 import { useVoltar } from '../hooks/useVoltar';
+import { touchTarget } from '@theme/tokens';
 
 export default function RegisterScreen() {
   const theme    = useTheme();
@@ -119,7 +120,7 @@ export default function RegisterScreen() {
         <Pressable
           onPress={() => router.replace('/login')}
           hitSlop={8}
-          style={{ minHeight: 44, justifyContent: 'center' }}
+          style={{ minHeight: touchTarget.min, minWidth: touchTarget.min, justifyContent: 'center' }}
           accessibilityRole="button"
         >
           <Text style={{ fontFamily: theme.fonts.mono, fontSize: theme.fontSize.xs, color: c.primary, letterSpacing: 1 }}>
@@ -231,7 +232,7 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   flex:         { flex: 1 },
   headerRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
-  circleBtn:    { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  circleBtn:    { width: touchTarget.min, height: touchTarget.min, borderRadius: touchTarget.min / 2, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   stepLabel:    { letterSpacing: 1.2 },
   scroll:       { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40, gap: 0 },
   inviteBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 12, borderWidth: 1, marginBottom: 20 },
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
   fields:       { gap: 0 },
   field:        { marginBottom: 8 },
   consentGroup: { gap: 4, marginTop: 12, marginBottom: 4 },
-  consentRow:   { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8, minHeight: 44 },
+  consentRow:   { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8, minHeight: touchTarget.min, minWidth: touchTarget.min },
   checkbox:     { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   necessario:   { gap: 4, padding: 14, borderRadius: 14, marginBottom: 8 },
 });

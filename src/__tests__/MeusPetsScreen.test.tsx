@@ -70,4 +70,9 @@ describe('MeusPetsScreen', () => {
     await waitFor(() => expect(getByRole('image', { name: 'KURA' })).toBeTruthy());
     expect(queryByText('Kura.')).toBeNull();
   });
+
+  it('sino: role button com rótulo "Notificações" (G2 M-1: role errado como "text" sobrevivia)', () => {
+    const { getByRole } = render(<MeusPetsScreen />, { wrapper: W });
+    expect(getByRole('button', { name: /^Notificações/ })).toBeTruthy();
+  });
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@theme/index';
+import { touchTarget } from '@theme/tokens';
 import { KButton } from '@components/primitives/KButton';
 import { KIcon } from '@components/primitives/KIcon';
 
@@ -9,7 +10,7 @@ import { KIcon } from '@components/primitives/KIcon';
 //   git -C mobile-clinica-rn show 773ae66:src/components/feedback/ErrorState.tsx | sed -n '1,72p'
 // DIVERGÊNCIAS do tutor: (1) `useTheme()` do tutor devolve `{ colors, fonts, fontSize, spacing, radius }` direto e não
 // há módulo `typography` — usa `fonts.*` + `fontSize.*`; (2) botão e ícone são `KButton`/`KIcon` do tutor (não KCButton/KCIcon);
-// (3) o botão do bloco usa `md` (48) e o compacto `sm`+`ALVO_MINIMO` (o `sm` do KButton tem 40 — sobe a 44 aqui sem
+// (3) o botão do bloco usa `md` (48) e o compacto `sm`+`touchTarget.min` (o `sm` do KButton tem 40 — sobe a 44 aqui sem
 // mexer no primitivo, que é da BR-TUT-T09); (4) `StyleSheet` por `makeStyles(theme)` porque fontes e espaços vêm do tema.
 // Mantido igual: textos padrão, `accessibilityRole="alert"`, `testID` `error-state` / `error-state-retry`, API.
 // Erro de carregamento (BR-TUT-T03): diz o que aconteceu SEM culpar a internet do usuário (a falha pode ser do servidor)
@@ -17,8 +18,6 @@ import { KIcon } from '@components/primitives/KIcon';
 export const ERRO_TITULO_PADRAO = 'Não foi possível carregar';
 export const ERRO_DESCRICAO_PADRAO = 'Os dados não chegaram. Tente de novo em instantes.';
 export const ROTULO_TENTAR_DE_NOVO = 'Tentar de novo';
-/** Alvo de toque mínimo (px) — Global Constraints do ciclo BRANDING. */
-export const ALVO_MINIMO = 44;
 
 export interface ErrorStateProps {
   titulo?: string;
@@ -41,7 +40,7 @@ const makeStyles = ({ colors, fonts, fontSize, spacing }: Tema) =>
     acao: { marginTop: spacing[3] },
     linha: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing[2] },
     linhaTexto: { fontFamily: fonts.body, fontSize: fontSize.base, color: colors.text, flexShrink: 1 },
-    alvo: { minHeight: ALVO_MINIMO },
+    alvo: { minHeight: touchTarget.min },
   });
 
 export function ErrorState({ titulo, descricao, onRetry, rotulo, compacto, testID = 'error-state' }: ErrorStateProps) {

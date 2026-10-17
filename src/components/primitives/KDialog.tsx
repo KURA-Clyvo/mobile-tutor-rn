@@ -124,6 +124,9 @@ export function KDialog({ visivel, opcoes, onFechar }: KDialogProps) {
         ]}
         onPress={opcoes.dispensavelPorFora ? dispensar : undefined}
         accessible={false}
+        // RN-web ignora `accessible={false}`: sem `tabIndex={-1}` o scrim vira um foco sem nome nem role (G2 I-2, mesma
+        // classe do scrim do "Sobre o app", 62b91cf).
+        {...({ tabIndex: -1 } as object)}
         testID="kdialog-overlay"
       >
         <View

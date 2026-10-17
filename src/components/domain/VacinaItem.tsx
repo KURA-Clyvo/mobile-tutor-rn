@@ -6,6 +6,7 @@ import { KIcon } from '@components/primitives/KIcon';
 import type { VacinaTutorResponse } from '../../types/api';
 import { formatDateBR } from '../../utils/date';
 import { classificarVacina, quandoVacina, type EstadoVacina } from '../../utils/vacinas';
+import { touchTarget } from '@theme/tokens';
 
 interface VacinaItemProps {
   vacina:     VacinaTutorResponse;
@@ -61,14 +62,15 @@ export function VacinaItem({ vacina, petNome, onAgendar, now }: VacinaItemProps)
         {!emDia && onAgendar && (
           <Pressable
             onPress={onAgendar}
-            style={[styles.agendarBtn, { backgroundColor: colors.primarySoft, borderColor: colors.primary }]}
-            hitSlop={12}
+            style={styles.agendarAlvo}
             accessibilityRole="button"
             accessibilityLabel={`Agendar ${vacina.nmVacina}`}
           >
-            <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.primary, letterSpacing: 0.8 }}>
-              AGENDAR
-            </Text>
+            <View style={[styles.agendarBtn, { backgroundColor: colors.primarySoft, borderColor: colors.primary }]}>
+              <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.primary, letterSpacing: 0.8 }}>
+                AGENDAR
+              </Text>
+            </View>
           </Pressable>
         )}
       </View>
@@ -80,5 +82,7 @@ const styles = StyleSheet.create({
   row:       { flexDirection: 'row', alignItems: 'center', padding: 14, borderWidth: 1, marginBottom: 10, gap: 12 },
   iconBox:   { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   info:      { flex: 1, gap: 2 },
+  // O alvo de toque (44×44) é maior que a pílula desenhada: a pílula fica como estava, o Pressable em volta completa o alvo.
+  agendarAlvo:{ minHeight: touchTarget.min, minWidth: touchTarget.min, alignItems: 'flex-end', justifyContent: 'center' },
   agendarBtn:{ paddingHorizontal: 12, paddingVertical: 5, borderRadius: 9999, borderWidth: 1 },
 });

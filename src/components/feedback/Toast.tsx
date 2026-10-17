@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@theme/index';
 import { KIcon, type IconName } from '@components/primitives/KIcon';
 
@@ -60,6 +60,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     const desregistrar = registrarOuvinteToast((t) => {
       if (timer.current) clearTimeout(timer.current);
       setToast(t);
+      // m8 (G2 da T05): `accessibilityLiveRegion` é só Android e `role=alert` só web; no iOS o VoiceOver não lê o toast sozinho.
+      // Só no iOS: no Android/web um anúncio extra falaria a frase 2×. NÃO VERIFICADO com VoiceOver real (sem aparelho).
+      if (Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility?.(t.texto);
       opacidade.setValue(0);
       Animated.timing(opacidade, {
         toValue: 1,

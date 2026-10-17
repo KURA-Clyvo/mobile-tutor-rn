@@ -16,6 +16,7 @@ import { useNotifications }  from '../../../hooks/useNotifications';
 import { useAuthStore }      from '../../../store/authStore';
 import { greetingPT }        from '../../../utils/date';
 import type { PetDomain } from '../../../types/domain';
+import { touchTarget } from '@theme/tokens';
 
 export default function MeusPetsScreen() {
   const { colors, fonts, fontSize } = useTheme();
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
   flex:       { flex: 1 },
   header:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingVertical: 14, borderBottomWidth: 1 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  bellBtn:    { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  bellBtn:    { width: touchTarget.min, height: touchTarget.min, borderRadius: touchTarget.min / 2, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   bellBadge:  { position: 'absolute', top: 6, right: 6 },
   list:       { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32 },
   titleArea:  { marginBottom: 16, gap: 6 },

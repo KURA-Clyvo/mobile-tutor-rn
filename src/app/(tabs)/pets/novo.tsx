@@ -8,6 +8,7 @@ import { KIcon }   from '@components/primitives/KIcon';
 import { KChip }   from '@components/primitives/KChip';
 import { useDialog } from '@components/primitives/KDialog';
 import { useVoltar } from '../../../hooks/useVoltar';
+import { touchTarget } from '@theme/tokens';
 
 type Especie = 'Cão' | 'Gato' | 'Coelho' | 'Ave';
 type Sexo    = 'M' | 'F';
@@ -114,7 +115,7 @@ export default function AddPetScreen() {
           <KIcon name="back" size={18} color={colors.text} />
         </Pressable>
         <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1.2 }}>NOVO · 1 DE 2</Text>
-        <Pressable onPress={() => voltar()} hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }} accessibilityRole="button">
+        <Pressable onPress={() => voltar()} hitSlop={8} style={{ minHeight: touchTarget.min, minWidth: touchTarget.min, justifyContent: 'center' }} accessibilityRole="button">
           <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, color: colors.primary, letterSpacing: 1 }}>CANCELAR</Text>
         </Pressable>
       </View>
@@ -236,17 +237,17 @@ export default function AddPetScreen() {
 const styles = StyleSheet.create({
   flex:          { flex: 1 },
   headerRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
-  circle:        { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  circle:        { width: touchTarget.min, height: touchTarget.min, borderRadius: touchTarget.min / 2, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   scroll:        { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 48 },
-  photoArea:     { borderWidth: 1.5, borderStyle: 'dashed', padding: 24, alignItems: 'center', marginBottom: 28, gap: 6 },
+  photoArea:     { minHeight: touchTarget.min, minWidth: touchTarget.min, borderWidth: 1.5, borderStyle: 'dashed', padding: 24, alignItems: 'center', marginBottom: 28, gap: 6 },
   photoIcon:     { width: 72, height: 72, alignItems: 'center', justifyContent: 'center' },
   photoPreview:  { width: '100%', height: 200 },
   photoChips:    { flexDirection: 'row', gap: 8, marginTop: 6 },
   fieldLabel:    { letterSpacing: 1.2, marginBottom: 8, marginTop: 20 },
   input:         { padding: 14, borderWidth: 1, fontSize: 15 },
   especieGrid:   { flexDirection: 'row', gap: 10 },
-  especieCell:   { flex: 1, alignItems: 'center', paddingVertical: 14, borderWidth: 1, gap: 6 },
+  especieCell:   { flex: 1, minHeight: touchTarget.min, alignItems: 'center', paddingVertical: 14, borderWidth: 1, gap: 6 },
   sexoSegmented: { flexDirection: 'row', padding: 4, marginTop: 0 },
-  sexoOption:    { flex: 1, alignItems: 'center', paddingVertical: 10 },
+  sexoOption:    { flex: 1, minHeight: touchTarget.min, alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
   cta:           { marginTop: 32 },
 });

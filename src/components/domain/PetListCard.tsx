@@ -7,6 +7,7 @@ import { KIcon } from '@components/primitives/KIcon';
 import { formatDateShortBR } from '../../utils/date';
 import { STATUS_PET } from '../../utils/statusPet';
 import type { PetDomain } from '../../types/domain';
+import { touchTarget } from '@theme/tokens';
 
 interface StatCell { label: string; value: string; alert?: 'clay' | 'amber' }
 
@@ -83,7 +84,7 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
 }
 
 const styles = StyleSheet.create({
-  card:      { borderWidth: 1, marginBottom: 12, overflow: 'hidden' },
+  card:      { minHeight: touchTarget.min, minWidth: touchTarget.min, borderWidth: 1, marginBottom: 12, overflow: 'hidden' },
   topRow:    { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 14 },
   info:      { flex: 1, gap: 5 },
   nome:      { fontWeight: '500', lineHeight: 28 },
