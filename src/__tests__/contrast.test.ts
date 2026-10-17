@@ -285,9 +285,9 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'components/domain/VacinaItem.tsx|textMuteInk': {
-      sitios: {'color: colors.textMuteInk': 1},
+      sitios: {'color: colors.textMuteInk': 2},
       fundos: {
-        'claro|primarySoft': 'primarySoft só no iconBox (KIcon) e no botão Agendar (texto primary); textMuteInk está sobre surface',
+        'claro|primarySoft': 'primarySoft só no iconBox (KIcon) e no botão Agendar (texto primary); textMuteInk (clínica, lote) está sobre surface',
       },
     },
     'components/domain/VacinasTab.tsx|textMuteInk': {
