@@ -13,7 +13,7 @@ import { parseData } from '../../utils/date';
 import type { VacinaTutorResponse } from '../../types/api';
 
 export function VacinasTab({ petId }: { petId: number }) {
-  const { colors, fonts, fontSize } = useTheme();
+  const { colors, fonts } = useTheme();
   const vacinasQuery = usePetVacinas(petId);
 
   return (
