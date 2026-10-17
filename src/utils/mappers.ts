@@ -103,18 +103,19 @@ export function mapVacinaStatusDto(raw: VacinaStatusRaw): VacinaStatusResponse {
 }
 
 /**
- * Notificação (GET /notificacoes) — TASK-31.
- * NOTIFICACAO (.NET owned) não tem coluna de tipo/idPet/idAgendamento — dsTipo
- * cai no bucket genérico 'COMUNICADO_CLINICA' (não inventamos uma categoria mais
- * específica sem dado para sustentá-la).
+ * Notificação (GET /notificacoes) — TASK-31 / BR-TUT-T10.
+ * O Java de hoje NÃO manda `dsTipo` nem `idPet` (BE-09); quando mandar, só `LEMBRETE_VACINA` (produtor medido: a
+ * Luna) é reconhecido, por igualdade exata. Qualquer outro tipo, ou ausente, é 'AVISO': sem link, sem `idPet`.
  */
 export function mapNotificacaoDto(raw: NotificacaoRaw): NotificacaoTutorResponse {
+  const vacina = raw.dsTipo === 'LEMBRETE_VACINA';
   return {
     id: raw.idNotificacao,
-    dsTipo: 'COMUNICADO_CLINICA',
+    dsTipo: vacina ? 'LEMBRETE_VACINA' : 'AVISO',
     dsTitulo: raw.dsTitulo,
     dsMensagem: raw.dsMensagem,
     dtEnvio: raw.dtCriacao,
     flLida: raw.flLida,
+    ...(vacina && raw.idPet ? { idPet: raw.idPet } : {}),
   };
 }

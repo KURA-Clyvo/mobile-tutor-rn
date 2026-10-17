@@ -92,7 +92,7 @@ function SemPets({ onAdicionar }: { onAdicionar: () => void }) {
         Nenhum pet cadastrado ainda.
       </Text>
       <KButton variant="primary" onPress={onAdicionar}>
-        Adicionar pet
+        Como cadastrar um pet
       </KButton>
     </View>
   );
@@ -122,7 +122,7 @@ function ListaPets({ pets }: { pets: PetDomain[] }) {
         <PetListCard key={p.id} pet={p} onPress={() => router.push(`/(tabs)/pets/${p.id}` as any)} />
       ))}
       <KButton variant="ghost" block onPress={() => router.push('/(tabs)/pets/novo' as any)} style={{ marginTop: 4 }}>
-        + Adicionar pet
+        Como cadastrar um pet
       </KButton>
     </>
   );

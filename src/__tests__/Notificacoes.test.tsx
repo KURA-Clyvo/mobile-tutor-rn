@@ -13,8 +13,8 @@ jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jes
 jest.mock('../hooks/useNotifications', () => ({
   useNotifications: () => ({
     data: [
-      { id: 1, dsTipo: 'VACINA_VENCENDO',        dsTitulo: 'Vacina do Bóbi', dsMensagem: 'Vence em 20 dias', dtEnvio: new Date().toISOString(), flLida: false, idPet: 1, nmPet: 'Bóbi' },
-      { id: 2, dsTipo: 'AGENDAMENTO_CONFIRMADO',  dsTitulo: 'Check-up Luna',  dsMensagem: 'Clínica confirmou seu agendamento.', dtEnvio: new Date().toISOString(), flLida: true,  idPet: 2, nmPet: 'Luna', idAgendamento: 2 },
+      { id: 1, dsTipo: 'LEMBRETE_VACINA',         dsTitulo: 'Vacina do Bóbi', dsMensagem: 'Vence em 20 dias', dtEnvio: new Date().toISOString(), flLida: false, idPet: 1 },
+      { id: 2, dsTipo: 'AVISO',                   dsTitulo: 'Check-up Luna',  dsMensagem: 'Clínica confirmou seu agendamento.', dtEnvio: new Date().toISOString(), flLida: true },
     ],
     isLoading: false,
   }),
@@ -36,7 +36,7 @@ describe('NotificacoesScreen', () => {
   it('shows correct chips', async () => {
     const { getByText } = render(<NotificacoesScreen />, { wrapper: W });
     await waitFor(() => expect(getByText('Vacina')).toBeTruthy());
-    expect(getByText('Confirmado')).toBeTruthy();
+    expect(getByText('Aviso')).toBeTruthy();
   });
   it('shows unread count in header', async () => {
     const { getByText } = render(<NotificacoesScreen />, { wrapper: W });

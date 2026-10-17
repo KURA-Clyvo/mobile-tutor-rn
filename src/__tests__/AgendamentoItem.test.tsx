@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { ThemeProvider } from '../theme/index';
+import { lightColors } from '../theme/tokens';
 import { AgendamentoItem } from '../components/domain/AgendamentoItem';
 import type { AgendamentoTutorResponse } from '../types/api';
 
@@ -92,5 +93,51 @@ describe('AgendamentoItem — quando (BR-TUT-T07 I-5)', () => {
   it('tipo Vacina aparece como "Vacina"', () => {
     const r = render1({ sgTipoConsulta: 'VACINA', sgStatus: 'SOLICITADO', dtInicio: em(9) });
     expect(r.getByText(/^Vacina · KURA/)).toBeTruthy();
+  });
+});
+
+// BR-TUT-T10: cancelar visível. Botão "danger" só no pedido aguardando (SOLICITADO/AGENDADO); o toque longo saiu.
+describe('AgendamentoItem — botão Cancelar agendamento (BR-TUT-T10)', () => {
+  const comStatus = (sgStatus: AgendamentoTutorResponse['sgStatus'], onCancel = jest.fn()) =>
+    ({ onCancel, ...render(<AgendamentoItem item={{ ...BASE, sgTipoConsulta: 'ROTINA', dsSalaUrl: null, sgStatus }} onCancel={onCancel} />, { wrapper: W }) });
+
+  it.each(['SOLICITADO', 'AGENDADO'] as const)('%s: mostra o botão, com role e rótulo com pet e data; toque chama onCancel', (st) => {
+    const { onCancel, getByRole, getByText } = comStatus(st);
+    expect(getByText('Cancelar agendamento')).toBeTruthy();
+    const btn = getByRole('button', { name: /^Cancelar agendamento de Bóbi em .*20\d\d/ });
+    fireEvent.press(btn);
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['CONFIRMADO', 'CANCELADO', 'CONCLUIDO'] as const)('%s: NÃO mostra o botão', (st) => {
+    const { queryByText, queryByLabelText } = comStatus(st);
+    expect(queryByText('Cancelar agendamento')).toBeNull();
+    expect(queryByLabelText(/Cancelar agendamento/)).toBeNull();
+  });
+
+  it('o cartão não é mais um "botão" vazio nem fala em toque longo', () => {
+    const { queryByA11yHint, queryAllByRole } = comStatus('SOLICITADO');
+    expect(queryByA11yHint(/longo/i)).toBeNull();
+    expect(queryAllByRole('button')).toHaveLength(1);
+  });
+
+  it('o botão é destrutivo (variante danger: fundo = token danger, texto textOnPrimary)', () => {
+    const { getByRole, getByText } = comStatus('SOLICITADO');
+    expect(StyleSheet.flatten(getByRole('button').props.style).backgroundColor).toBe(lightColors.danger);
+    expect(StyleSheet.flatten(getByText('Cancelar agendamento').props.style).color).toBe(lightColors.textOnPrimary);
+  });
+
+  it('o rótulo traz o pet e a data DO ITEM (outro pet, outra data), completo', () => {
+    const item = { ...BASE, sgTipoConsulta: 'ROTINA' as const, dsSalaUrl: null, sgStatus: 'SOLICITADO' as const,
+      pet: { id: 2, nmPet: 'Mel', nmEspecie: 'Gato', nmRaca: 'Siamês' }, dtInicio: new Date(2026, 10, 3, 9, 0).toISOString() };
+    const { getByRole } = render(<AgendamentoItem item={item} onCancel={jest.fn()} />, { wrapper: W });
+    expect(getByRole('button').props.accessibilityLabel).toBe('Cancelar agendamento de Mel em 03 de nov. de 2026');
+  });
+
+  it('alvo do botão Cancelar agendamento >= 44 (mira o botão pelo rótulo, não "algum botão")', () => {
+    const { getByRole } = comStatus('SOLICITADO');
+    const st = StyleSheet.flatten(getByRole('button', { name: /^Cancelar agendamento de / }).props.style);
+    expect(st.minHeight).toBeGreaterThanOrEqual(44);
+    expect(st.minWidth).toBeGreaterThanOrEqual(44);
   });
 });

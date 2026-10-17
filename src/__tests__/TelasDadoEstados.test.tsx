@@ -78,7 +78,7 @@ const PET = {
   id: 1, nome: 'Bóbi', especie: 'Cão', raca: 'Labrador', nascimento: new Date('2021-03-10'), sexo: 'M', porte: 'G',
   nmClinica: 'Clínica KURA', statusGeral: 'OK', alertasAtivos: 0, nrConsultas: 3, idadeAnos: 4, chips: [],
 };
-const NOTIF = { id: 1, dsTipo: 'VACINA_VENCENDO', dsTitulo: 'Vacina do Bóbi', dsMensagem: 'Vence em 20 dias', dtEnvio: new Date(AGORA).toISOString(), flLida: false, idPet: 1, nmPet: 'Bóbi' };
+const NOTIF = { id: 1, dsTipo: 'LEMBRETE_VACINA', dsTitulo: 'Vacina do Bóbi', dsMensagem: 'Vence em 20 dias', dtEnvio: new Date(AGORA).toISOString(), flLida: false, idPet: 1 };
 const EVENTO = { idEventoClinico: 7, nmTipo: 'CONSULTA', dtEvento: new Date(AGORA).toISOString(), nmVeterinario: 'Dra. Ana', nrCRMV: '123', nmClinica: 'KURA', sgTipoAtendimento: 'pres', dsResumoPublico: 'Check-up de rotina' };
 const VACINAS = [{ id: 1, nmVacina: 'V10', dtAplicacao: new Date(AGORA - 86_400_000).toISOString(), nmClinica: 'KURA', sgStatus: 'EM_DIA', dtProximaDose: new Date(AGORA + 200 * 86_400_000).toISOString() }];
 

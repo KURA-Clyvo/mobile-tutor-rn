@@ -4,9 +4,9 @@ import { useTheme } from '@theme/index';
 
 type Tone = 'sage' | 'amber' | 'clay' | 'ocean' | 'mute';
 
-interface KChipProps { tone?: Tone; dot?: boolean; children: React.ReactNode; }
+interface KChipProps { tone?: Tone; dot?: boolean; borderColor?: string; children: React.ReactNode; }
 
-export function KChip({ tone = 'sage', dot, children }: KChipProps) {
+export function KChip({ tone = 'sage', dot, borderColor, children }: KChipProps) {
   const { colors, fonts, fontSize } = useTheme();
 
   const toneMap: Record<Tone, { bg: string; color: string; border: string }> = {
@@ -20,7 +20,7 @@ export function KChip({ tone = 'sage', dot, children }: KChipProps) {
   const { bg, color, border } = toneMap[tone];
 
   return (
-    <View style={[styles.chip, { backgroundColor: bg, borderColor: border }]}>
+    <View style={[styles.chip, { backgroundColor: bg, borderColor: borderColor ?? border }]}>
       {dot && <View style={[styles.dot, { backgroundColor: color }]} />}
       <Text numberOfLines={1} style={[styles.label, { color, fontFamily: fonts.body, fontSize: fontSize.xs }]}>
         {children}

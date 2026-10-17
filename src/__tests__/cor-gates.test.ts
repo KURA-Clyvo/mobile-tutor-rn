@@ -133,8 +133,6 @@ const OCEAN_PERMITIDO: Permissao[] = [
   { arq: 'components/domain/ConsultasTab.tsx', trecho: "<KChip tone={isTele ? 'ocean'", n: 1, motivo: 'badge de teleorientação' },
   { arq: 'components/domain/ConsultasTab.tsx', trecho: 'tone="ocean"', n: 2, motivo: 'seções Exame físico e Prescrição' },
   { arq: 'components/domain/ConsultasTab.tsx', trecho: 'borderLeftColor: colors.ocean', n: 1, motivo: 'linha de prescrição (ocean pelo DS)' },
-  { arq: 'app/notificacoes.tsx', trecho: "type Tone = 'amber' | 'sage' | 'clay' | 'ocean'", n: 1, motivo: 'union de tons (tipo)' },
-  { arq: 'app/notificacoes.tsx', trecho: "COMUNICADO_CLINICA:     { tone: 'ocean'", n: 1, motivo: 'tom do COMUNICADO_CLINICA (aviso vindo da clínica)' },
   { arq: 'types/api.ts', trecho: "'ocean'", n: 1, motivo: 'union de tons de chip (tipo, não cor)' },
   { arq: 'types/domain.ts', trecho: "'ocean'", n: 1, motivo: 'union de tons de chip (tipo, não cor)' },
 ];

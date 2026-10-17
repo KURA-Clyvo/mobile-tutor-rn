@@ -238,10 +238,9 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'app/(tabs)/pets/novo.tsx|textMuteInk': {
-      sitios: {'color: colors.textMuteInk': 6, 'color: active ? colors.primary : colors.textMuteInk': 1},
+      sitios: {'color: colors.textMuteInk': 2},
       fundos: {
-        'claro|primarySoft': 'primarySoft só no ícone da foto (KIcon) e na espécie ativa (texto primary); textMuteInk só no estado inativo (surface)',
-        'claro|surface2': 'segmento de sexo (surface2) só tem texto textSoft/textOnPrimary',
+        'claro|primarySoft': 'primarySoft (BR-TUT-T10) só no círculo do ícone (KIcon primary) e no número do passo (texto primary); textMuteInk é o título "NOVO PET" (bg/surface) e "COMO FAZER" (surface)',
       },
     },
     'app/(tabs)/pets/[id]/index.tsx|textMuteInk': {
@@ -258,9 +257,10 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'app/notificacoes.tsx|textMuteInk': {
-      sitios: {'color: naoLidas > 0 ? colors.primary : colors.textMuteInk': 1, 'color: n.flLida ? colors.textMuteInk : colors.textSoft': 2, 'color: colors.textMuteInk': 1},
+      sitios: {'color: naoLidas > 0 ? colors.primary : colors.textMuteInk': 1, 'color: n.flLida ? colors.textMuteInk : colors.textSoft': 1, 'color: colors.textMuteInk': 1},
       fundos: {
-        'claro|surface2': 'não lida (surface2) usa textSoft nos 2 sítios ternários (hora e pet); textMuteInk só na lida (surface) e no vazio (bg)',
+        'claro|surface2': 'não lida (surface2) usa textSoft no sítio ternário (data e hora); textMuteInk só na lida (surface) e no vazio (bg)',
+        'escuro|amberPale': 'amberPale (BR-TUT-T10) só no círculo do ícone de vacina (KIcon amberInk, sem texto) e no chip Vacina (amberInk, USOS); textMuteInk nunca cai nele',
       },
     },
     'app/register.tsx|textMuteInk': {
@@ -411,6 +411,15 @@ const USOS: UsoAncorado[] = [
   { arq: 'components/domain/ConsultasTab.tsx', ancora: /vitalBox, \{ backgroundColor: colors\.surface2 \}/, texto: 'textSoft', fundo: 'surface2' },
   { arq: 'app/(tabs)/agenda/novo.tsx', ancora: /marcado \? colors\.textSoft : colors\.textMuteInk, fontSize: fontSize\.xs \}\}>\{p\.raca\}/, texto: 'textSoft', fundo: 'primarySoft' },
   { arq: 'app/notificacoes.tsx', ancora: /n\.flLida \? colors\.surface : colors\.surface2/, texto: 'textSoft', fundo: 'surface2' },
+  // BR-TUT-T10: botão "Cancelar agendamento" (KButton danger) e os chips/ícones novos de notificações, nos 2 temas.
+  { arq: 'components/primitives/KButton.tsx', ancora: /danger:\s*\{ container: \{ backgroundColor: theme\.colors\.danger \},\s*label: \{ color: theme\.colors\.textOnPrimary/, texto: 'textOnPrimary', fundo: 'danger' },
+  { arq: 'app/notificacoes.tsx', ancora: /backgroundColor: colors\.amberPale \} : \{ borderWidth: 1/, texto: 'amberInk', fundo: 'amberPale' },
+  { arq: 'app/notificacoes.tsx', ancora: /vacina \? colors\.amberInk : colors\.textSoft/, texto: 'textSoft', fundo: 'surface' },
+  // BR-TUT-T10 M-4: contorno do chip "Aviso" e anel do sino NÃO LIDOS sobre o cartão surface2 (forma, não texto: 3:1).
+  // borderControl/surface2 = 2.99 no escuro (reprova); textMuteInk passa nos 2 temas.
+  { arq: 'app/notificacoes.tsx', ancora: /const contorno = !n\.flLida \? colors\.textMuteInk : colors\.border/, texto: 'textMuteInk', fundo: 'surface2', limiar: BORDA },
+  { arq: 'app/notificacoes.tsx', ancora: /VER SAÚDE/, texto: 'primary', fundo: 'surface2' },
+  { arq: 'app/notificacoes.tsx', ancora: /VER SAÚDE/, texto: 'primary', fundo: 'surface' },
   // bordas de controle (não-texto, 3:1)
   { arq: 'components/primitives/KTextField.tsx', ancora: /: theme\.colors\.borderControl;/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
   { arq: 'components/primitives/KButton.tsx', ancora: /secondary:.*borderColor: theme\.colors\.borderControl/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
@@ -424,7 +433,6 @@ const USOS: UsoAncorado[] = [
   { arq: 'app/register.tsx', ancora: /necessario, \{ backgroundColor: c\.surface2/, texto: 'text', fundo: 'surface2' },
   { arq: 'components/primitives/KSwitchRow.tsx', ancora: /trackColor=\{\{ false: colors\.borderControl/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
   { arq: 'app/register.tsx', ancora: /: c\.borderControl, backgroundColor: value/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
-  { arq: 'app/(tabs)/pets/novo.tsx', ancora: /borderColor: colors\.borderControl, borderRadius: radius\.md/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
   // BR-TUT-T07 (I-6): borda da opção NÃO marcada do pedido de horário (1.5px, como o canvas v13) — era `border`, 1.25:1 / 1.12:1.
   { arq: 'app/(tabs)/agenda/novo.tsx', ancora: /marcado \? colors\.primary : colors\.borderControl,/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
 ];

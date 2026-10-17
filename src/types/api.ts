@@ -146,9 +146,10 @@ export interface ConsentimentoRequest {
 // ─── Notificações ─────────────────────────────────────────────
 export interface NotificacaoTutorResponse {
   id: number;
-  dsTipo: 'VACINA_VENCENDO' | 'RETORNO_PENDENTE' | 'AGENDAMENTO_CONFIRMADO' | 'AGENDAMENTO_CANCELADO' | 'COMUNICADO_CLINICA' | 'RESULTADO_EXAME';
+  // BR-TUT-T10: só LEMBRETE_VACINA é reconhecido (único tipo com produtor medido: a Luna). Todo o resto é AVISO.
+  dsTipo: 'LEMBRETE_VACINA' | 'AVISO';
   dsTitulo: string; dsMensagem: string; dtEnvio: string; flLida: boolean;
-  idPet?: number; nmPet?: string; idAgendamento?: number;
+  idPet?: number;
 }
 export interface MarcarLidaResponse { id: number; flLida: true; }
 // TASK-70: campo é `dsPlatforma` (PT-BR) no DTO Java real
@@ -199,6 +200,9 @@ export interface VacinaStatusRaw {
   idPet: number; qtdPendentes: number; dtProximaDose: string | null;
   dsStatusGeral: 'EM_DIA' | 'ALERTA';
 }
+// `dsTipo`/`idPet` são OPCIONAIS: o Java de hoje (NotificacaoResponse, 5 campos) ainda não os envia (BE-09);
+// o app os lê quando vierem. `dtCriacao` é LocalDateTime SEM fuso.
 export interface NotificacaoRaw {
   idNotificacao: number; dsTitulo: string; dsMensagem: string; dtCriacao: string; flLida: boolean;
+  dsTipo?: string | null; idPet?: number | null;
 }
