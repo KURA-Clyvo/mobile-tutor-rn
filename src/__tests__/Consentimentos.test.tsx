@@ -1,10 +1,11 @@
 import React from 'react';
-import { Switch } from 'react-native';
+import { StyleSheet, Switch } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
 
+import { LGPD_CONSENTIMENTOS, CONSEQUENCIA_REVOGAR } from '../constants/lgpd';
 import ConsentimentosScreen from '../app/(tabs)/perfil/consentimentos';
 
 // TASK-F02 (rodada de fix 1): useVoltar() (usado por ConsentimentosScreen
@@ -31,7 +32,8 @@ jest.mock('../hooks/useConsentimentos', () => ({
   useConsentimentos: () => ({
     data: [
       { idConsentimento: 1, tipo: 'LEMBRETES', versaoTermo: 'v1.0', aceito: true, ativo: true, dtAceite: new Date().toISOString(), dtRevogacao: null },
-      { idConsentimento: 2, tipo: 'DADOS_ANONIMOS', versaoTermo: 'v1.0', aceito: false, ativo: false, dtAceite: new Date().toISOString(), dtRevogacao: new Date().toISOString() },
+      { idConsentimento: 2, tipo: 'DADOS_ANONIMOS', versaoTermo: 'v1.0', aceito: false, ativo: false, dtAceite: '2026-09-01T10:00:00', dtRevogacao: '2026-10-01T10:00:00' },
+      { idConsentimento: 3, tipo: 'TELEORIENTACAO', versaoTermo: 'v1.0', aceito: true, ativo: true, dtAceite: new Date().toISOString(), dtRevogacao: null },
     ],
   }),
   useAssinar:  () => ({ mutateAsync: jest.fn(), isPending: false }),
@@ -45,36 +47,72 @@ const W = ({ children }: any) => {
   return <QueryClientProvider client={qc}><ThemeProvider><KDialogProvider>{children}</KDialogProvider></ThemeProvider></QueryClientProvider>;
 };
 
-describe('ConsentimentosScreen', () => {
-  it('renders all 5 real consent types', async () => {
-    const { getByText } = render(<ConsentimentosScreen />, { wrapper: W });
+describe('ConsentimentosScreen (BR-TUT-T08)', () => {
+  it('os 4 opcionais ficam em linhas com o nome do canvas; Lembretes NÃO é uma linha', async () => {
+    const { getByText, queryByText } = render(<ConsentimentosScreen />, { wrapper: W });
     await waitFor(() => expect(getByText('Teleorientação por vídeo')).toBeTruthy());
-    expect(getByText('Lembretes e comunicados da clínica')).toBeTruthy();
-    expect(getByText('Uso de dados anonimizados')).toBeTruthy();
-    expect(getByText('Compartilhamento com seguradora')).toBeTruthy();
-    expect(getByText('Comunicações de marketing')).toBeTruthy();
+    expect(getByText('Dados anonimizados para pesquisa')).toBeTruthy();
+    expect(getByText('Compartilhar com seguradora')).toBeTruthy();
+    expect(getByText('Novidades e ofertas')).toBeTruthy();
+    expect(queryByText('Lembretes e comunicados da clínica')).toBeNull();
   });
 
-  it('shows Ativo chip for LEMBRETES (ativo: true)', async () => {
-    const { getAllByText } = render(<ConsentimentosScreen />, { wrapper: W });
-    await waitFor(() => expect(getAllByText('Ativo').length).toBeGreaterThan(0));
+  it('seção "Necessário para o serviço" com Lembretes, sem Revogar/Autorizar/chave para ele', async () => {
+    const u = render(<ConsentimentosScreen />, { wrapper: W });
+    await u.findByText('Necessário para o serviço');
+    expect(u.getByText(/Lembretes de vacina e de horário/)).toBeTruthy();
+    expect(u.queryByLabelText(/Lembretes/)).toBeNull();
+    expect(u.UNSAFE_queryAllByType(Switch)).toHaveLength(0);
+    // 1 Revogar (Teleorientação ativa) + 3 Autorizar (anonimizados revogado, seguradora e novidades pendentes)
+    expect(u.getAllByLabelText(/^Revogar /)).toHaveLength(1);
+    expect(u.getAllByLabelText(/^Autorizar /)).toHaveLength(3);
   });
 
-  it('shows Revogado chip for DADOS_ANONIMOS (ativo: false, com dtRevogacao)', async () => {
-    const { getAllByText } = render(<ConsentimentosScreen />, { wrapper: W });
-    await waitFor(() => expect(getAllByText('Revogado').length).toBeGreaterThan(0));
+  it('texto de estado por linha: Autorizado hoje / Revogado em data / Não autorizado', async () => {
+    const u = render(<ConsentimentosScreen />, { wrapper: W });
+    await u.findByText('Autorizado hoje');
+    expect(u.getByText('Revogado em 01/10/2026')).toBeTruthy();
+    expect(u.getAllByText('Não autorizado')).toHaveLength(2);
+    expect(u.queryByText('Pendente')).toBeNull();
   });
 
-  it('shows Pendente chip for missing consent (TELEORIENTACAO/COMPARTILHAR_SEGURADORA/MARKETING)', async () => {
-    const { getAllByText } = render(<ConsentimentosScreen />, { wrapper: W });
-    await waitFor(() => expect(getAllByText('Pendente').length).toBe(3));
+  it('alvos de toque >= 44 nos botões de cada linha', async () => {
+    const u = render(<ConsentimentosScreen />, { wrapper: W });
+    await u.findByText('Autorizado hoje');
+    for (const b of [...u.getAllByLabelText(/^Revogar /), ...u.getAllByLabelText(/^Autorizar /)]) {
+      const st = StyleSheet.flatten(typeof b.props.style === 'function' ? b.props.style({ pressed: false }) : b.props.style);
+      expect(st.minHeight).toBeGreaterThanOrEqual(44);
+    }
   });
 
-  it('opens modal with full text on VER TEXTO button', async () => {
-    const { getAllByText, getByText } = render(<ConsentimentosScreen />, { wrapper: W });
-    const btns = getAllByText('VER TEXTO COMPLETO →');
-    fireEvent.press(btns[0]!);
+  it('Autorizar abre o texto completo com Aceitar', async () => {
+    const { getAllByLabelText, getByText } = render(<ConsentimentosScreen />, { wrapper: W });
+    fireEvent.press(getAllByLabelText(/^Autorizar /)[0]!);
     await waitFor(() => expect(getByText('Aceitar')).toBeTruthy());
+  });
+});
+
+describe('Consentimentos — contrato e cópia (BR-TUT-T08, m9)', () => {
+  it('as chaves são exatamente os 5 valores do enum Java TipoConsentimento (d1522ee)', () => {
+    expect(Object.keys(LGPD_CONSENTIMENTOS).sort())
+      .toEqual(['COMPARTILHAR_SEGURADORA', 'DADOS_ANONIMOS', 'LEMBRETES', 'MARKETING', 'TELEORIENTACAO']);
+  });
+
+  // Âncora: nenhum código dos 3 backends consome estes 3 tipos (grep em dotnet/luna => 0, ver br-tut-t08-report.md).
+  it.each(['DADOS_ANONIMOS', 'COMPARTILHAR_SEGURADORA', 'MARKETING'] as const)(
+    '%s: a cópia não promete processamento que nenhum backend faz', (tipo) => {
+      const meta = LGPD_CONSENTIMENTOS[tipo];
+      const tudo = `${meta.resumo} ${meta.textoCompleto} ${CONSEQUENCIA_REVOGAR[tipo]}`;
+      expect(tudo).not.toMatch(/TLS|criptograf|canal seguro|algoritmos|Luna|via WhatsApp|deixa de receber|deixam de ser/i);
+      expect(meta.textoCompleto).toMatch(/ainda não/i);
+    });
+
+  it('a consequência de TELEORIENTACAO é real (o .NET recusa a sala sem o consentimento)', () => {
+    expect(CONSEQUENCIA_REVOGAR.TELEORIENTACAO).toMatch(/deixa de poder fazer teleorientação/);
+  });
+
+  it('LEMBRETES não tem consequência de revogação (não é revogável na tela)', () => {
+    expect(Object.keys(CONSEQUENCIA_REVOGAR)).not.toContain('LEMBRETES');
   });
 });
 
@@ -115,18 +153,14 @@ describe('ConsentimentosScreen — botão Voltar (TASK-F02)', () => {
 describe('ConsentimentosScreen — revogação exige confirmação (TASK-F06)', () => {
   beforeEach(() => mockRevogar.mockClear());
 
-  // LEMBRETES é o único consentimento ativo no fixture, então é o único Switch
-  // com value === true — o gesto que dispara a revogação.
+  // TELEORIENTACAO é o único opcional ativo no fixture: o único botão "Revogar".
   const desligarOAtivo = (utils: ReturnType<typeof render>) => {
-    const ativo = utils
-      .UNSAFE_getAllByType(Switch)
-      .find(n => n.props.value === true);
-    fireEvent(ativo!, 'valueChange', false);
+    fireEvent.press(utils.getByLabelText('Revogar Teleorientação por vídeo'));
   };
 
   it('abre o diálogo e NÃO revoga enquanto o tutor não confirmar', async () => {
     const utils = render(<ConsentimentosScreen />, { wrapper: W });
-    await waitFor(() => expect(utils.getByText('Lembretes e comunicados da clínica')).toBeTruthy());
+    await waitFor(() => expect(utils.getByText('Teleorientação por vídeo')).toBeTruthy());
 
     desligarOAtivo(utils);
 
@@ -141,7 +175,7 @@ describe('ConsentimentosScreen — revogação exige confirmação (TASK-F06)', 
 
   it('revoga quando o botão destrutivo é tocado', async () => {
     const utils = render(<ConsentimentosScreen />, { wrapper: W });
-    await waitFor(() => expect(utils.getByText('Lembretes e comunicados da clínica')).toBeTruthy());
+    await waitFor(() => expect(utils.getByText('Teleorientação por vídeo')).toBeTruthy());
 
     desligarOAtivo(utils);
     const destrutivo = await waitFor(() => utils.getByTestId('kdialog-acao-__confirmar__'));
@@ -149,7 +183,7 @@ describe('ConsentimentosScreen — revogação exige confirmação (TASK-F06)', 
     fireEvent.press(destrutivo);
 
     await waitFor(() => expect(mockRevogar).toHaveBeenCalledWith(
-      expect.objectContaining({ tipo: 'LEMBRETES' }),
+      expect.objectContaining({ tipo: 'TELEORIENTACAO' }),
     ));
   });
 });

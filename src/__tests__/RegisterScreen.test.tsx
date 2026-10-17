@@ -66,55 +66,45 @@ describe('RegisterScreen', () => {
     expect(await findByText('As senhas não coincidem')).toBeTruthy();
   });
 
-  it('calls register service on valid submit with aceites marcados', async () => {
-    (register as jest.Mock).mockResolvedValueOnce({
-      idTutor: 42,
-      accessToken: 'tok',
-      expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
-    });
-    const { getByLabelText, getByText } = render(<RegisterScreen />, { wrapper: W });
-    fireEvent.changeText(getByLabelText('Seu nome'),        'Guilherme Sola');
-    fireEvent.changeText(getByLabelText('E-mail'),          'gui@kura.com');
-    fireEvent.changeText(getByLabelText('Telefone'),        '11999990001');
-    fireEvent.changeText(getByLabelText('Senha'),           'senha1234');
-    fireEvent.changeText(getByLabelText('Confirmar senha'), 'senha1234');
-    fireEvent.press(getByLabelText('Aceito receber lembretes de vacina e consulta (obrigatório)'));
-    fireEvent.press(getByLabelText('Autorizo o uso de teleorientação por chamada de vídeo (opcional)'));
-    fireEvent.press(getByText('Criar conta'));
+  const preencher = (u: ReturnType<typeof render>) => {
+    fireEvent.changeText(u.getByLabelText('Seu nome'),        'Guilherme Sola');
+    fireEvent.changeText(u.getByLabelText('E-mail'),          'gui@kura.com');
+    fireEvent.changeText(u.getByLabelText('Telefone'),        '11999990001');
+    fireEvent.changeText(u.getByLabelText('Senha'),           'senha1234');
+    fireEvent.changeText(u.getByLabelText('Confirmar senha'), 'senha1234');
+  };
+  const sessao = (id: number) => ({ idTutor: id, accessToken: 'tok', expiresAt: new Date(Date.now() + 3_600_000).toISOString() });
+
+  // BR-TUT-T08 (T2): só o necessário ao serviço (lembretes) é parte do cadastro; nenhum opcional condiciona a conta.
+  it('cadastro conclui SEM marcar nenhum opcional (teleorientação desmarcada, lembretes é o necessário ao serviço)', async () => {
+    (register as jest.Mock).mockResolvedValueOnce(sessao(42));
+    const u = render(<RegisterScreen />, { wrapper: W });
+    preencher(u);
+    fireEvent.press(u.getByText('Criar conta'));
+    await waitFor(() => expect(register).toHaveBeenCalledWith(
+      expect.objectContaining({ inviteToken: 'mock-invite-token-123', aceiteLembretes: true, aceiteTeleorientacao: false })
+    ));
+    expect(mockReplace).toHaveBeenCalledWith('/(tabs)/pets');
+  });
+
+  it('lembretes aparece como aviso "Necessário para o serviço", sem checkbox; só a teleorientação é caixa, e vem desmarcada', () => {
+    const u = render(<RegisterScreen />, { wrapper: W });
+    expect(u.getByText('Necessário para o serviço')).toBeTruthy();
+    expect(u.queryByLabelText(/lembretes/i)).toBeNull();
+    const caixas = u.getAllByRole('checkbox');
+    expect(caixas).toHaveLength(1);
+    expect(caixas[0]!.props.accessibilityState.checked).toBe(false);
+    expect(u.queryByText(/Obrigatório/i)).toBeNull();
+  });
+
+  it('marcar a teleorientação opcional é enviado como aceite', async () => {
+    (register as jest.Mock).mockResolvedValueOnce(sessao(43));
+    const u = render(<RegisterScreen />, { wrapper: W });
+    preencher(u);
+    fireEvent.press(u.getByLabelText('Autorizo o uso de teleorientação por chamada de vídeo (opcional)'));
+    fireEvent.press(u.getByText('Criar conta'));
     await waitFor(() => expect(register).toHaveBeenCalledWith(
       expect.objectContaining({ aceiteLembretes: true, aceiteTeleorientacao: true })
-    ));
-  });
-
-  it('bloqueia submit sem chamar a API quando o aceite obrigatório não está marcado', async () => {
-    const { getByLabelText, getByText, findByText } = render(<RegisterScreen />, { wrapper: W });
-    fireEvent.changeText(getByLabelText('Seu nome'),        'Guilherme Sola');
-    fireEvent.changeText(getByLabelText('E-mail'),          'gui@kura.com');
-    fireEvent.changeText(getByLabelText('Telefone'),        '11999990001');
-    fireEvent.changeText(getByLabelText('Senha'),           'senha1234');
-    fireEvent.changeText(getByLabelText('Confirmar senha'), 'senha1234');
-    // aceiteLembretes propositalmente não marcado
-    fireEvent.press(getByText('Criar conta'));
-    expect(await findByText('É necessário aceitar os lembretes de vacina e consulta para continuar')).toBeTruthy();
-    expect(register).not.toHaveBeenCalled();
-  });
-
-  it('permite submit válido sem marcar o aceite opcional de teleorientação', async () => {
-    (register as jest.Mock).mockResolvedValueOnce({
-      idTutor: 43,
-      accessToken: 'tok2',
-      expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
-    });
-    const { getByLabelText, getByText } = render(<RegisterScreen />, { wrapper: W });
-    fireEvent.changeText(getByLabelText('Seu nome'),        'Guilherme Sola');
-    fireEvent.changeText(getByLabelText('E-mail'),          'gui@kura.com');
-    fireEvent.changeText(getByLabelText('Telefone'),        '11999990001');
-    fireEvent.changeText(getByLabelText('Senha'),           'senha1234');
-    fireEvent.changeText(getByLabelText('Confirmar senha'), 'senha1234');
-    fireEvent.press(getByLabelText('Aceito receber lembretes de vacina e consulta (obrigatório)'));
-    fireEvent.press(getByText('Criar conta'));
-    await waitFor(() => expect(register).toHaveBeenCalledWith(
-      expect.objectContaining({ aceiteLembretes: true, aceiteTeleorientacao: false })
     ));
   });
 
@@ -132,7 +122,6 @@ describe('RegisterScreen', () => {
     fireEvent.changeText(getByLabelText('Telefone'),        '11999990001');
     fireEvent.changeText(getByLabelText('Senha'),           'senha1234');
     fireEvent.changeText(getByLabelText('Confirmar senha'), 'senha1234');
-    fireEvent.press(getByLabelText('Aceito receber lembretes de vacina e consulta (obrigatório)'));
     fireEvent.press(getByText('Criar conta'));
     // Antes: toHaveBeenCalledWith('Atenção', <mensagem exata>). Agora as MESMAS
     // duas strings são conferidas, só que lidas do diálogo renderizado.
@@ -157,7 +146,6 @@ describe('RegisterScreen', () => {
     fireEvent.changeText(getByLabelText('Telefone'),        '11999990001');
     fireEvent.changeText(getByLabelText('Senha'),           'senha1234');
     fireEvent.changeText(getByLabelText('Confirmar senha'), 'senha1234');
-    fireEvent.press(getByLabelText('Aceito receber lembretes de vacina e consulta (obrigatório)'));
     fireEvent.press(getByText('Criar conta'));
     // Antes: toHaveBeenCalledWith('Atenção', 'Erro ao criar conta. Tente
     // novamente.'). Agora as MESMAS duas strings, lidas do diálogo renderizado.

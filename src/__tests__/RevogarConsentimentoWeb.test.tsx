@@ -18,7 +18,7 @@ let mockAssinar: jest.Mock;
 jest.mock('../hooks/useConsentimentos', () => ({
   useConsentimentos: () => ({
     data: [
-      { idConsentimento: 1, tipo: 'LEMBRETES', versaoTermo: 'v1.0', aceito: true, ativo: true, dtAceite: '2026-01-01T00:00:00Z', dtRevogacao: null },
+      { idConsentimento: 1, tipo: 'TELEORIENTACAO', versaoTermo: 'v1.0', aceito: true, ativo: true, dtAceite: '2026-01-01T00:00:00Z', dtRevogacao: null },
     ],
     isLoading: false, isError: false, refetch: jest.fn(), fetchStatus: 'idle',
   }),
@@ -32,10 +32,10 @@ const W = ({ children }: any) => (
   </QueryClientProvider>
 );
 
-const LABEL_LEMBRETES = /Consentimento Lembretes/;
+const LABEL_REVOGAR = 'Revogar Teleorientação por vídeo';
 
 async function pedirRevogacao(utils: ReturnType<typeof render>) {
-  fireEvent(utils.getByLabelText(LABEL_LEMBRETES), 'valueChange', false);
+  fireEvent.press(utils.getByLabelText(LABEL_REVOGAR));
   await utils.findByText('Revogar consentimento?');
 }
 
@@ -50,7 +50,7 @@ describe('Revogar consentimento (web)', () => {
   it('o diálogo diz a consequência, o botão leva o verbo e cancelar NÃO chama o servidor', async () => {
     const u = render(<ConsentimentosScreen />, { wrapper: W });
     await pedirRevogacao(u);
-    expect(u.getByText(/deixa de receber/i)).toBeTruthy();
+    expect(u.getByText(/deixa de poder fazer teleorientação/i)).toBeTruthy();
     expect(u.getByText('Revogar consentimento')).toBeTruthy();
     fireEvent.press(u.getByTestId('kdialog-acao-__cancelar__'));
     await act(async () => {});
@@ -80,7 +80,7 @@ describe('Revogar consentimento (web)', () => {
   });
 
   async function abrirAceite(u: ReturnType<typeof render>) {
-    fireEvent.press(u.getAllByText('VER TEXTO COMPLETO →')[0]!);
+    fireEvent.press(u.getAllByLabelText(/^Autorizar /)[0]!);
     return u.findByText('Aceitar');
   }
 
@@ -122,12 +122,12 @@ describe('Revogar consentimento (web)', () => {
     await act(async () => { resolver(); });
   });
 
-  it('duplo toque no switch de revogar com o 1o pedido em voo: 1 diálogo, 1 chamada ao serviço', async () => {
+  it('duplo toque no botão de revogar com o 1o pedido em voo: 1 diálogo, 1 chamada ao serviço', async () => {
     let resolver!: () => void;
     mockRevogar = jest.fn(() => new Promise<void>((r) => { resolver = r; }));
     const u = render(<ConsentimentosScreen />, { wrapper: W });
-    fireEvent(u.getByLabelText(LABEL_LEMBRETES), 'valueChange', false);
-    fireEvent(u.getByLabelText(LABEL_LEMBRETES), 'valueChange', false);
+    fireEvent.press(u.getByLabelText(LABEL_REVOGAR));
+    fireEvent.press(u.getByLabelText(LABEL_REVOGAR));
     await u.findByText('Revogar consentimento?');
     fireEvent.press(u.getByTestId('kdialog-acao-__confirmar__'));
     await waitFor(() => expect(mockRevogar).toHaveBeenCalledTimes(1));
