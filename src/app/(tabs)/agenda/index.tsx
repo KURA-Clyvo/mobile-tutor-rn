@@ -105,7 +105,7 @@ function AgendaListas({ agendamentos, onCancel }: { agendamentos: AgendamentoTut
       {proximos.length === 0
         ? <EmptySection label="Sem próximos agendamentos" />
         : proximos.map(a => (
-            <AgendamentoItem key={a.id} item={a} onLongPress={() => onCancel(a.id)} />
+            <AgendamentoItem key={a.id} item={a} onCancel={() => onCancel(a.id)} />
           ))
       }
 

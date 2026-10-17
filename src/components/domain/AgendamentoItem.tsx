@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, Linking, StyleSheet } from 'react-native';
+import { View, Text, Linking, StyleSheet } from 'react-native';
 import { useTheme } from '@theme/index';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
 import { KChip } from '@components/primitives/KChip';
@@ -29,7 +29,7 @@ const TIPO_LABEL: Record<AgendamentoTutorResponse['sgTipoConsulta'], string> = {
 
 interface AgendamentoItemProps {
   item:         AgendamentoTutorResponse;
-  onLongPress?: () => void;
+  onCancel?:    () => void;
 }
 
 // Pedido não confirmado: o servidor guarda só a âncora do período (09:00/14:00); a hora é da clínica marcar.
@@ -41,7 +41,7 @@ function quando(item: AgendamentoTutorResponse): string {
   return p ? `${p.rotulo} · preferência` : formatTimeBR(item.dtInicio);
 }
 
-export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
+export function AgendamentoItem({ item, onCancel }: AgendamentoItemProps) {
   const { colors, fonts, fontSize, radius } = useTheme();
   const chip      = STATUS_CHIP[item.sgStatus];
   const canCancel = item.sgStatus === 'SOLICITADO' || item.sgStatus === 'AGENDADO';
@@ -51,17 +51,7 @@ export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
     !!item.dsSalaUrl;
 
   return (
-    <Pressable
-      onLongPress={canCancel ? onLongPress : undefined}
-      delayLongPress={500}
-      style={({ pressed }) => [
-        styles.card,
-        { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.xl },
-        pressed && { opacity: 0.85 },
-      ]}
-      accessibilityRole="button"
-      accessibilityHint={canCancel ? 'Toque longo para cancelar' : undefined}
-    >
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.xl }]}>
       <KPetPortrait palette={racaToPalette(item.pet.nmRaca)} size={44} especie={item.pet.nmEspecie} />
       <View style={styles.info}>
         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{item.pet.nmPet}</Text>
@@ -87,14 +77,25 @@ export function AgendamentoItem({ item, onLongPress }: AgendamentoItemProps) {
             Entrar na teleconsulta
           </KButton>
         )}
+        {canCancel && onCancel && (
+          <KButton
+            variant="danger"
+            size="sm"
+            style={styles.teleBtn}
+            onPress={onCancel}
+            accessibilityLabel={`Cancelar agendamento de ${item.pet.nmPet} em ${formatDateBR(item.dtInicio)}`}
+          >
+            Cancelar agendamento
+          </KButton>
+        )}
       </View>
       <KChip tone={chip.tone}>{chip.label}</KChip>
-    </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { minHeight: touchTarget.min, minWidth: touchTarget.min, flexDirection: 'row', alignItems: 'center', padding: 14, borderWidth: 1, marginBottom: 10, gap: 14 },
+  card: { minHeight: touchTarget.min, minWidth: touchTarget.min, flexDirection: 'row', alignItems: 'flex-start', padding: 14, borderWidth: 1, marginBottom: 10, gap: 14 },
   info: { flex: 1, gap: 2 },
   teleBtn: { alignSelf: 'flex-start', marginTop: 6 },
 });
