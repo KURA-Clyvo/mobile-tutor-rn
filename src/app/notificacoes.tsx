@@ -61,7 +61,7 @@ export default function NotificacoesScreen() {
           onPress={() => marcarTodas()}
           disabled={markingAll || naoLidas === 0}
           hitSlop={8}
-          style={{ minHeight: touchTarget.min, minWidth: touchTarget.min, justifyContent: 'center' }}
+          style={{ minHeight: touchTarget.min, minWidth: touchTarget.min, justifyContent: 'center', flexShrink: 1 }}
           accessibilityRole="button"
           accessibilityLabel="Marcar todas como lidas"
         >
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   flex:        { flex: 1 },
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
   circle:      { width: touchTarget.min, height: touchTarget.min, borderRadius: touchTarget.min / 2, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, paddingHorizontal: 12 },
+  headerTitle: { flex: 1, minWidth: 0, paddingHorizontal: 12 }, // minWidth 0: no maior tamanho de fonte o título quebra linha em vez de empurrar "Ler todas" para fora da tela
   list:        { padding: 16, paddingBottom: 40 },
   faixa:       { marginHorizontal: 16, marginTop: 12 },
   item:        { minHeight: touchTarget.min, minWidth: touchTarget.min, flexDirection: 'row', padding: 14, borderWidth: 1, marginBottom: 10, gap: 10 },
