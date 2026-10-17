@@ -153,6 +153,15 @@ describe('uma fonte para o estado', () => {
     expect(detalhe.getAllByText(STATUS_PET[status].label)).toHaveLength(1);
   });
 
+  it('lista de pets: "Atenção" em amber-ink, "Urgente" em clay-ink', () => {
+    const cor = (statusGeral: 'ALERTA' | 'URGENTE', t: string) => {
+      const r = render(<PetListCard pet={{ ...THOR, statusGeral } as any} onPress={jest.fn()} />, { wrapper: W });
+      return StyleSheet.flatten(r.getByText(t).props.style).color;
+    };
+    expect(cor('ALERTA', 'Atenção')).toBe(lightColors.amberInk);
+    expect(cor('URGENTE', 'Urgente')).toBe(lightColors.clayInk);
+  });
+
   it('o mapper do detalhe não inventa status', () => {
     const d = mapPetDetailDto({ idPet: 1, nmPet: 'Thor', nmEspecie: 'Cão', nmRaca: 'SRD', dtNascimento: '2021-03-10', sgSexo: 'M', sgPorte: 'M', nmClinica: 'K', nrConsultas: 0 } as any);
     expect(d.dsStatusGeral).toBeUndefined();
