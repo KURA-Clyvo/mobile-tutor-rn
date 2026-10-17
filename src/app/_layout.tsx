@@ -1,4 +1,4 @@
-import { useFonts, Cormorant_500Medium } from '@expo-google-fonts/cormorant';
+import { useFonts, Cormorant_500Medium, Cormorant_500Medium_Italic } from '@expo-google-fonts/cormorant';
 import { Lexend_400Regular, Lexend_500Medium } from '@expo-google-fonts/lexend';
 import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
 import { SplashScreen, Stack, useRouter } from 'expo-router';
@@ -80,7 +80,7 @@ function RootLayoutInner() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({ Cormorant_500Medium, Lexend_400Regular, Lexend_500Medium, JetBrainsMono_400Regular });
+  const [fontsLoaded, fontError] = useFonts({ Cormorant_500Medium, Cormorant_500Medium_Italic, Lexend_400Regular, Lexend_500Medium, JetBrainsMono_400Regular });
   const [storeHydrated, setStoreHydrated] = useState(false);
   // Falha ao carregar fonte não pode prender o arranque: com erro, segue com a fonte do sistema.
   const appReady = (fontsLoaded || !!fontError) && storeHydrated;

@@ -59,7 +59,7 @@ export default function AgendaScreen() {
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 32, lineHeight: 38 }}>
             {'Minha '}
-            <Text style={{ fontStyle: 'italic', color: colors.primary }}>agenda.</Text>
+            <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>agenda.</Text>
           </Text>
         </View>
         <KButton

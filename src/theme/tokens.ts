@@ -105,6 +105,8 @@ export const radius   = { sm:6, md:10, lg:14, xl:20, '2xl':28, full:9999 } as co
 export const fontSize = { xs:11, sm:13, base:15, md:17, lg:20, xl:26, '2xl':34, '3xl':44 } as const;
 export const fonts = {
   display:    'Cormorant_500Medium',
+  // BR-TUT-G4 I-4: itálico de marca é uma família própria; o estilo itálico sintético sobre a regular vira Roboto no Android.
+  displayItalic: 'Cormorant_500Medium_Italic',
   body:       'Lexend_400Regular',
   bodyMedium: 'Lexend_500Medium',
   mono:       'JetBrainsMono_400Regular',
