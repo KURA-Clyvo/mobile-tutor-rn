@@ -1,6 +1,8 @@
 // BR-TUT-T07 fix wave (G2: I-1, I-2, I-4, m-1, m-2, m-4) — da opção tocada na tela até o corpo do POST, com o service REAL.
 // Relógio FIXO e fixture assimétrica (3 pets; o escolhido é o do meio). Só `apiClient` e `usePets` são falsos.
 import React from 'react';
+import { StyleSheet } from 'react-native';
+import { lightColors } from '../theme/tokens';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
@@ -191,5 +193,15 @@ describe('I-5 (rodapé): promete só o que o app faz', () => {
     const u = render(<NovoAgendamentoScreen />, { wrapper: W });
     expect(u.getByText('O pedido aparece em Agenda como Aguardando até a clínica confirmar.')).toBeTruthy();
     expect(u.queryByText(/quando ela marcar/i)).toBeNull();
+  });
+});
+
+describe('I-6: borda do rádio como o canvas (não marcado 1.5px borderControl; marcado 2px primary)', () => {
+  it('espessura e cor por estado', () => {
+    const u = render(<NovoAgendamentoScreen />, { wrapper: W });
+    fireEvent.press(u.getByLabelText('Retorno'));
+    const est = (l: string) => StyleSheet.flatten(u.getByLabelText(l).props.style);
+    expect(est('Retorno')).toMatchObject({ borderWidth: 2, borderColor: lightColors.primary });
+    expect(est('Vacina')).toMatchObject({ borderWidth: 1.5, borderColor: lightColors.borderControl });
   });
 });
