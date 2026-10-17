@@ -207,6 +207,16 @@ describe('NotificacoesScreen — Aviso é neutro, Vacina é âmbar com link (I-2
     expect(vacina.UNSAFE_getAllByType(KIcon).find(i => i.props.name === 'vaccine')!.props.color).toBe(lightColors.amberInk);
   });
 
+  it('forma (M-4): Aviso NÃO LIDO tem contorno do chip e anel do sino com cor própria (≠ borda do cartão = surface2 no escuro); lido volta à borda comum', () => {
+    const borda = (u: ReturnType<typeof render>, n: any) => { while (n && !StyleSheet.flatten(n.props.style)?.borderColor) n = n.parent; return StyleSheet.flatten(n.props.style).borderColor; };
+    const naoLido = um({});
+    expect(borda(naoLido, naoLido.getByText('Aviso'))).toBe(lightColors.textMuteInk);
+    const anel = naoLido.UNSAFE_getAllByType(KIcon).find(i => i.props.name === 'bell')!.parent!.parent;
+    expect(borda(naoLido, anel)).toBe(lightColors.textMuteInk);
+    const lido = um({ flLida: true });
+    expect(borda(lido, lido.getByText('Aviso'))).toBe(lightColors.border);
+  });
+
   it('leitor de tela: só a Vacina anuncia "Ver saúde"; o Aviso não promete link', () => {
     const aviso = um({});
     const rAviso = aviso.getByRole('button', { name: /Vacina vencendo/ }).props.accessibilityLabel as string;

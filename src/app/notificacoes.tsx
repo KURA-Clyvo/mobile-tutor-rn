@@ -89,6 +89,9 @@ export default function NotificacoesScreen() {
             renderItem={({ item: n }) => {
               const chip = TIPO_CHIP[n.dsTipo];
               const vacina = n.dsTipo === 'LEMBRETE_VACINA';
+              // Não lido: o cartão é surface2 e, no escuro, surface2 == border — o contorno do chip "Aviso" e o anel do sino
+              // sumiam. borderControl (2.99:1 no escuro) não passa 3:1; textMuteInk passa nos 2 temas.
+              const contorno = !n.flLida ? colors.textMuteInk : colors.border;
               return (
                 <Pressable
                   onPress={() => handleTap(n)}
@@ -101,12 +104,12 @@ export default function NotificacoesScreen() {
                   accessibilityLabel={`${n.flLida ? 'Lida' : 'Não lida'}: ${n.dsTitulo}. ${n.dsMensagem}. ${formatQuandoBR(n.dtEnvio)}${vacina ? '. Ver saúde' : ''}`}
                 >
                   {!n.flLida && <View style={[styles.unreadDot, { backgroundColor: colors.clay }]} />}
-                  <View style={[styles.ico, vacina ? { backgroundColor: colors.amberPale } : { borderWidth: 1, borderColor: colors.border }]}>
+                  <View style={[styles.ico, vacina ? { backgroundColor: colors.amberPale } : { borderWidth: 1, borderColor: contorno }]}>
                     <KIcon name={chip.icon} size={18} color={vacina ? colors.amberInk : colors.textSoft} />
                   </View>
                   <View style={styles.itemContent}>
                     <View style={styles.itemTop}>
-                      <KChip tone={chip.tone}>{chip.label}</KChip>
+                      <KChip tone={chip.tone} borderColor={vacina ? undefined : contorno}>{chip.label}</KChip>
                       <Text style={{ fontFamily: fonts.mono, color: n.flLida ? colors.textMuteInk : colors.textSoft, fontSize: 10 }}>
                         {formatQuandoBR(n.dtEnvio)}
                       </Text>

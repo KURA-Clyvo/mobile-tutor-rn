@@ -415,6 +415,9 @@ const USOS: UsoAncorado[] = [
   { arq: 'components/primitives/KButton.tsx', ancora: /danger:\s*\{ container: \{ backgroundColor: theme\.colors\.danger \},\s*label: \{ color: theme\.colors\.textOnPrimary/, texto: 'textOnPrimary', fundo: 'danger' },
   { arq: 'app/notificacoes.tsx', ancora: /backgroundColor: colors\.amberPale \} : \{ borderWidth: 1/, texto: 'amberInk', fundo: 'amberPale' },
   { arq: 'app/notificacoes.tsx', ancora: /vacina \? colors\.amberInk : colors\.textSoft/, texto: 'textSoft', fundo: 'surface' },
+  // BR-TUT-T10 M-4: contorno do chip "Aviso" e anel do sino NÃO LIDOS sobre o cartão surface2 (forma, não texto: 3:1).
+  // borderControl/surface2 = 2.99 no escuro (reprova); textMuteInk passa nos 2 temas.
+  { arq: 'app/notificacoes.tsx', ancora: /const contorno = !n\.flLida \? colors\.textMuteInk : colors\.border/, texto: 'textMuteInk', fundo: 'surface2', limiar: BORDA },
   { arq: 'app/notificacoes.tsx', ancora: /VER SAÚDE/, texto: 'primary', fundo: 'surface2' },
   { arq: 'app/notificacoes.tsx', ancora: /VER SAÚDE/, texto: 'primary', fundo: 'surface' },
   // bordas de controle (não-texto, 3:1)
