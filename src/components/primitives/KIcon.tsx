@@ -3,12 +3,12 @@ import { View } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { useTheme } from '@theme/index';
 
-// 17 icons: Tab (4) + Navigation (4) + Action (6) + Domain (3)
+// 18 icons: Tab (4) + Navigation (4) + Action (6) + Domain (3) + Loja (1, no fim)
 export type IconName =
   | 'pets' | 'agenda' | 'saude' | 'perfil'
   | 'back' | 'close' | 'arrowR' | 'chevR'
   | 'bell' | 'check' | 'alert' | 'plus' | 'share' | 'download'
-  | 'vaccine' | 'calendar' | 'search';
+  | 'vaccine' | 'calendar' | 'search' | 'loja';
 
 interface KIconProps {
   name:         IconName;
@@ -104,6 +104,13 @@ export function KIcon({ name, size = 18, strokeWidth = 1.7, color, style }: KIco
       <Svg width={size} height={size} viewBox={vb} fill="none">
         <Circle cx="11" cy="11" r="7" {...s}/>
         <Path d="m21 21-4.35-4.35" {...s}/>
+      </Svg>
+    ),
+    // Loja (S4-LOJA-05): sacola; entra no fim para não deslocar os ícones existentes.
+    loja: (
+      <Svg width={size} height={size} viewBox={vb} fill="none">
+        <Path d="M6 8h12l1 12H5L6 8z" {...s}/>
+        <Path d="M9 8a3 3 0 0 1 6 0" {...s}/>
       </Svg>
     ),
   };

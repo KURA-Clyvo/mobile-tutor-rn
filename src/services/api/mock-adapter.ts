@@ -5,6 +5,7 @@ import * as vacinasMock from '../../mocks/vacinas.mock';
 import * as agendaMock from '../../mocks/agendamentos.mock';
 import * as consentMock from '../../mocks/consentimentos.mock';
 import * as notifMock from '../../mocks/notifications.mock';
+import * as lojaMock from '../../mocks/loja.mock';
 
 const ROUTES: [RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>][] = [
   [/\/auth\/login$/,                        () => authMock.login()],
@@ -66,6 +67,9 @@ const ROUTES: [RegExp, (c: InternalAxiosRequestConfig) => Promise<unknown>][] = 
   [/\/tutor\/notificacoes\/\d+\/lida/,      () => Promise.resolve({ id: 1, flLida: true })],
   [/\/tutor\/notificacoes\/lidas/,          () => Promise.resolve({ count: 3 })],
   [/\/tutor\/notificacoes$/,                () => notifMock.list()],
+  // S4-LOJA-05: GET /api/v1/loja/catalogo. Ancorada com `$` e POR MÉTODO: só o GET existe na API; outro método não pode
+  // receber o catálogo de volta (cegueira a método já custou a TASK-65).
+  [/\/loja\/catalogo$/,                     (c) => c.method === 'get' ? lojaMock.catalogo(c) : Promise.reject(new Error('[MockAdapter] só GET /loja/catalogo existe'))],
 ];
 
 export async function resolveMock(config: InternalAxiosRequestConfig) {
