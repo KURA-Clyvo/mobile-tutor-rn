@@ -153,9 +153,9 @@ describe('RegisterScreen', () => {
     expect(getByTestId('kdialog-mensagem').props.children).toBe('Erro ao criar conta. Tente novamente.');
   });
 
-  it('renders LGPD footer', () => {
-    const { getByText } = render(<RegisterScreen />, { wrapper: W });
-    expect(getByText(/DADOS CIFRADOS/)).toBeTruthy();
+  it('does NOT claim encryption/compliance (G2 I-3: sem prova no código)', () => {
+    const { queryByText } = render(<RegisterScreen />, { wrapper: W });
+    expect(queryByText(/C[I]FRAD|COMPL[I]ANT|A[E]S-256/i)).toBeNull();
   });
 });
 

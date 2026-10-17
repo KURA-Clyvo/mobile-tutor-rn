@@ -223,10 +223,6 @@ export default function RegisterScreen() {
         >
           Criar conta
         </KButton>
-
-        <Text style={[styles.footerMono, { fontFamily: theme.fonts.mono, color: c.textMuteInk, fontSize: theme.fontSize.xs }]}>
-          ⌧ DADOS CIFRADOS · LGPD COMPLIANT
-        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -247,5 +243,4 @@ const styles = StyleSheet.create({
   consentRow:   { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8, minHeight: 44 },
   checkbox:     { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   necessario:   { gap: 4, padding: 14, borderRadius: 14, marginBottom: 8 },
-  footerMono:   { textAlign: 'center', letterSpacing: 1.2, marginTop: 20 },
 });

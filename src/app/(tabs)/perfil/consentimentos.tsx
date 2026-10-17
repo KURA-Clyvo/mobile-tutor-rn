@@ -12,7 +12,7 @@ import { Skeleton } from '@components/feedback/Skeleton';
 import { useConsentimentos, useAssinar, useRevogar } from '../../../hooks/useConsentimentos';
 import { useVoltar } from '../../../hooks/useVoltar';
 import { LGPD_CONSENTIMENTOS, TIPOS_OPCIONAIS, CONSEQUENCIA_REVOGAR, type TipoOpcional } from '../../../constants/lgpd';
-import type { ConsentimentoResponse } from '../../../types/api';
+import type { ConsentimentoResponse, TipoConsentimentoApi } from '../../../types/api';
 
 function generateUUID(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -43,7 +43,7 @@ export default function ConsentimentosScreen() {
   const [modalTipo,    setModalTipo]    = useState<TipoOpcional | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
 
-  const getStatus = (tipo: TipoOpcional): ConsentimentoResponse | undefined =>
+  const getStatus = (tipo: TipoConsentimentoApi): ConsentimentoResponse | undefined =>
     lista.find(c => c.tipo === tipo);
 
   // BR-TUT-T05 (m3): trava síncrona para revogar (diálogo + chamada) e assinar; `isPending`/`disabled` só valem após o re-render.
@@ -105,7 +105,25 @@ export default function ConsentimentosScreen() {
     }
   };
 
+  // BR-TUT-T08 (G2 I-1): a caixa "Necessário" mostra o estado do SERVIDOR. Sem registro ativo de LEMBRETES o .NET não envia
+  // lembrete (LunaService.cs:414-416); o tutor religa aqui, sem botão de revogar (decisão T2).
+  const lembretes = getStatus('LEMBRETES');
+  const lembretesAtivo = !!lembretes?.ativo;
+  const handleLigarLembretes = async () => {
+    if (emVoo.current) return;
+    emVoo.current = true;
+    try {
+      await assinar({ tipo: 'LEMBRETES', key: generateUUID() });
+      toast.show({ tipo: 'sucesso', texto: 'Lembretes ligados' });
+    } catch {
+      toast.show({ tipo: 'erro', texto: 'Não foi possível ligar os lembretes. Tente novamente.' });
+    } finally {
+      emVoo.current = false;
+    }
+  };
+
   // Estado em texto (canvas v13): nunca só cor. Sem registro no servidor = "Não autorizado".
+  const modalAtivo = !!modalTipo && !!getStatus(modalTipo)?.ativo;
   const statusDe = (tipo: TipoOpcional): { texto: string; ativo: boolean } => {
     const c = getStatus(tipo);
     if (!c)      return { texto: 'Não autorizado', ativo: false };
@@ -180,8 +198,16 @@ export default function ConsentimentosScreen() {
               <View style={[styles.necessario, { backgroundColor: colors.surface2 }]}>
                 <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.sm }}>Necessário para o serviço</Text>
                 <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, lineHeight: 20 }}>
-                  Lembretes de vacina e de horário fazem parte do atendimento da clínica que cuida dos seus pets. Você os aceita ao criar a conta e não há botão para revogá-los aqui.
+                  Lembretes de vacina e de horário fazem parte do atendimento da clínica que cuida dos seus pets.
                 </Text>
+                <Text testID="lembretes-estado" style={{ fontFamily: fonts.bodyMedium, color: lembretesAtivo ? colors.primary : colors.textSoft, fontSize: fontSize.sm }}>
+                  {lembretesAtivo ? `Ativo desde ${ddmmaaaa(lembretes!.dtAceite)}` : 'Lembretes desligados'}
+                </Text>
+                {!lembretesAtivo && (
+                  <KButton variant="primary" size="sm" style={styles.acao} disabled={assinando || revogando} onPress={() => void handleLigarLembretes()}>
+                    Ligar lembretes
+                  </KButton>
+                )}
               </View>
               <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs, lineHeight: 18 }}>
                 Cada mudança fica registrada com data e hora. Revogar não cancela consultas presenciais já marcadas.
@@ -216,12 +242,15 @@ export default function ConsentimentosScreen() {
               </Text>
             </ScrollView>
             <View style={[styles.modalFooter, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-              <KButton variant="ghost" onPress={() => setModalTipo(null)} disabled={modalLoading}>
-                Cancelar
+              {/* G2 M-5: consentimento já ativo => só ler e fechar (aceitar de novo gravaria um aceite duplicado). */}
+              <KButton variant="ghost" onPress={() => setModalTipo(null)} disabled={modalLoading} style={modalAtivo ? { flex: 1 } : undefined}>
+                {modalAtivo ? 'Fechar' : 'Cancelar'}
               </KButton>
-              <KButton variant="primary" loading={modalLoading} onPress={handleAceitar} style={{ flex: 1 }}>
-                Aceitar
-              </KButton>
+              {!modalAtivo && (
+                <KButton variant="primary" loading={modalLoading} onPress={handleAceitar} style={{ flex: 1 }}>
+                  Aceitar
+                </KButton>
+              )}
             </View>
           </View>
         )}

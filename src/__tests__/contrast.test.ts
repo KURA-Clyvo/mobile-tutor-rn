@@ -238,7 +238,7 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'app/(tabs)/pets/novo.tsx|textMuteInk': {
-      sitios: {'color: colors.textMuteInk': 7, 'color: active ? colors.primary : colors.textMuteInk': 1},
+      sitios: {'color: colors.textMuteInk': 6, 'color: active ? colors.primary : colors.textMuteInk': 1},
       fundos: {
         'claro|primarySoft': 'primarySoft só no ícone da foto (KIcon) e na espécie ativa (texto primary); textMuteInk só no estado inativo (surface)',
         'claro|surface2': 'segmento de sexo (surface2) só tem texto textSoft/textOnPrimary',
@@ -264,7 +264,7 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'app/register.tsx|textMuteInk': {
-      sitios: {'color: c.textMuteInk': 3},
+      sitios: {'color: c.textMuteInk': 2},
       fundos: {
         'claro|primarySoft': 'inviteBanner (primarySoft) só tem texto primary',
         'claro|surface2': 'aviso "Necessário para o serviço" (surface2) só tem texto text/textSoft; textMuteInk fica no passo e no rodapé, sobre bg',
