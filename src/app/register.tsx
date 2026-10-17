@@ -114,7 +114,7 @@ export default function RegisterScreen() {
         </Pressable>
 
         <Text style={[styles.stepLabel, { fontFamily: theme.fonts.mono, color: c.textMuteInk, fontSize: theme.fontSize.xs }]}>
-          NOVO · 1 DE 2
+          CADASTRO
         </Text>
 
         <Pressable

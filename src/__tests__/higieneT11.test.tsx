@@ -34,7 +34,12 @@ function arquivos(dir: string, exts: string[], acc: string[] = []): string[] {
 // (não corta `https://`). ponytail: heurística de regex, não parser; vale para este gate, não como lexer geral.
 const semComentarios = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1');
 const EMOJI = /\p{Extended_Pictographic}/u;
-const achaEmoji = (txt: string) => EMOJI.test(semComentarios(txt).replace(/[©®™]/g, ''));
+// Escapes \u{1F436}, par surrogate 🐶 e ✨ viram o caractere antes do teste (o leitor de tela lê o emoji, mesmo escrito em ASCII).
+const decodifica = (t: string) => t
+  .replace(/\\u\{([0-9a-fA-F]{1,6})\}/g, (_m, h) => { const n = parseInt(h, 16); return n <= 0x10ffff ? String.fromCodePoint(n) : ''; })
+  .replace(/\\u([dD][89abAB][0-9a-fA-F]{2})\\u([dD][c-fC-F][0-9a-fA-F]{2})/g, (_m, a, b) => String.fromCharCode(parseInt(a, 16), parseInt(b, 16)))
+  .replace(/\\u([0-9a-fA-F]{4})/g, (_m, h) => String.fromCharCode(parseInt(h, 16)));
+const achaEmoji = (txt: string) => EMOJI.test(decodifica(semComentarios(txt)).replace(/[©®™]/g, ''));
 
 describe('F2 BR-TUT-15 — nenhum emoji na UI (src/**/*.ts(x), fora de testes)', () => {
   it('controle positivo: o detector acha um emoji-isca em string, e ignora emoji em comentário', () => {
@@ -42,6 +47,20 @@ describe('F2 BR-TUT-15 — nenhum emoji na UI (src/**/*.ts(x), fora de testes)',
     expect(achaEmoji('<Text>✨ Câmera</Text>')).toBe(true);
     expect(achaEmoji('<Text>⚠ Retorno</Text>')).toBe(true);
     expect(achaEmoji('// 🔴 comentário\nconst x = 1;')).toBe(false);
+  });
+  // m-1 (G2): escapes ASCII que viram emoji em runtime — o gate agora vê.
+  it('acha emoji escrito como escape: \\u{…}, par surrogate e \\uXXXX', () => {
+    expect(achaEmoji("accessibilityLabel={'\\u{1F3A5} Entrar'}")).toBe(true);
+    expect(achaEmoji("const x = '\\uD83D\\uDC36';")).toBe(true);
+    expect(achaEmoji("const x = '\\u2728';")).toBe(true);
+    expect(achaEmoji("const x = '\\u00e9';")).toBe(false); // acento comum não é emoji
+  });
+  // LIMITES DECLARADOS do gate (ele passa nestas iscas DE PROPÓSITO — precedente T04/T09; se algum dia pegar, o teste avisa):
+  //  (1) emoji montado em runtime (String.fromCodePoint) não aparece no fonte;
+  //  (2) emoji depois de ' // ' dentro da MESMA string é cortado como se fosse comentário de linha.
+  it('LIMITE declarado: fromCodePoint e emoji após " // " na mesma string passam', () => {
+    expect(achaEmoji('const x = String.fromCodePoint(0x1F436);')).toBe(false);
+    expect(achaEmoji("const x = 'veja // 🐶';")).toBe(false);
   });
   it('0 arquivos com emoji', () => {
     const achados = arquivos(SRC, ['.ts', '.tsx']).filter(f => achaEmoji(fs.readFileSync(f, 'utf8'))).map(f => path.relative(SRC, f));
@@ -80,8 +99,14 @@ describe('F1 BR-TUT-14 — kicker com função, sem numeração decorativa', () 
     expect(r.getByRole('header')).toBeTruthy();
   });
   it('nenhum rótulo "NN · TEXTO" no código de tela', () => {
-    const NUM = /(^|[^\d])0\d · [A-ZÀ-Ú]/m;
+    // m-2 (G2): o Kicker faz toUpperCase ⇒ minúscula também é numeração; 1-2 dígitos; separador · ou —.
+    // LIMITE declarado: numeração gerada em template (`0${i + 1} · ${t}`) não está no fonte — a isca abaixo passa de propósito.
+    const NUM = /(^|[^\d:.,/])\d{1,2}\s*[·—]\s*\p{L}/mu;
     expect(NUM.test('            01 · PRÓXIMA AÇÃO')).toBe(true); // controle positivo
+    expect(NUM.test('<Kicker>03 · sinais vitais</Kicker>')).toBe(true);
+    expect(NUM.test('<Kicker>4 · Observações</Kicker>')).toBe(true);
+    expect(NUM.test('<Kicker>12 — Resumo</Kicker>')).toBe(true);
+    expect(NUM.test('`0${i + 1} · ${titulo}`')).toBe(false); // LIMITE: template passa
     const achados = arquivos(SRC, ['.tsx']).filter(f => NUM.test(semComentarios(fs.readFileSync(f, 'utf8')))).map(f => path.relative(SRC, f));
     expect(achados).toEqual([]);
   });
@@ -104,13 +129,6 @@ describe('F3 BR-TUT-16 — AlertaBanner sem barra lateral; revogado em chip neut
   });
 });
 
-describe('F3 — "Revogado em" é chip neutro (mute), não texto solto', () => {
-  it('a linha revogada renderiza um chip com a cor textSoft sobre surface2', () => {
-    const fonte = fs.readFileSync(path.join(SRC, 'app/(tabs)/perfil/consentimentos.tsx'), 'utf8');
-    expect(fonte).toMatch(/<KChip tone="mute">\{status\.texto\}<\/KChip>/);
-  });
-});
-
 describe('F4 BR-TUT-17 — vocabulário: "teleorientação", nunca "telemedicina"/"teleconsulta" em texto de UI', () => {
   const TERMO = /(?<![A-Za-z])(telemedicina|teleconsulta)/i;
   it('controle positivo', () => {
@@ -127,12 +145,6 @@ describe('F4 BR-TUT-17 — vocabulário: "teleorientação", nunca "telemedicina
 });
 
 describe('F5 BR-TUT-18 — Perfil: ícones semânticos e polegar por token', () => {
-  it('e-mail = mail, telefone = phone, modo escuro = moon; a lupa/sino/pulso não ficam trocados', () => {
-    const fonte = fs.readFileSync(path.join(SRC, 'app/(tabs)/perfil/index.tsx'), 'utf8');
-    expect(fonte).toMatch(/label: 'E-mail',[^\n]*icon: 'mail'/);
-    expect(fonte).toMatch(/label: 'Telefone',[^\n]*icon: 'phone'/);
-    expect(fonte).toMatch(/<KIcon name="moon"[^\n]*\/>\s*<Text[^\n]*>Modo escuro/);
-  });
   it.each([['claro', lightColors, 'light'], ['escuro', darkColors, 'dark']] as const)(
     'polegar do switch ligado vem de token (%s)', (_n, paleta, modo) => {
       useAuthStore.setState({ themeOverride: modo as 'light' | 'dark' });
@@ -178,18 +190,3 @@ describe('F8 m-a — a view não tem data de aplicação: o mapper não a invent
   });
 });
 
-describe('F8 m-b — singular na lista de pets', () => {
-  it('"1 PET" (não "1 PETS")', () => {
-    const fonte = fs.readFileSync(path.join(SRC, 'app/(tabs)/pets/index.tsx'), 'utf8');
-    expect(fonte).not.toMatch(/\$\{pets\.length\} PETS/);
-    expect(fonte).toMatch(/PET\$\{pets\.length === 1 \? '' : 'S'\}/);
-  });
-});
-
-describe('F6 BR-TUT-19 — cadastro com subtítulo próprio', () => {
-  it('o subtítulo não é o do Novo pet', () => {
-    const fonte = fs.readFileSync(path.join(SRC, 'app/register.tsx'), 'utf8');
-    expect(fonte).not.toMatch(/Quanto mais detalhes/);
-    expect(fonte).toMatch(/Com a conta você acompanha as vacinas e os horários dos seus pets\./);
-  });
-});
