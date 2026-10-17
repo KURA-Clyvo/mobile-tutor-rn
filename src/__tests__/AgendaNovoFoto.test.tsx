@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 
-import NovoAgendamentoScreen from '../app/(tabs)/agenda/novo';
+import NovoAgendamentoScreen from '../app/agenda/novo';
 
 // G2 FT-09 (M-4/frente 5): prova que o card de confirmação de agendamento
 // mostra a foto (thumb) do pet selecionado — o dado já chega via usePets()

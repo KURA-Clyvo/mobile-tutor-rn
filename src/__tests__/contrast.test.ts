@@ -231,7 +231,7 @@ describe('varredura: texto sobre fundo tingido', () => {
   const TINGIDOS = ['primarySoft', 'surface2', 'oceanPale', 'amberPale', 'clayPale', 'bgSunk', 'successBg', 'warningBg', 'dangerBg', 'infoBg'];
   type Isencao = { sitios: Record<string, number>; fundos: Record<string, string> };
   const ESPURIOS: Record<string, Isencao> = {
-    'app/(tabs)/agenda/novo.tsx|textMuteInk': {
+    'app/agenda/novo.tsx|textMuteInk': {
       sitios: {'color: colors.textMuteInk': 1, 'color: marcado ? colors.textSoft : colors.textMuteInk': 1},
       fundos: {
         'claro|primarySoft': 'opção marcada (primarySoft) usa textSoft no sítio ternário da raça do pet (par ancorado em USOS); os outros textMuteInk estão em bg',
@@ -409,7 +409,7 @@ const USOS: UsoAncorado[] = [
   { arq: 'app/(tabs)/pets/[id]/index.tsx', ancora: /backgroundColor: colors\.primarySoft \}\]\}>\s*<KPetPortrait/, texto: 'textSoft', fundo: 'primarySoft' },
   { arq: 'app/(tabs)/pets/[id]/index.tsx', ancora: /vitalBox, \{ backgroundColor: colors\.surface2/, texto: 'textSoft', fundo: 'surface2' },
   { arq: 'components/domain/ConsultasTab.tsx', ancora: /vitalBox, \{ backgroundColor: colors\.surface2 \}/, texto: 'textSoft', fundo: 'surface2' },
-  { arq: 'app/(tabs)/agenda/novo.tsx', ancora: /marcado \? colors\.textSoft : colors\.textMuteInk, fontSize: fontSize\.xs \}\}>\{p\.raca\}/, texto: 'textSoft', fundo: 'primarySoft' },
+  { arq: 'app/agenda/novo.tsx', ancora: /marcado \? colors\.textSoft : colors\.textMuteInk, fontSize: fontSize\.xs \}\}>\{p\.raca\}/, texto: 'textSoft', fundo: 'primarySoft' },
   { arq: 'app/notificacoes.tsx', ancora: /n\.flLida \? colors\.surface : colors\.surface2/, texto: 'textSoft', fundo: 'surface2' },
   // BR-TUT-T10: botão "Cancelar agendamento" (KButton danger) e os chips/ícones novos de notificações, nos 2 temas.
   { arq: 'components/primitives/KButton.tsx', ancora: /danger:\s*\{ container: \{ backgroundColor: theme\.colors\.danger \},\s*label: \{ color: theme\.colors\.textOnPrimary/, texto: 'textOnPrimary', fundo: 'danger' },
@@ -442,7 +442,7 @@ const USOS: UsoAncorado[] = [
   { arq: 'components/primitives/KPetPortrait.tsx', ancora: /backgroundColor: theme\.colors\.amberPale/, texto: 'amberInk', fundo: 'amberPale' },
   { arq: 'app/register.tsx', ancora: /: c\.borderControl, backgroundColor: value/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
   // BR-TUT-T07 (I-6): borda da opção NÃO marcada do pedido de horário (1.5px, como o canvas v13) — era `border`, 1.25:1 / 1.12:1.
-  { arq: 'app/(tabs)/agenda/novo.tsx', ancora: /marcado \? colors\.primary : colors\.borderControl,/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
+  { arq: 'app/agenda/novo.tsx', ancora: /marcado \? colors\.primary : colors\.borderControl,/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
 ];
 
 describe('pares de uso real (âncora no arquivo)', () => {

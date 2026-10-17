@@ -90,7 +90,7 @@ function VacinasConteudo({ petId, vacinas }: { petId: number; vacinas: VacinaTut
             <VacinaItem
               key={v.id}
               vacina={v}
-              onAgendar={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(petId), tipo: 'VACINA' } } as any)}
+              onAgendar={() => router.push({ pathname: '/agenda/novo', params: { idPet: String(petId), tipo: 'VACINA' } } as any)}
             />
           ))}
         </>

@@ -113,7 +113,7 @@ function SaudeConteudo({ pets, vacinas }: DadosSaude) {
   const alertasConhecidos = pets.every(p => p.alertasAtivos !== undefined);
   const allClear = alertasConhecidos && alertas.length === 0 && atencao.length === 0 && semData.length === 0;
   const agendar = (idPet: number) => () =>
-    router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(idPet), tipo: 'VACINA' } } as any);
+    router.push({ pathname: '/agenda/novo', params: { idPet: String(idPet), tipo: 'VACINA' } } as any);
   const rotulo = [styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }];
 
   return (

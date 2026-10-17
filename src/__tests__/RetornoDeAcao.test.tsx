@@ -5,7 +5,7 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
 import { ToastProvider } from '../components/feedback/Toast';
-import NovoAgendamentoScreen from '../app/(tabs)/agenda/novo';
+import NovoAgendamentoScreen from '../app/agenda/novo';
 import AgendaScreen from '../app/(tabs)/agenda/index';
 
 // Cache frio (`--no-cache`/`--runInBand`): o 1º render da tela paga a transformação do bundle e passa de 5 s; o teste espera

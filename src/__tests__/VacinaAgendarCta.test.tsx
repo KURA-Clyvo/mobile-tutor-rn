@@ -34,12 +34,12 @@ describe('AGENDAR vacina => Pedir horário com tipo VACINA e o pet certo', () =>
     const r = render(<SaudeScreen />, { wrapper: W });
     fireEvent.press(r.getByLabelText('Agendar Antirrábica'));
     expect(mockPush).toHaveBeenCalledTimes(1);
-    expect(mockPush.mock.calls[0][0]).toMatchObject({ pathname: '/(tabs)/agenda/novo', params: { idPet: '22', tipo: 'VACINA' } });
+    expect(mockPush.mock.calls[0][0]).toMatchObject({ pathname: '/agenda/novo', params: { idPet: '22', tipo: 'VACINA' } });
   });
 
   it('aba Vacinas do pet 7: idPet "7" e tipo VACINA', () => {
     const r = render(<VacinasTab petId={7} />, { wrapper: W });
     fireEvent.press(r.getByLabelText('Agendar Antirrábica'));
-    expect(mockPush.mock.calls[0][0]).toMatchObject({ pathname: '/(tabs)/agenda/novo', params: { idPet: '7', tipo: 'VACINA' } });
+    expect(mockPush.mock.calls[0][0]).toMatchObject({ pathname: '/agenda/novo', params: { idPet: '7', tipo: 'VACINA' } });
   });
 });

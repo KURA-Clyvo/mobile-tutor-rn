@@ -9,11 +9,11 @@ import { KIcon }      from '@components/primitives/KIcon';
 import { useDialog }  from '@components/primitives/KDialog';
 import { useToast }   from '@components/feedback/Toast';
 import { QueryState } from '@components/feedback/QueryState';
-import { usePets }    from '../../../hooks/usePets';
-import { useSolicitarAgendamento } from '../../../hooks/useAgendamentos';
-import { useVoltar } from '../../../hooks/useVoltar';
-import { diasOferecidos, instanteDoPeriodo, periodoOferecido, PERIODOS, type Periodo } from '../../../utils/horariosPedido';
-import type { SolicitarAgendamentoRequest } from '../../../types/api';
+import { usePets }    from '../../hooks/usePets';
+import { useSolicitarAgendamento } from '../../hooks/useAgendamentos';
+import { useVoltar } from '../../hooks/useVoltar';
+import { diasOferecidos, instanteDoPeriodo, periodoOferecido, PERIODOS, type Periodo } from '../../utils/horariosPedido';
+import type { SolicitarAgendamentoRequest } from '../../types/api';
 import { touchTarget } from '@theme/tokens';
 
 type Motivo = 'VACINA' | 'ROTINA' | 'RETORNO' | 'TELEORIENTACAO';

@@ -6,7 +6,7 @@ import { StyleSheet } from 'react-native';
 import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
 import { ToastProvider } from '../components/feedback/Toast';
-import NovoAgendamentoScreen from '../app/(tabs)/agenda/novo';
+import NovoAgendamentoScreen from '../app/agenda/novo';
 
 jest.setTimeout(30_000);
 

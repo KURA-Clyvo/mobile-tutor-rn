@@ -115,7 +115,7 @@ export default function PetDetailScreen() {
           das abas em erro (G2 BR-TUT-T04 I4: alvos a ≥ 8 px). */}
       <View style={styles.fabZona}>
         <Pressable
-          onPress={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(petId) } } as any)}
+          onPress={() => router.push({ pathname: '/agenda/novo', params: { idPet: String(petId) } } as any)}
           style={[styles.fab, { backgroundColor: colors.primary }]}
           accessibilityRole="button"
           accessibilityLabel="Agendar consulta"
