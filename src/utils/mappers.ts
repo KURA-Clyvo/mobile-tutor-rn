@@ -5,6 +5,7 @@ import type {
   NotificacaoTutorResponse, NotificacaoRaw,
 } from '../types/api';
 import type { PetDomain } from '../types/domain';
+import { classificarVacina } from './vacinas';
 
 function calcIdade(dtNascimento: string): number {
   return Math.floor((Date.now() - new Date(dtNascimento).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
@@ -37,7 +38,8 @@ export function mapPetDetailDto(raw: PetDetalheRaw): PetTutorDetailResponse {
     id: raw.idPet, nmPet: raw.nmPet, nmEspecie: raw.nmEspecie, nmRaca: raw.nmRaca,
     dtNascimento: raw.dtNascimento, sgSexo: raw.sgSexo, sgPorte: raw.sgPorte,
     nmClinica: raw.nmClinica,
-    dsStatusGeral: 'OK', nrAlertasAtivos: 0, nrConsultas: raw.nrConsultas,
+    // BR-TUT-T06: o detalhe Java não tem status do pet — não se inventa 'OK'; a tela lê o status da LISTA.
+    nrConsultas: raw.nrConsultas,
     chips: [],
     // FT-09 (KURA_BACKLOG_FOTO_PET): o detalhe propaga as 2 variantes — regra
     // A5 do backlog (só o detalhe baixa a 1080; a lista, em mapPetDto acima,
@@ -77,7 +79,7 @@ function hashId(s: string): number {
 /**
  * Vacina pendente (GET /pets/{id}/vacinas) — TASK-31.
  * VW_VACINAS_VENCENDO só lista pendências futuras (nunca aplicadas/vencidas) —
- * por isso sgStatus aqui é sempre 'VENCENDO'. dtAplicacao não existe como conceito
+ * por isso sgStatus vem da mesma `classificarVacina` das telas (BR-TUT-T06). dtAplicacao não existe como conceito
  * nesta fonte; usamos a própria dtProximaDose (mais honesto que "Invalid Date").
  */
 export function mapVacinaDto(raw: VacinaVencendoRaw): VacinaTutorResponse {
@@ -87,7 +89,7 @@ export function mapVacinaDto(raw: VacinaVencendoRaw): VacinaTutorResponse {
     dtAplicacao: raw.dtProximaDose,
     dtProximaDose: raw.dtProximaDose,
     nmClinica: raw.nmClinica,
-    sgStatus: 'VENCENDO',
+    sgStatus: classificarVacina({ dtProximaDose: raw.dtProximaDose, dtAplicacao: raw.dtProximaDose }),
   };
 }
 

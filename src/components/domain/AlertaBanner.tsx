@@ -7,23 +7,26 @@ interface AlertaBannerProps {
   title:    string;
   subtitle: string;
   onPress?: () => void;
+  /** clay = urgência, amber = atenção (BR-TUT-16). */
+  tone?:    'clay' | 'amber';
 }
 
-export function AlertaBanner({ title, subtitle, onPress }: AlertaBannerProps) {
+export function AlertaBanner({ title, subtitle, onPress, tone = 'clay' }: AlertaBannerProps) {
   const { colors, fonts, fontSize, radius } = useTheme();
+  const t = tone === 'amber'
+    ? { bg: colors.amberPale, border: colors.chipBorderAmber, ink: colors.amberInk, tint: colors.chipBorderAmber }
+    : { bg: colors.clayPale,  border: colors.chipBorderClay,  ink: colors.clayInk,  tint: colors.clayTint };
   return (
-    <View style={[styles.wrap, {
-      backgroundColor: colors.clayPale,
-      borderColor: colors.chipBorderClay,
+    <View testID={`alerta-${tone}`} style={[styles.wrap, {
+      backgroundColor: t.bg,
+      borderColor: t.border,
       borderRadius: radius.lg,
-      borderLeftWidth: 3,
-      borderLeftColor: colors.clayInk,
     }]}>
-      <View style={[styles.iconWrap, { backgroundColor: colors.clayTint }]}>
-        <KIcon name="alert" size={16} color={colors.clayInk} />
+      <View style={[styles.iconWrap, { backgroundColor: t.tint }]}>
+        <KIcon name="alert" size={16} color={t.ink} />
       </View>
       <View style={styles.content}>
-        <Text style={[styles.title, { fontFamily: fonts.bodyMedium, color: colors.clayInk, fontSize: fontSize.sm }]}>
+        <Text style={[styles.title, { fontFamily: fonts.bodyMedium, color: t.ink, fontSize: fontSize.sm }]}>
           {title}
         </Text>
         <Text style={[styles.sub, { fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }]}>
@@ -38,7 +41,7 @@ export function AlertaBanner({ title, subtitle, onPress }: AlertaBannerProps) {
           accessibilityRole="button"
           accessibilityLabel="Ver detalhes"
         >
-          <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, color: colors.clayInk, letterSpacing: 0.8 }}>
+          <Text style={{ fontFamily: fonts.mono, fontSize: fontSize.xs, color: t.ink, letterSpacing: 0.8 }}>
             VER →
           </Text>
         </Pressable>

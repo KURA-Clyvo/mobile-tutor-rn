@@ -7,7 +7,10 @@ import { mapPetDetailDto } from '../utils/mappers';
 // `dsFotoThumbUrl` — ver FT-09 logo abaixo).
 // O app esperava um array já no shape de PetTutorResponse e quebrava fora do modo mock.
 // Array continua aceito (é o que o mock-adapter devolve). Campos que a API não tem
-// (chips, clínica, alertas) ficam vazios/neutros — nunca inventados.
+// (chips, clínica) ficam vazios/neutros — nunca inventados. Status e alertas do pet NÃO existem no `PetResponse` do Java
+// (8 campos: idPet, nmPet, nmEspecie, nmRaca, sgSexo, dtNascimento, sgPorte, dsFotoThumbUrl): ficam `undefined` = desconhecido.
+// ÂNCORA (regra 11): backend-tutor-java `main@d1522ee`, `tutor/api/dto/PetResponse.java:11-27` (record), conferido em 2026-10-16:
+//   grep -n "String\|Long" backend-tutor-java/src/main/java/br/com/clyvo/kura/tutor/tutor/api/dto/PetResponse.java
 // FT-09 (KURA_BACKLOG_FOTO_PET) — âncora regra 11: `dsFotoThumbUrl` espelha
 // `PetResponse.java:27` (backend-tutor-java `main` `3bfb45f`, FT-05), conferido
 // em 2026-09-25 com
@@ -25,7 +28,7 @@ export function mapListaPets(data: PetTutorResponse[] | PageRaw<PetListaRaw>): P
   return data.content.map((p) => ({
     id: p.idPet, nmPet: p.nmPet, nmEspecie: p.nmEspecie, nmRaca: p.nmRaca,
     dtNascimento: p.dtNascimento, sgSexo: p.sgSexo, sgPorte: p.sgPorte,
-    nmClinica: '', dsStatusGeral: 'OK', nrAlertasAtivos: 0, nrConsultas: 0, chips: [],
+    nmClinica: '', nrConsultas: 0, chips: [],
     dsFotoThumbUrl: p.dsFotoThumbUrl,
   }));
 }

@@ -101,18 +101,19 @@ function ListaPets({ pets }: { pets: PetDomain[] }) {
   const { colors, fonts, fontSize } = useTheme();
   const router = useRouter();
   const urgentes = pets.filter(p => p.statusGeral === 'URGENTE');
-  const nAlertas = pets.reduce((acc, p) => acc + p.alertasAtivos, 0);
+  const alertasConhecidos = pets.every(p => p.alertasAtivos !== undefined);
+  const nAlertas = pets.reduce((acc, p) => acc + (p.alertasAtivos ?? 0), 0);
 
   return (
     <>
       <Text style={[styles.contagem, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }]}>
-        {`${pets.length} PETS · ${nAlertas} ALERTAS`}
+        {alertasConhecidos ? `${pets.length} PETS · ${nAlertas} ALERTAS` : `${pets.length} PETS`}
       </Text>
       {urgentes.map(p => (
         <AlertaBanner
           key={p.id}
           title={`${p.nome} · atenção necessária`}
-          subtitle={`${p.alertasAtivos} alerta${p.alertasAtivos > 1 ? 's' : ''} ativo${p.alertasAtivos > 1 ? 's' : ''}`}
+          subtitle={`${p.alertasAtivos ?? 1} alerta${(p.alertasAtivos ?? 1) > 1 ? 's' : ''} ativo${(p.alertasAtivos ?? 1) > 1 ? 's' : ''}`}
           onPress={() => router.push(`/(tabs)/pets/${p.id}` as any)}
         />
       ))}

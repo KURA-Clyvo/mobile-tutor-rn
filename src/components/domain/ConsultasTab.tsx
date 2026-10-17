@@ -58,6 +58,9 @@ function ConsultasLista({ eventos, onSelect }: { eventos: TimelineTutorEventResp
   const presCount = eventos.filter(e => e.sgTipoAtendimento === 'pres').length;
   const teleCount = eventos.filter(e => e.sgTipoAtendimento === 'tele').length;
 
+  // BR-TUT-T06: o contador e o chip saem do MESMO campo. O servidor real não manda `sgTipoAtendimento`; sem ele não há
+  // "Presencial 0" sobre linhas que dizem "Presencial" — o filtro e o chip só existem quando algum evento traz o tipo.
+  const temTipo = eventos.some(e => e.sgTipoAtendimento !== undefined);
   const FILTERS: { key: Filter; label: string }[] = [
     { key: 'all',  label: `Todas ${eventos.length}` },
     { key: 'pres', label: `Presencial ${presCount}` },
@@ -70,6 +73,7 @@ function ConsultasLista({ eventos, onSelect }: { eventos: TimelineTutorEventResp
         {`${eventos.length} · VISITAS`}
       </Text>
 
+      {temTipo && (
       <View style={styles.filterRow}>
         {FILTERS.map(f => {
           const active = filter === f.key;
@@ -91,12 +95,14 @@ function ConsultasLista({ eventos, onSelect }: { eventos: TimelineTutorEventResp
           );
         })}
       </View>
+      )}
 
       {filtered.map((ev, idx) => (
         <TimelineRow
           key={ev.idEventoClinico}
           ev={ev}
           isLast={idx === filtered.length - 1}
+          mostrarTipo={temTipo}
           onPress={() => onSelect(ev.idEventoClinico)}
         />
       ))}
@@ -110,7 +116,7 @@ function ConsultasLista({ eventos, onSelect }: { eventos: TimelineTutorEventResp
   );
 }
 
-function TimelineRow({ ev, isLast, onPress }: { ev: TimelineTutorEventResponse; isLast: boolean; onPress: () => void }) {
+function TimelineRow({ ev, isLast, onPress, mostrarTipo }: { ev: TimelineTutorEventResponse; isLast: boolean; onPress: () => void; mostrarTipo: boolean }) {
   const { colors, fonts, fontSize, radius } = useTheme();
   const isTele  = ev.sgTipoAtendimento === 'tele';
   const dotBg     = isTele ? colors.oceanPale  : colors.primarySoft;
@@ -125,7 +131,7 @@ function TimelineRow({ ev, isLast, onPress }: { ev: TimelineTutorEventResponse; 
           <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>
             {formatDateBR(ev.dtEvento)}
           </Text>
-          <KChip tone={isTele ? 'ocean' : 'sage'}>{isTele ? 'Telemedicina' : 'Presencial'}</KChip>
+          {mostrarTipo && <KChip tone={isTele ? 'ocean' : 'sage'}>{isTele ? 'Telemedicina' : 'Presencial'}</KChip>}
         </View>
         {ev.nmVeterinario && (
           <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{ev.nmVeterinario}</Text>

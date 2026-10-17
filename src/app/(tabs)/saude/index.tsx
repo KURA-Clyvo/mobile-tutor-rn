@@ -13,9 +13,11 @@ import { VacinaItem }   from '../../../components/domain/VacinaItem';
 import { usePets }      from '../../../hooks/usePets';
 import { getVacinas }   from '../../../services/vacinas.service';
 import type { VacinaTutorResponse } from '../../../types/api';
+import { classificarVacina, fraseSaude, FRASE_NADA_VENCE } from '../../../utils/vacinas';
+import { STATUS_PET } from '../../../utils/statusPet';
 
 type PetSaude = NonNullable<ReturnType<typeof usePets>['data']>[number];
-type DadosSaude = { pets: PetSaude[]; vacinaAlerts: { pet: PetSaude; vacina: VacinaTutorResponse }[] };
+type DadosSaude = { pets: PetSaude[]; vacinas: { pet: PetSaude; vacina: VacinaTutorResponse }[] };
 
 export default function SaudeScreen() {
   const { colors, fonts } = useTheme();
@@ -48,11 +50,7 @@ export default function SaudeScreen() {
     data: todasComDado
       ? {
           pets,
-          vacinaAlerts: pets.flatMap((pet, idx) =>
-            (vacinasResults[idx]?.data ?? [])
-              .filter(v => v.sgStatus !== 'EM_DIA')
-              .map(vacina => ({ pet, vacina })),
-          ),
+          vacinas: pets.flatMap((pet, idx) => (vacinasResults[idx]?.data ?? []).map(vacina => ({ pet, vacina }))),
         }
       : undefined,
     isLoading: petsQuery.isLoading || vacinasResults.some(r => r.isLoading),
@@ -83,7 +81,7 @@ export default function SaudeScreen() {
           errorTitle="Não consegui carregar a saúde dos seus pets"
           empty={<SemPets />}
         >
-          {d => <SaudeConteudo pets={d.pets} vacinaAlerts={d.vacinaAlerts} />}
+          {d => <SaudeConteudo pets={d.pets} vacinas={d.vacinas} />}
         </QueryState>
       </ScrollView>
     </View>
@@ -102,18 +100,33 @@ function SemPets() {
   );
 }
 
-function SaudeConteudo({ pets, vacinaAlerts }: DadosSaude) {
+function SaudeConteudo({ pets, vacinas }: DadosSaude) {
   const { colors, fonts, fontSize } = useTheme();
   const router = useRouter();
-  const alertas = pets.filter(p => p.alertasAtivos > 0);
-  const totalAlertas = alertas.length + vacinaAlerts.length;
-  const allClear     = totalAlertas === 0;
+  // BR-TUT-T06: todo número da tela sai destas três listas, as MESMAS que são desenhadas — nenhum contador é somado à parte.
+  const alertas = pets.filter(p => (p.alertasAtivos ?? 0) > 0);
+  const classificadas = vacinas.map(x => ({ ...x, estado: classificarVacina(x.vacina) }));
+  const atencao = classificadas.filter(x => x.estado === 'VENCIDA' || x.estado === 'VENCENDO');
+  const emDia = classificadas.filter(x => x.estado === 'EM_DIA');
+  const semData = classificadas.filter(x => x.estado === 'SEM_DATA');
+  // "Tudo em dia!" afirma que NÃO há alerta: só com a contagem de alertas de TODOS os pets em mãos (o Java real não a manda).
+  const alertasConhecidos = pets.every(p => p.alertasAtivos !== undefined);
+  const allClear = alertasConhecidos && alertas.length === 0 && atencao.length === 0 && semData.length === 0;
+  const agendar = (idPet: number) => () =>
+    router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(idPet), tipo: 'RETORNO' } } as any);
+  const rotulo = [styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }];
 
   return (
     <>
       <Text style={[styles.contagem, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
-        {`${pets.length} PETS · ${totalAlertas} ALERTAS`}
+        {`${pets.length} PET${pets.length === 1 ? '' : 'S'}`}
       </Text>
+
+      {atencao.length > 0 && (
+        <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: fontSize.xl, lineHeight: 30, marginBottom: 20 }}>
+          {fraseSaude(atencao.map(x => ({ petNome: x.pet.nome, vacina: x.vacina })))}
+        </Text>
+      )}
 
       {allClear && (
         <View style={styles.allClear}>
@@ -122,63 +135,58 @@ function SaudeConteudo({ pets, vacinaAlerts }: DadosSaude) {
           </View>
           <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: fontSize.xl }}>Tudo em dia!</Text>
           <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, textAlign: 'center' }}>
-            Nenhum alerta ativo e todas as vacinas em dia.
+            {`Nenhum alerta ativo. ${FRASE_NADA_VENCE}`}
           </Text>
         </View>
       )}
 
+      {/* Sem a contagem de alertas, só se afirma o que a lista de vacinas sustenta. */}
+      {!alertasConhecidos && atencao.length === 0 && semData.length === 0 && (
+        <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: fontSize.xl, lineHeight: 30, marginBottom: 20 }}>
+          {FRASE_NADA_VENCE}
+        </Text>
+      )}
+
       {alertas.length > 0 && (
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
-            {`ALERTAS ATIVOS · ${alertas.length}`}
-          </Text>
+          <Text style={rotulo}>{`PETS COM ALERTA · ${alertas.length}`}</Text>
           {alertas.map(p => (
             <AlertaBanner
               key={p.id}
-              title={`${p.nome} · ${p.alertasAtivos} alerta${p.alertasAtivos > 1 ? 's' : ''}`}
-              subtitle={`Status: ${p.statusGeral} · ${p.nmClinica}`}
+              tone={p.statusGeral === 'URGENTE' ? 'clay' : 'amber'}
+              title={`${p.nome} · ${p.alertasAtivos} alerta${(p.alertasAtivos ?? 0) > 1 ? 's' : ''}`}
+              subtitle={[p.statusGeral && STATUS_PET[p.statusGeral].label, p.nmClinica].filter(Boolean).join(' · ')}
               onPress={() => router.push(`/(tabs)/pets/${p.id}` as any)}
             />
           ))}
         </View>
       )}
 
-      {alertas.length === 0 && !allClear && (
-        <KCard style={[styles.emptyCard, { borderColor: colors.primarySoft }]}>
-          <View style={styles.emptyRow}>
-            <KIcon name="check" size={20} color={colors.primary} />
-            <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm }}>
-              Sem alertas no momento
-            </Text>
-          </View>
-        </KCard>
-      )}
-
-      {vacinaAlerts.length > 0 && (
+      {atencao.length > 0 && (
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
-            {`VACINAS · ${vacinaAlerts.length}`}
-          </Text>
-          {vacinaAlerts.map(({ pet, vacina }) => (
-            <VacinaItem
-              key={`${pet.id}-${vacina.id}`}
-              vacina={vacina}
-              compact
-              onAgendar={() => router.push({ pathname: '/(tabs)/agenda/novo', params: { idPet: String(pet.id), tipo: 'RETORNO' } } as any)}
-            />
+          <Text style={rotulo}>{`VACINAS QUE PEDEM ATENÇÃO · ${atencao.length}`}</Text>
+          {atencao.map(({ pet, vacina }) => (
+            <VacinaItem key={`${pet.id}-${vacina.id}`} vacina={vacina} petNome={pet.nome} onAgendar={agendar(pet.id)} />
           ))}
         </View>
       )}
 
-      {vacinaAlerts.length === 0 && !allClear && (
-        <KCard style={[styles.emptyCard, { borderColor: colors.primarySoft }]}>
-          <View style={styles.emptyRow}>
-            <KIcon name="vaccine" size={20} color={colors.primary} />
-            <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm }}>
-              Vacinação em dia!
-            </Text>
-          </View>
-        </KCard>
+      {emDia.length > 0 && (
+        <View style={styles.section}>
+          <Text style={rotulo}>{`EM DIA · ${emDia.length}`}</Text>
+          {emDia.map(({ pet, vacina }) => (
+            <VacinaItem key={`${pet.id}-${vacina.id}`} vacina={vacina} petNome={pet.nome} />
+          ))}
+        </View>
+      )}
+
+      {semData.length > 0 && (
+        <View style={styles.section}>
+          <Text style={rotulo}>{`SEM DATA PREVISTA · ${semData.length}`}</Text>
+          {semData.map(({ pet, vacina }) => (
+            <VacinaItem key={`${pet.id}-${vacina.id}`} vacina={vacina} petNome={pet.nome} />
+          ))}
+        </View>
       )}
 
       <View style={styles.section}>

@@ -5,52 +5,60 @@ import { KChip } from '@components/primitives/KChip';
 import { KIcon } from '@components/primitives/KIcon';
 import type { VacinaTutorResponse } from '../../types/api';
 import { formatDateBR } from '../../utils/date';
+import { classificarVacina, quandoVacina, type EstadoVacina } from '../../utils/vacinas';
 
 interface VacinaItemProps {
   vacina:     VacinaTutorResponse;
-  compact?:   boolean;
+  /** De qual pet é (Saúde, que mistura pets). Na aba do pet a tela já diz de quem é. */
+  petNome?:   string;
   onAgendar?: () => void;
+  now?:       Date;
 }
 
-export function VacinaItem({ vacina, compact, onAgendar }: VacinaItemProps) {
+// clay = urgência (vencida), amber = atenção (vencendo), sage = em dia (BR-TUT-16).
+const CHIP: Record<EstadoVacina, { tone: 'clay' | 'amber' | 'sage' | 'mute'; label: string }> = {
+  VENCIDA:  { tone: 'clay',  label: 'Vencida'  },
+  VENCENDO: { tone: 'amber', label: 'Vencendo' },
+  EM_DIA:   { tone: 'sage',  label: 'Em dia'   },
+  SEM_DATA: { tone: 'mute',  label: 'Sem data' },
+};
+
+export function VacinaItem({ vacina, petNome, onAgendar, now }: VacinaItemProps) {
   const { colors, fonts, fontSize, radius } = useTheme();
-  const isAplicada = vacina.sgStatus === 'EM_DIA';
-  const chipTone   = isAplicada ? 'sage' : vacina.sgStatus === 'VENCENDO' ? 'amber' : 'clay';
-  const chipLabel  = isAplicada ? '✓ Aplicada' : vacina.sgStatus === 'VENCENDO' ? '⏱ Próximo' : '⚠ Vencida';
+  const estado = classificarVacina(vacina, now);
+  const emDia = estado === 'EM_DIA';
+  const quando = quandoVacina(vacina, now);
+  // "Aplicada em" só quando é data de aplicação de verdade: a view do Java repete a próxima dose em `dtAplicacao`.
+  const aplicada = vacina.dtProximaDose && vacina.dtAplicacao !== vacina.dtProximaDose ? `Aplicada em ${formatDateBR(vacina.dtAplicacao)}` : '';
+  const detalhe = [aplicada, vacina.nrLote ? `lote ${vacina.nrLote}` : ''].filter(Boolean).join(' · ');
 
   return (
     <View style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
       <View style={[
         styles.iconBox,
-        isAplicada
+        emDia
           ? { backgroundColor: colors.primarySoft }
           : { borderWidth: 1.5, borderColor: colors.borderStrong, borderStyle: 'dashed' as const },
       ]}>
-        <KIcon name="vaccine" size={18} color={isAplicada ? colors.primary : colors.textMuteInk} />
+        <KIcon name="vaccine" size={18} color={emDia ? colors.primary : colors.textMuteInk} />
       </View>
 
       <View style={styles.info}>
-        <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{vacina.nmVacina}</Text>
-        {!compact && (
-          <>
-            <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }}>
-              {vacina.nmClinica}{vacina.nmVeterinario ? ` · ${vacina.nmVeterinario}` : ''}
-            </Text>
-            <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>
-              📅 {formatDateBR(vacina.dtAplicacao)}{vacina.nrLote ? `  🧪 ${vacina.nrLote}` : ''}
-            </Text>
-          </>
-        )}
-        {compact && (
-          <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }}>
-            {vacina.nmClinica}
-          </Text>
-        )}
+        <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>
+          {petNome ? `${vacina.nmVacina} · ${petNome}` : vacina.nmVacina}
+        </Text>
+        <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.xs }}>{quando}</Text>
+        <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }}>
+          {vacina.nmClinica}{vacina.nmVeterinario ? ` · ${vacina.nmVeterinario}` : ''}
+        </Text>
+        {detalhe ? (
+          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>{detalhe}</Text>
+        ) : null}
       </View>
 
       <View style={{ alignItems: 'flex-end', gap: 6 }}>
-        <KChip tone={chipTone}>{chipLabel}</KChip>
-        {!isAplicada && onAgendar && (
+        <KChip tone={CHIP[estado].tone}>{CHIP[estado].label}</KChip>
+        {!emDia && onAgendar && (
           <Pressable
             onPress={onAgendar}
             style={[styles.agendarBtn, { backgroundColor: colors.primarySoft, borderColor: colors.primary }]}

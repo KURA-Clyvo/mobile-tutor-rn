@@ -20,7 +20,9 @@ export interface TutorMe { id: number; nmTutor: string; dsEmail: string; dsTelef
 export interface PetTutorResponse {
   id: number; nmPet: string; nmEspecie: string; nmRaca: string; dtNascimento: string;
   sgSexo: 'M' | 'F'; sgPorte: 'P' | 'M' | 'G' | 'GG'; nmClinica: string;
-  dsStatusGeral: 'OK' | 'ALERTA' | 'URGENTE'; nrAlertasAtivos: number; nrConsultas: number;
+  nrConsultas: number;
+  /** Só o mock tem status e alertas do pet: o `PetResponse` do Java (lista paginada) não os traz. Ausente = desconhecido, nunca 'OK'/0. */
+  dsStatusGeral?: 'OK' | 'ALERTA' | 'URGENTE'; nrAlertasAtivos?: number;
   dtUltimaConsulta?: string; dtProximoAgendamento?: string;
   chips: { tone: 'sage' | 'amber' | 'clay' | 'ocean' | 'mute'; label: string }[];
   condicoes?: { label: string; tone: 'amber' | 'clay'; desde?: string; observacao?: string }[];
@@ -55,7 +57,7 @@ export interface TimelineTutorEventDetailResponse {
 export interface VacinaTutorResponse {
   id: number; nmVacina: string; dtAplicacao: string; nmClinica: string;
   nmVeterinario?: string; nrLote?: string; dtProximaDose?: string;
-  sgStatus: 'EM_DIA' | 'VENCENDO' | 'VENCIDA';
+  sgStatus: 'EM_DIA' | 'VENCENDO' | 'VENCIDA' | 'SEM_DATA';
 }
 export interface VacinaStatusResponse {
   nrAplicadas: number; nrTotal: number; dsStatusGeral: 'EM_DIA' | 'ALERTA' | 'VENCIDA';

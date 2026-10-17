@@ -5,9 +5,10 @@ import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait
 import { KConditionChip } from '@components/primitives/KConditionChip';
 import { KIcon } from '@components/primitives/KIcon';
 import { formatDateShortBR } from '../../utils/date';
+import { STATUS_PET } from '../../utils/statusPet';
 import type { PetDomain } from '../../types/domain';
 
-interface StatCell { label: string; value: string; alert?: boolean }
+interface StatCell { label: string; value: string; alert?: 'clay' | 'amber' }
 
 interface PetListCardProps {
   pet:     PetDomain;
@@ -23,11 +24,11 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
   const lunaEmoji = hasLunaChip ? '✨' : undefined;
   const condicaoPrincipal = pet.condicoes?.[0];
 
-  const statusLabel = { OK: 'Tudo certo', ALERTA: 'Atenção', URGENTE: 'Urgente' }[pet.statusGeral];
+  const statusLabel = pet.statusGeral ? STATUS_PET[pet.statusGeral].label : '—';
 
   const stats: StatCell[] = [
     { label: 'PRÓXIMO', value: pet.dtProximoAgendamento ? formatDateShortBR(pet.dtProximoAgendamento) : '—' },
-    { label: 'STATUS',  value: statusLabel, alert: pet.statusGeral !== 'OK' },
+    { label: 'STATUS',  value: statusLabel, alert: pet.statusGeral === 'URGENTE' ? 'clay' : pet.statusGeral === 'ALERTA' ? 'amber' : undefined },
   ];
 
   return (
@@ -39,7 +40,7 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
         pressed && { opacity: 0.8 },
       ]}
       accessibilityRole="button"
-      accessibilityLabel={`${pet.nome}, ${pet.especie}, ${pet.statusGeral}`}
+      accessibilityLabel={`${pet.nome}, ${pet.especie}${pet.statusGeral ? `, ${STATUS_PET[pet.statusGeral].label}` : ''}`}
     >
       <View style={styles.topRow}>
         <KPetPortrait
@@ -71,7 +72,7 @@ export function PetListCard({ pet, onPress }: PetListCardProps) {
             <Text style={[styles.statLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 9 }]}>
               {s.label}
             </Text>
-            <Text style={[styles.statValue, { fontFamily: fonts.display, color: s.alert ? colors.clayInk : colors.text, fontSize: 16 }]}>
+            <Text style={[styles.statValue, { fontFamily: fonts.display, color: s.alert === 'clay' ? colors.clayInk : s.alert === 'amber' ? colors.amberInk : colors.text, fontSize: 16 }]}>
               {s.value}
             </Text>
           </View>

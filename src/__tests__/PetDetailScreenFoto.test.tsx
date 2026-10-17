@@ -26,6 +26,8 @@ jest.mock('../hooks/usePetDetail', () => ({
   usePetDetail: () => ({ data: mockPetFixture, isLoading: false }),
 }));
 
+jest.mock('../hooks/usePets', () => ({ usePets: () => ({ data: [{ id: 1, statusGeral: 'OK' }], isError: false }) }));
+
 const basePet = {
   id: 1, nmPet: 'Bóbi', nmEspecie: 'Cão', nmRaca: 'Labrador', dtNascimento: '2021-03-10',
   sgSexo: 'M' as const, sgPorte: 'G' as const, nmClinica: 'Clínica KURA',

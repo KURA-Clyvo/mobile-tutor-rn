@@ -5,8 +5,14 @@ export function greetingPT(): string {
   return 'Boa noite';
 }
 
+/** `YYYY-MM-DD` é data de calendário LOCAL (o `Date` nativo a leria como UTC e recuaria um dia em São Paulo); o resto vai como está. */
+export function parseData(s: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(s);
+}
+
 export function formatDateBR(iso: string): string {
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+  return parseData(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 export function formatDateShortBR(date: Date | string): string {

@@ -253,7 +253,7 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'app/(tabs)/saude/index.tsx|textMuteInk': {
-      sitios: {'color: colors.textMuteInk': 5},
+      sitios: {'color: colors.textMuteInk': 4},
       fundos: {
         'claro|primarySoft': 'primarySoft só no círculo do ícone de tudo em dia (KIcon); cabeçalhos em bg',
       },
@@ -285,24 +285,30 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'components/domain/VacinaItem.tsx|textMuteInk': {
-      sitios: {'color: colors.textMuteInk': 3},
+      sitios: {'color: colors.textMuteInk': 2},
       fundos: {
-        'claro|primarySoft': 'primarySoft só no iconBox (KIcon) e no botão Agendar (texto primary); textMuteInk está sobre surface',
+        'claro|primarySoft': 'primarySoft só no iconBox (KIcon) e no botão Agendar (texto primary); textMuteInk (clínica, lote) está sobre surface',
       },
     },
     'components/domain/VacinasTab.tsx|textMuteInk': {
-      sitios: {'color: colors.textMuteInk': 4},
+      sitios: {'color: colors.textMuteInk': 5, 'color: bCfg.iconColor': 1},
       fundos: {
-        'claro|primarySoft': 'banner (bg tingido) tem título iconColor e subtítulo textSoft; textMuteInk só em cabeçalhos/vazio sobre bg',
+        'claro|primarySoft': 'banner (bg tingido) tem título iconColor e subtítulo textSoft; textMuteInk só em cabeçalhos/vazio sobre bg; o tom SEM_DATA usa textMuteInk como iconColor sobre o PRÓPRIO surface, nunca sobre um tingido',
         'claro|clayPale': 'idem',
         'escuro|amberPale': 'idem',
       },
     },
     'components/domain/VacinasTab.tsx|amberInk': {
-      sitios: {'color: bCfg.iconColor': 2},
+      sitios: {'color: bCfg.iconColor': 1},
       fundos: {
         'claro|primarySoft': 'iconColor é pareado ao bg por status: amberInk só com amberPale (4.63), EM_DIA usa primary',
         'claro|clayPale': 'idem: VENCIDA usa clayInk, não amberInk',
+      },
+    },
+    'components/domain/AlertaBanner.tsx|amberInk': {
+      sitios: {'color: t.ink': 2},
+      fundos: {
+        'claro|clayPale': 'o tom (`tone`) escolhe bg e ink juntos: amberInk só com amberPale (USOS, 4.63); clayPale vai com clayInk',
       },
     },
     'components/primitives/KChip.tsx|amberInk': {
@@ -397,7 +403,9 @@ const USOS: UsoAncorado[] = [
   { arq: 'components/primitives/KChip.tsx', ancora: /clay:\s*\{ bg: colors\.clayPale,\s*color: colors\.clayInk/, texto: 'clayInk', fundo: 'clayPale' },
   { arq: 'components/primitives/KNextActionCard.tsx', ancora: /bg = action\.urgent \? colors\.clayPale : colors\.surface2/, texto: 'textSoft', fundo: 'surface2' },
   { arq: 'components/primitives/KNextActionCard.tsx', ancora: /bg = action\.urgent \? colors\.clayPale : colors\.surface2/, texto: 'textSoft', fundo: 'clayPale' },
-  { arq: 'components/domain/AlertaBanner.tsx', ancora: /backgroundColor: colors\.clayPale/, texto: 'clayInk', fundo: 'clayPale' },
+  { arq: 'components/domain/AlertaBanner.tsx', ancora: /bg: colors\.clayPale/, texto: 'clayInk', fundo: 'clayPale' },
+  // BR-TUT-T06: tom "atenção" do AlertaBanner (pet ALERTA): amberInk sobre amberPale, 4.63.
+  { arq: 'components/domain/AlertaBanner.tsx', ancora: /bg: colors\.amberPale/, texto: 'amberInk', fundo: 'amberPale' },
   { arq: 'app/(tabs)/pets/[id]/index.tsx', ancora: /backgroundColor: colors\.primarySoft \}\]\}>\s*<KPetPortrait/, texto: 'textSoft', fundo: 'primarySoft' },
   { arq: 'app/(tabs)/pets/[id]/index.tsx', ancora: /vitalBox, \{ backgroundColor: colors\.surface2/, texto: 'textSoft', fundo: 'surface2' },
   { arq: 'components/domain/ConsultasTab.tsx', ancora: /vitalBox, \{ backgroundColor: colors\.surface2 \}/, texto: 'textSoft', fundo: 'surface2' },
