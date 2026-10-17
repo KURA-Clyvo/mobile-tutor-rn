@@ -32,5 +32,5 @@ export function CategoriaChip({ rotulo, selecionado, onPress, testID }: { rotulo
 }
 
 const styles = StyleSheet.create({
-  chip: { minHeight: touchTarget.min, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
+  chip: { minHeight: touchTarget.min, minWidth: touchTarget.min, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
 });

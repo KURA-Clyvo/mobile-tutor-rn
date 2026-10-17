@@ -1,13 +1,14 @@
 // S4-LOJA-05 — a 5ª aba. O TAB_META do KTabBar é a única fonte do ícone da aba: sem a entrada `loja`, o KTabBar cai no
 // fallback (ícone de pets), o que nenhum outro teste enxerga. Aqui o KIcon é trocado por um marcador para ler QUAL ícone foi pedido.
 import React from 'react';
-import { Text } from 'react-native';
+import fs from 'fs';
+import path from 'path';
 import { render } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { KTabBar } from '../components/layout/KTabBar';
 
 jest.mock('../components/primitives/KIcon', () => {
-  const { Text: T } = require('react-native');
+  const { Text: T } = jest.requireActual('react-native');
   return { KIcon: ({ name }: { name: string }) => <T>{`icone:${name}`}</T> };
 });
 
@@ -43,8 +44,7 @@ describe('KTabBar — aba Loja', () => {
 
 describe('layout das abas — registro da rota', () => {
   it('Tabs.Screen "loja" existe e vem entre "saude" e "perfil"', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fonte = require('fs').readFileSync(require('path').join(__dirname, '..', 'app', '(tabs)', '_layout.tsx'), 'utf8') as string;
+    const fonte = fs.readFileSync(path.join(__dirname, '..', 'app', '(tabs)', '_layout.tsx'), 'utf8');
     const nomes = [...fonte.matchAll(/<Tabs\.Screen\s+name="([^"]+)"/g)].map(m => m[1]);
     expect(nomes).toEqual(['pets', 'agenda', 'saude', 'loja', 'perfil']);
   });
