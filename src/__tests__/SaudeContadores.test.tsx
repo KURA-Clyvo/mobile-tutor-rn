@@ -302,6 +302,17 @@ describe('modo real: a lista paginada do Java não traz status nem alertas (I1 d
     expect(r.getByText('Nenhuma vacina vence nos próximos 30 dias.')).toBeTruthy();
   });
 
+  // Reprodução do maestro (BR-TUT-T06): `pets.every` → `pets.some` sobrevivia (659/659) porque só havia "todos conhecidos" ou
+  // "todos desconhecidos". Basta UM pet sem contagem para o "Tudo em dia!" deixar de ter fonte.
+  it('um pet com contagem conhecida e outro sem: ainda sem "Tudo em dia!"', () => {
+    const [desconhecido] = pets();
+    mockPets = { ...base, data: [{ ...BIA, id: 9 }, { ...desconhecido!, id: 10 }] };
+    mockVacinas = [{ ...base, data: [] }, { ...base, data: [] }];
+    const r = render(<SaudeScreen />, { wrapper: W });
+    expect(r.queryByText('Tudo em dia!')).toBeNull();
+    expect(r.getByText('Nenhuma vacina vence nos próximos 30 dias.')).toBeTruthy();
+  });
+
   it('cartão da lista e detalhe: sem "Tudo certo", sem chip de status', () => {
     const [p] = pets();
     const card = render(<PetListCard pet={p!} onPress={jest.fn()} />, { wrapper: W });
