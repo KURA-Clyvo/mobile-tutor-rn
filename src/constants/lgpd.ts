@@ -16,7 +16,7 @@ export const LGPD_CONSENTIMENTOS = {
     resumo: 'Autorizo o uso de teleorientação (chamada de vídeo) quando indicado pelo veterinário.',
     textoCompleto:
       'Ao aceitar, você autoriza a clínica veterinária parceira a realizar orientações remotas ' +
-      'por chamada de vídeo (teleconsulta) com seu pet, quando o veterinário responsável julgar ' +
+      'por chamada de vídeo (teleorientação) com seu pet, quando o veterinário responsável julgar ' +
       'adequado. A chamada é processada pelo provedor de vídeo Daily.co, contratado pela KURA, e ' +
       'pode ser complementada por transcrição automática para apoiar o registro clínico — toda ' +
       'sugestão gerada por IA nesse processo é revisada e confirmada pelo veterinário antes de ' +

@@ -96,7 +96,7 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
   });
 
   describe('vacinas.service', () => {
-    it('getVacinas executa sem lançar e devolve dtAplicacao/id derivados de dado real', async () => {
+    it('getVacinas executa sem lançar e devolve dtProximaDose/id derivados de dado real', async () => {
       const res = await getVacinas(1);
       expect(Array.isArray(res)).toBe(true);
       expect(res.length).toBeGreaterThan(0);
@@ -112,7 +112,7 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
       for (const v of res) {
         expect(typeof v.id).toBe('number');
         expect(Number.isNaN(v.id)).toBe(false);
-        expect(Number.isNaN(Date.parse(v.dtAplicacao))).toBe(false);
+        expect(Number.isNaN(Date.parse(v.dtProximaDose as string))).toBe(false);
       }
     });
 

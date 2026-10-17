@@ -17,8 +17,8 @@ describe('KPetPortrait', () => {
     });
   }));
 
-  it('renders badge ✨', () => {
-    const { toJSON } = render(<KPetPortrait palette="pup" badge="✨" />, { wrapper: W });
+  it('renders badge sparkle', () => {
+    const { toJSON } = render(<KPetPortrait palette="pup" badge="sparkle" />, { wrapper: W });
     expect(toJSON()).toBeTruthy();
   });
 

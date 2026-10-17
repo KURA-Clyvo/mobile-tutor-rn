@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@theme/index';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KButton } from '@components/primitives/KButton';
+import { KChip } from '@components/primitives/KChip';
 import { useDialog } from '@components/primitives/KDialog';
 import { confirmar } from '@components/feedback/confirmar';
 import { useToast } from '@components/feedback/Toast';
@@ -125,11 +126,13 @@ export default function ConsentimentosScreen() {
 
   // Estado em texto (canvas v13): nunca só cor. Sem registro no servidor = "Não autorizado".
   const modalAtivo = !!modalTipo && !!getStatus(modalTipo)?.ativo;
-  const statusDe = (tipo: TipoOpcional): { texto: string; ativo: boolean } => {
+  const statusDe = (tipo: TipoOpcional): { texto: string; ativo: boolean; revogado?: boolean } => {
     const c = getStatus(tipo);
     if (!c)      return { texto: 'Não autorizado', ativo: false };
     if (c.ativo) return { texto: ehHoje(c.dtAceite) ? 'Autorizado hoje' : `Autorizado em ${ddmmaaaa(c.dtAceite)}`, ativo: true };
-    return { texto: c.dtRevogacao ? `Revogado em ${ddmmaaaa(c.dtRevogacao)}` : 'Não autorizado', ativo: false };
+    return c.dtRevogacao
+      ? { texto: `Revogado em ${ddmmaaaa(c.dtRevogacao)}`, ativo: false, revogado: true }
+      : { texto: 'Não autorizado', ativo: false };
   };
 
   return (
@@ -170,7 +173,10 @@ export default function ConsentimentosScreen() {
                     >
                       <View style={styles.consentInfo}>
                         <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{meta.titulo}</Text>
-                        <Text style={{ fontFamily: fonts.body, color: status.ativo ? colors.primary : colors.textSoft, fontSize: fontSize.sm }}>{status.texto}</Text>
+                        {/* BR-TUT-16: revogado é estado neutro (chip mute), não urgência — `clay` fica para urgência. */}
+                        {status.revogado
+                          ? <KChip tone="mute">{status.texto}</KChip>
+                          : <Text style={{ fontFamily: fonts.body, color: status.ativo ? colors.primary : colors.textSoft, fontSize: fontSize.sm }}>{status.texto}</Text>}
                         <Pressable
                           onPress={() => setModalTipo(tipo)}
                           hitSlop={8}

@@ -79,17 +79,16 @@ function hashId(s: string): number {
 /**
  * Vacina pendente (GET /pets/{id}/vacinas) — TASK-31.
  * VW_VACINAS_VENCENDO só lista pendências futuras (nunca aplicadas/vencidas) —
- * por isso sgStatus vem da mesma `classificarVacina` das telas (BR-TUT-T06). dtAplicacao não existe como conceito
- * nesta fonte; usamos a própria dtProximaDose (mais honesto que "Invalid Date").
+ * por isso sgStatus vem da mesma `classificarVacina` das telas (BR-TUT-T06). dtAplicacao não existe nesta fonte (a view não tem
+ * DT_APLICACAO): fica AUSENTE — copiar a próxima dose aqui fabricava um dado e obrigava o VacinaItem a compensar (BR-TUT-T11, m-a).
  */
 export function mapVacinaDto(raw: VacinaVencendoRaw): VacinaTutorResponse {
   return {
     id: hashId(`${raw.idPet}-${raw.nmVacina}-${raw.dtProximaDose}`),
     nmVacina: raw.nmVacina,
-    dtAplicacao: raw.dtProximaDose,
     dtProximaDose: raw.dtProximaDose,
     nmClinica: raw.nmClinica,
-    sgStatus: classificarVacina({ dtProximaDose: raw.dtProximaDose, dtAplicacao: raw.dtProximaDose }),
+    sgStatus: classificarVacina({ dtProximaDose: raw.dtProximaDose }),
   };
 }
 

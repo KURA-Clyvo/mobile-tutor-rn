@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@theme/index';
+import { KIcon, type IconName } from './KIcon';
 import { derivarCacheKeyFoto } from '../../utils/fotoCache';
 
 export type PetPalette = 'lab' | 'siam' | 'pup';
@@ -15,8 +16,6 @@ const PALETTES: Record<PetPalette, { base: string; mid: string; top: string; spo
   pup:  { base: '#3D2B18', mid: '#6B4A2B', top: '#C9A876', spot: '#F2E0C0' }, // Thor — SRD
 };
 
-const SPECIES_EMOJI: Record<string, string> = { Cão: '🐶', Gato: '🐱', Coelho: '🐰', Ave: '🦜' };
-
 // FT-08: blurhash neutro (cinza uniforme) mostrado pelo expo-image enquanto
 // a foto real carrega.
 const BLURHASH_NEUTRO = 'L4L4-;~q00~q00Rj9Fxu00xu%MRj';
@@ -25,9 +24,8 @@ interface KPetPortraitProps {
   palette:  PetPalette;
   size?:    number;
   tier?:    Tier;
-  emoji?:   string;
-  badge?:   string;
-  especie?: string;
+  /** Selo sobre o retrato (ícone do DS, nunca emoji — BR-TUT-15). */
+  badge?:   IconName;
   /**
    * FT-08: URL assinada da foto real do pet (Java BFF, FT-05/FT-09 — a
    * clínica sobe pela FT-07, este app só EXIBE). Com `fotoUrl` (e sem erro
@@ -45,7 +43,7 @@ interface KPetPortraitProps {
 }
 
 export function KPetPortrait({
-  palette, size = 56, tier = 'emoji', emoji, badge, especie, fotoUrl, nome
+  palette, size = 56, tier = 'emoji', badge, fotoUrl, nome
 }: KPetPortraitProps) {
   const theme = useTheme();
   const p = PALETTES[palette];
@@ -63,8 +61,6 @@ export function KPetPortrait({
   const ringStyle = (tier === 'photo' || tier === 'detected')
     ? { borderWidth: 2, borderColor: theme.colors.primary }  // Sage border
     : {};
-
-  const displayEmoji = emoji ?? (especie ? SPECIES_EMOJI[especie] : '🐾') ?? '🐾';
 
   const temFoto = Boolean(fotoUrl) && !erroFoto;
   // FT-08, fix wave G2 (G2-5): o ramo sem foto usa a ilustração por tier —
@@ -119,7 +115,7 @@ export function KPetPortrait({
           />
         ) : tier === 'emoji' ? (
           <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.colors.primarySoft, alignItems: 'center', justifyContent: 'center' }]}>
-            <Text style={{ fontSize: size * 0.45 }}>{displayEmoji}</Text>
+            <KIcon name="pets" size={size * 0.45} color={theme.colors.primary} />
           </View>
         ) : (
           <>
@@ -136,10 +132,10 @@ export function KPetPortrait({
         )}
       </View>
 
-      {/* Badge overflows the portrait — amber dot with emoji */}
+      {/* Badge overflows the portrait — amber dot with icon */}
       {badge && (
-        <View style={[styles.badge, { backgroundColor: theme.colors.amber, borderColor: theme.colors.surface, bottom: -size * 0.05, right: -size * 0.05 }]}>
-          <Text style={{ fontSize: size * 0.22 }}>{badge}</Text>
+        <View testID="k-pet-portrait-selo" style={[styles.badge, { backgroundColor: theme.colors.amberPale, borderColor: theme.colors.surface, bottom: -size * 0.05, right: -size * 0.05 }]}>
+          <KIcon name={badge} size={12} color={theme.colors.amberInk} />
         </View>
       )}
     </View>

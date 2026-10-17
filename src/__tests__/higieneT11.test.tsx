@@ -47,9 +47,9 @@ describe('F2 BR-TUT-15 — nenhum emoji na UI (src/**/*.ts(x), fora de testes)',
     const achados = arquivos(SRC, ['.ts', '.tsx']).filter(f => achaEmoji(fs.readFileSync(f, 'utf8'))).map(f => path.relative(SRC, f));
     expect(achados).toEqual([]);
   });
-  it('retrato de pet sem foto não escreve emoji (todas as espécies)', () => {
-    for (const especie of ['Cão', 'Gato', 'Coelho', 'Ave', 'Outro']) {
-      const r = render(<KPetPortrait palette="lab" especie={especie} />, { wrapper: W });
+  it('retrato de pet sem foto não escreve emoji (todos os tiers e paletas)', () => {
+    for (const tier of ['emoji', 'photo', 'detected'] as const) {
+      const r = render(<KPetPortrait palette="lab" tier={tier} badge="sparkle" />, { wrapper: W });
       expect(JSON.stringify(r.toJSON())).not.toMatch(EMOJI);
     }
   });

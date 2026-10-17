@@ -6,6 +6,7 @@ import { useTheme } from '@theme/index';
 import { KChip }        from '@components/primitives/KChip';
 import { KIcon }        from '@components/primitives/KIcon';
 import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait';
+import { Kicker } from '@components/primitives/Kicker';
 import { KConditionChip } from '@components/primitives/KConditionChip';
 import { KNextActionCard } from '@components/primitives/KNextActionCard';
 import { QueryState } from '@components/feedback/QueryState';
@@ -138,7 +139,6 @@ function PetCabecalho({ pet, statusGeral }: { pet: NonNullable<ReturnType<typeof
           palette={racaToPalette(pet.nmRaca)}
           size={92}
           tier="detected"
-          especie={pet.nmEspecie}
           fotoUrl={pet.dsFotoUrl}
           nome={pet.nmPet}
         />
@@ -193,9 +193,7 @@ function VisaoTab({ pet }: { pet: NonNullable<ReturnType<typeof usePetDetail>['d
     <View style={{ gap: 20 }}>
       {(pet?.dtProximoAgendamento || pet?.dtUltimaConsulta) && (
         <>
-          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
-            01 · PRÓXIMA AÇÃO
-          </Text>
+          <Kicker>Próxima Ação</Kicker>
           <View style={[styles.apptCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 12 }]}>
             {pet?.dtProximoAgendamento && (
               <View style={styles.apptRow}>
@@ -225,9 +223,7 @@ function VisaoTab({ pet }: { pet: NonNullable<ReturnType<typeof usePetDetail>['d
 
       {pet?.condicoes && pet.condicoes.length > 0 && (
         <>
-          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
-            02 · CONDIÇÕES ESPECIAIS
-          </Text>
+          <Kicker>Condições Especiais</Kicker>
           <View style={{ gap: 10 }}>
             {pet.condicoes.map((c, i) => (
               <View key={i} style={[styles.obsCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 12, gap: 8 }]}>
@@ -248,9 +244,7 @@ function VisaoTab({ pet }: { pet: NonNullable<ReturnType<typeof usePetDetail>['d
         </>
       )}
 
-      <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
-        03 · SINAIS VITAIS
-      </Text>
+      <Kicker>Sinais Vitais</Kicker>
       <View style={styles.vitaisRow}>
         {vitais.map(v => (
           <View key={v.l} style={[styles.vitalBox, { backgroundColor: colors.surface2, borderRadius: 10 }]}>
@@ -262,9 +256,7 @@ function VisaoTab({ pet }: { pet: NonNullable<ReturnType<typeof usePetDetail>['d
 
       {pet?.dsObservacoes && (
         <>
-          <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }}>
-            04 · OBSERVAÇÕES
-          </Text>
+          <Kicker>Observações</Kicker>
           <View style={[styles.obsCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: 12 }]}>
             <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, lineHeight: 20 }}>
               {pet.dsObservacoes}

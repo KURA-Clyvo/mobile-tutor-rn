@@ -65,7 +65,7 @@ function ConsultasLista({ eventos, onSelect }: { eventos: TimelineTutorEventResp
   const FILTERS: { key: Filter; label: string }[] = [
     { key: 'all',  label: `Todas ${eventos.length}` },
     { key: 'pres', label: `Presencial ${presCount}` },
-    { key: 'tele', label: `Telemedicina ${teleCount}` },
+    { key: 'tele', label: `Teleorientação ${teleCount}` },
   ];
 
   return (
@@ -131,13 +131,13 @@ function TimelineRow({ ev, isLast, onPress, mostrarTipo }: { ev: TimelineTutorEv
         onPress={onPress}
         style={[styles.evCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}
         accessibilityRole="button"
-        accessibilityLabel={`Consulta de ${formatDateBR(ev.dtEvento)}${ev.nmVeterinario ? ` com ${ev.nmVeterinario}` : ''}${isTele ? ', telemedicina' : ''}. Ver prontuário`}
+        accessibilityLabel={`Consulta de ${formatDateBR(ev.dtEvento)}${ev.nmVeterinario ? ` com ${ev.nmVeterinario}` : ''}${isTele ? ', teleorientação' : ''}. Ver prontuário`}
       >
         <View style={styles.evMeta}>
           <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: 10 }}>
             {formatDateBR(ev.dtEvento)}
           </Text>
-          {mostrarTipo && <KChip tone={isTele ? 'ocean' : 'sage'}>{isTele ? 'Telemedicina' : 'Presencial'}</KChip>}
+          {mostrarTipo && <KChip tone={isTele ? 'ocean' : 'sage'}>{isTele ? 'Teleorientação' : 'Presencial'}</KChip>}
         </View>
         {ev.nmVeterinario && (
           <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{ev.nmVeterinario}</Text>

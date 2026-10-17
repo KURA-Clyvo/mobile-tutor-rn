@@ -358,8 +358,9 @@ describe('VacinaItem mostra o que veio no dado (m6 do G2)', () => {
     expect(JSON.stringify(r.toJSON())).not.toMatch(/\p{Extended_Pictographic}/u);
   });
 
-  it('a view do Java repete a próxima dose em dtAplicacao: não se afirma "Aplicada em"', () => {
-    const r = render(<VacinaItem vacina={vac(1, 'V10', 12)} />, { wrapper: W });
+  it('a view do Java não tem data de aplicação (mapper deixa dtAplicacao ausente): não se afirma "Aplicada em"', () => {
+    const { dtAplicacao: _ausente, ...semAplicacao } = vac(1, 'V10', 12);
+    const r = render(<VacinaItem vacina={semAplicacao} />, { wrapper: W });
     expect(r.queryByText(/Aplicada em/)).toBeNull();
     expect(r.queryByText(/lote/)).toBeNull();
   });

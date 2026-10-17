@@ -4,7 +4,7 @@ import { useTheme } from '@theme/index';
 import { KChip } from '@components/primitives/KChip';
 import { KIcon } from '@components/primitives/KIcon';
 import type { VacinaTutorResponse } from '../../types/api';
-import { formatDateBR } from '../../utils/date';
+import { formatDateBR, parseData } from '../../utils/date';
 import { classificarVacina, quandoVacina, type EstadoVacina } from '../../utils/vacinas';
 import { touchTarget } from '@theme/tokens';
 
@@ -29,8 +29,8 @@ export function VacinaItem({ vacina, petNome, onAgendar, now }: VacinaItemProps)
   const estado = classificarVacina(vacina, now);
   const emDia = estado === 'EM_DIA';
   const quando = quandoVacina(vacina, now);
-  // "Aplicada em" só quando é data de aplicação de verdade: a view do Java repete a próxima dose em `dtAplicacao`.
-  const aplicada = vacina.dtProximaDose && vacina.dtAplicacao !== vacina.dtProximaDose ? `Aplicada em ${formatDateBR(vacina.dtAplicacao)}` : '';
+  // "Aplicada em" só quando o dado existe: o mapper da view do Java deixa `dtAplicacao` ausente (a view não tem a coluna).
+  const aplicada = vacina.dtAplicacao && Number.isFinite(parseData(vacina.dtAplicacao).getTime()) ? `Aplicada em ${formatDateBR(vacina.dtAplicacao)}` : '';
   const detalhe = [aplicada, vacina.nrLote ? `lote ${vacina.nrLote}` : ''].filter(Boolean).join(' · ');
 
   return (

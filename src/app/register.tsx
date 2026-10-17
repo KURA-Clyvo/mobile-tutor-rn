@@ -152,7 +152,7 @@ export default function RegisterScreen() {
             <Text style={{ fontStyle: 'italic', color: c.primary }}>começar.</Text>
           </Text>
           <Text style={{ fontFamily: theme.fonts.body, color: c.textSoft, fontSize: theme.fontSize.sm, marginTop: 4 }}>
-            Quanto mais detalhes, mais preciso o cuidado com o seu pet.
+            Com a conta você acompanha as vacinas e os horários dos seus pets.
           </Text>
         </View>
 

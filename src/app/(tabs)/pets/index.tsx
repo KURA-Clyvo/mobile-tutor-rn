@@ -108,7 +108,7 @@ function ListaPets({ pets }: { pets: PetDomain[] }) {
   return (
     <>
       <Text style={[styles.contagem, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1 }]}>
-        {alertasConhecidos ? `${pets.length} PETS · ${nAlertas} ALERTAS` : `${pets.length} PETS`}
+        {alertasConhecidos ? `${pets.length} PET${pets.length === 1 ? '' : 'S'} · ${nAlertas} ALERTA${nAlertas === 1 ? '' : 'S'}` : `${pets.length} PET${pets.length === 1 ? '' : 'S'}`}
       </Text>
       {urgentes.map(p => (
         <AlertaBanner

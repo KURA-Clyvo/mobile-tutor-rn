@@ -12,10 +12,10 @@ export const JANELA_VENCENDO_DIAS = 30;
 
 /** SEM_DATA: data ausente ou ilegível — nunca vira "em dia" (ausência de dado não é afirmação positiva). */
 export type EstadoVacina = 'VENCIDA' | 'VENCENDO' | 'EM_DIA' | 'SEM_DATA';
-type VacinaData = { dtProximaDose?: string; dtAplicacao: string };
+type VacinaData = { dtProximaDose?: string; dtAplicacao?: string };
 
 const dia = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-const proxima = (v: VacinaData) => v.dtProximaDose || v.dtAplicacao;
+const proxima = (v: VacinaData) => v.dtProximaDose || v.dtAplicacao || '';
 
 /** Dias de calendário até a próxima dose (negativo = já venceu); NaN se a data falta ou não é legível. */
 export function diasAteVacina(v: VacinaData, now: Date = new Date()): number {
