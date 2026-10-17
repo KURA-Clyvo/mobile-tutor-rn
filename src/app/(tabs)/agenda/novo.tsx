@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, Pressable, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@theme/index';
@@ -8,73 +8,102 @@ import { KPetPortrait, racaToPalette } from '@components/primitives/KPetPortrait
 import { KIcon }      from '@components/primitives/KIcon';
 import { useDialog }  from '@components/primitives/KDialog';
 import { useToast }   from '@components/feedback/Toast';
+import { QueryState } from '@components/feedback/QueryState';
 import { usePets }    from '../../../hooks/usePets';
 import { useSolicitarAgendamento } from '../../../hooks/useAgendamentos';
 import { useVoltar } from '../../../hooks/useVoltar';
-import { addDays, formatDateBR } from '../../../utils/date';
+import { diasOferecidos, instanteDoPeriodo, PERIODOS, type Periodo } from '../../../utils/horariosPedido';
 import type { SolicitarAgendamentoRequest } from '../../../types/api';
 
-type TipoConsulta = 'RETORNO' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
+type Motivo = 'VACINA' | 'ROTINA' | 'RETORNO' | 'TELEORIENTACAO';
 
-const SLOTS = ['09:00','09:30','10:00','10:30','11:00','11:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
-const DIAS_SEMANA = ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
-const INDISPONIVEIS = new Set(['10:00','11:30','14:00','16:30']);
+// BR-TUT-T07 (canvas TutorAgendar v13): o motivo é o tipo de atendimento; não há campo de texto livre.
+const MOTIVOS: { key: Motivo; rotulo: string }[] = [
+  { key: 'VACINA',         rotulo: 'Vacina' },
+  { key: 'ROTINA',         rotulo: 'Consulta de rotina' },
+  { key: 'RETORNO',        rotulo: 'Retorno' },
+  { key: 'TELEORIENTACAO', rotulo: 'Teleorientação' },
+];
+const DIAS_SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+const ALVO = 44;
+
+type Pet = NonNullable<ReturnType<typeof usePets>['data']>[number];
 
 export default function NovoAgendamentoScreen() {
-  const { colors, fonts, fontSize, radius } = useTheme();
+  const { colors, fonts, fontSize } = useTheme();
   const insets  = useSafeAreaInsets();
-  // TASK-F02: destino de fallback quando esta tela é alcançada sem
-  // histórico (ex.: deep link direto pra "novo agendamento").
+  // TASK-F02: destino de fallback quando esta tela é alcançada sem histórico (ex.: deep link direto).
   const voltar  = useVoltar('/(tabs)/agenda');
+  const petsQuery = usePets();
+
+  return (
+    <KeyboardAvoidingView style={[styles.flex, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <View style={[styles.headerRow, { paddingTop: insets.top + 12, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Pressable onPress={() => voltar()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Fechar">
+          <KIcon name="close" size={18} color={colors.text} />
+        </Pressable>
+        <Text accessibilityRole="header" style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>Pedir horário</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <QueryState
+          query={petsQuery}
+          empty={
+            <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.md, textAlign: 'center', paddingVertical: 32 }}>
+              Você ainda não tem pet cadastrado. A clínica faz o cadastro; depois dele você pede o horário por aqui.
+            </Text>
+          }
+        >
+          {(pets) => <Formulario pets={pets} voltar={voltar} />}
+        </QueryState>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function Formulario({ pets, voltar }: { pets: Pet[]; voltar: () => void }) {
+  const { colors, fonts, fontSize, radius } = useTheme();
   const { alerta } = useDialog();
   const toast = useToast();
   const { idPet: idPetParam, tipo: tipoParam } = useLocalSearchParams<{ idPet?: string; tipo?: string }>();
-
-  const { data: pets = [] } = usePets();
   const { mutateAsync: solicitar, isPending } = useSolicitarAgendamento();
 
-  const [selectedPetId] = useState<number>(idPetParam ? parseInt(idPetParam, 10) : (pets[0]?.id ?? 0));
-  const [tipo,          setTipo]          = useState<TipoConsulta>((tipoParam as TipoConsulta) ?? 'ROTINA');
-  const [selectedDay,   setSelectedDay]   = useState(0);
-  const [selectedSlot,  setSelectedSlot]  = useState<string | null>(null);
-  const [motivo,        setMotivo]        = useState('');
+  const [escolhido, setEscolhido] = useState<number | null>(null);
+  const [motivo, setMotivo] = useState<Motivo | null>(MOTIVOS.some((m) => m.key === tipoParam) ? (tipoParam as Motivo) : null);
+  const [diaKey, setDiaKey] = useState<number | null>(null);
+  const [periodo, setPeriodo] = useState<Periodo | null>(null);
 
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const days  = Array.from({ length: 7 }, (_, i) => addDays(today, i));
-  const selectedPet = pets.find(p => p.id === selectedPetId);
+  // O pet marcado é: o que o tutor tocou; senão o do perfil (params.idPet); senão o único pet. Com 2+ pets e sem params
+  // nada vem marcado — o tutor escolhe, em vez de o app mandar o pedido do pet errado em silêncio.
+  const doParam = idPetParam ? pets.find((p) => p.id === parseInt(idPetParam, 10)) : undefined;
+  const selectedPet = pets.find((p) => p.id === escolhido) ?? doParam ?? (pets.length === 1 ? pets[0] : undefined);
 
-  const dtPreferida = useMemo(() => {
-    if (!selectedSlot) return null;
-    const d = new Date(days[selectedDay]!);
-    const [h, m] = selectedSlot.split(':').map(Number);
-    d.setHours(h!, m!);
-    return d.toISOString();
-  }, [selectedDay, selectedSlot, days]);
+  const dias = diasOferecidos(new Date());
+  const dia = dias.find((d) => d.data.getTime() === diaKey);
+  const periodoEf = dia && periodo && dia.periodos.includes(periodo) ? periodo : null;
+  const motivoSel = MOTIVOS.find((m) => m.key === motivo);
 
   // BR-TUT-T05 (m3): trava síncrona — `isPending` só vale depois do re-render, e dois toques seguidos chamam o serviço 2×.
   const emVoo = useRef(false);
 
   const handleSubmit = async () => {
     if (emVoo.current) return;
-    if (!selectedPet || !selectedSlot || !dtPreferida) {
-      await alerta('Atenção', 'Selecione o pet, uma data e um horário.');
+    if (!selectedPet || !motivoSel || !dia || !periodoEf) {
+      await alerta('Atenção', 'Escolha o pet, o motivo, o dia e o período.');
       return;
     }
-    if (!motivo.trim()) {
-      await alerta('Atenção', 'Descreva o motivo da consulta.');
-      return;
-    }
+    const preferencia = `${DIAS_SEMANA[dia.data.getDay()]} ${dia.data.getDate()}, ${PERIODOS.find((p) => p.key === periodoEf)!.rotulo.toLowerCase()}`;
     const req: SolicitarAgendamentoRequest = {
       idPet:          selectedPet.id,
-      sgTipoConsulta: tipo,
-      dsMotivo:       motivo,
-      dtPreferida,
+      sgTipoConsulta: motivoSel.key,
+      dsMotivo:       `${motivoSel.rotulo}. Preferência: ${preferencia}.`,
+      dtPreferida:    instanteDoPeriodo(dia.data, periodoEf).toISOString(),
     };
     emVoo.current = true;
     try {
       await solicitar(req);
-      // BR-TUT-T05: o retorno é um toast com o verbo (substitui o diálogo "Solicitação enviada!" com promessa
-      // de prazo) e a tela volta na hora. TASK-F02: voltar() lê canGoBack() no momento da chamada.
+      // BR-TUT-T05: toast com o verbo só depois da resposta; TASK-F02: voltar() lê canGoBack() no momento da chamada.
       toast.show({ tipo: 'sucesso', texto: 'Horário solicitado' });
       voltar();
     } catch {
@@ -84,180 +113,81 @@ export default function NovoAgendamentoScreen() {
     }
   };
 
-  const TIPOS: { key: TipoConsulta; label: string; sub: string }[] = [
-    { key: 'ROTINA',         label: 'Presencial',   sub: 'Consulta na clínica' },
-    { key: 'TELEORIENTACAO', label: 'Telemedicina', sub: 'Orientação online'   },
-  ];
+  const rotuloSecao = [styles.sectionLabel, { fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }];
+  // Opção de rádio: alvo >= 44, rótulo visível, estado `checked` anunciado.
+  const radio = (key: string | number, rotulo: string, marcado: boolean, onPress: () => void, filhos: React.ReactNode, estilo?: object) => (
+    <Pressable
+      key={key}
+      onPress={onPress}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: marcado }}
+      accessibilityLabel={rotulo}
+      style={[styles.opcao, estilo, {
+        backgroundColor: marcado ? colors.primarySoft : colors.surface,
+        borderColor:     marcado ? colors.primary : colors.border,
+        borderRadius: radius.md,
+      }]}
+    >
+      {filhos}
+    </Pressable>
+  );
+  const texto = (marcado: boolean) => ({ fontFamily: fonts.bodyMedium, fontSize: fontSize.sm, color: marcado ? colors.primary : colors.text });
 
   return (
-    <KeyboardAvoidingView style={[styles.flex, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      {/* Header */}
-      <View style={[styles.headerRow, { paddingTop: insets.top + 12, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <Pressable onPress={() => voltar()} style={[styles.circle, { backgroundColor: colors.surface, borderColor: colors.border }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Fechar">
-          <KIcon name="close" size={18} color={colors.text} />
-        </Pressable>
-        <Text style={{ fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs, letterSpacing: 1.2 }}>
-          PASSO 2 DE 3
-        </Text>
-        <View style={{ width: 40 }} />
+    <>
+      <Text style={rotuloSecao}>Para quem é o horário?</Text>
+      <View accessibilityRole={'radiogroup' as any} accessibilityLabel="Para quem é o horário?" style={styles.coluna}>
+        {pets.map((p) => {
+          const marcado = selectedPet?.id === p.id;
+          return radio(p.id, `${p.nome}, ${p.raca}, ${p.idadeAnos} anos`, marcado, () => setEscolhido(p.id), (
+            <>
+              {/* Sem `nome` no retrato: o texto ao lado já diz o nome (evita leitura dupla no leitor de tela). */}
+              <KPetPortrait palette={racaToPalette(p.raca)} size={40} especie={p.especie} fotoUrl={p.fotoThumbUrl} />
+              <View style={{ flex: 1 }}>
+                <Text style={texto(marcado)}>{p.nome}</Text>
+                <Text style={{ fontFamily: fonts.body, color: marcado ? colors.textSoft : colors.textMuteInk, fontSize: fontSize.xs }}>{p.raca} · {p.idadeAnos}a</Text>
+              </View>
+            </>
+          ), styles.linha);
+        })}
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        {/* Title */}
-        <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 30, lineHeight: 36, marginBottom: 20 }}>
-          {'Agendar para '}
-          <Text style={{ fontStyle: 'italic', color: colors.primary }}>{selectedPet?.nome ?? '…'}.</Text>
-        </Text>
+      <Text style={rotuloSecao}>Motivo</Text>
+      <View accessibilityRole={'radiogroup' as any} accessibilityLabel="Motivo" style={styles.coluna}>
+        {MOTIVOS.map((m) => radio(m.key, m.rotulo, motivo === m.key, () => setMotivo(m.key), (
+          <Text style={texto(motivo === m.key)}>{m.rotulo}</Text>
+        )))}
+      </View>
+      <Text style={[styles.nota, { fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, textAlign: 'left' }]}>
+        Se for urgente, não espere pelo pedido: procure a clínica ou um pronto-atendimento veterinário agora.
+      </Text>
 
-        {/* Pet card */}
-        {selectedPet && (
-          <View style={[styles.petCard, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg }]}>
-            {/* G2 FT-09 (M-4/frente 5): thumb (256) já disponível via usePets() —
-                serve bem em 40px. Sem `nome`: o card já escreve o nome do pet
-                ao lado (linha abaixo), passar `nome` duplicaria a leitura no
-                leitor de tela (accessibilityLabel + Text lido em sequência). */}
-            <KPetPortrait palette={racaToPalette(selectedPet.raca)} size={40} especie={selectedPet.especie} fotoUrl={selectedPet.fotoThumbUrl} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.md }}>{selectedPet.nome}</Text>
-              <Text style={{ fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }}>{selectedPet.raca} · {selectedPet.idadeAnos}a</Text>
-            </View>
-          </View>
-        )}
-
-        {/* Tipo */}
-        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>TIPO DE ATENDIMENTO</Text>
-        <View style={styles.tipoGrid}>
-          {TIPOS.map(t => {
-            const active = tipo === t.key;
-            const isTele = t.key === 'TELEORIENTACAO';
-            return (
-              <Pressable
-                key={t.key}
-                onPress={() => setTipo(t.key)}
-                style={[styles.tipoCell, {
-                  backgroundColor: active ? (isTele ? colors.oceanPale : colors.primarySoft) : colors.surface,
-                  borderColor:     active ? (isTele ? colors.ocean     : colors.primary)     : colors.border,
-                  borderRadius: radius.lg,
-                }]}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: active }}
-              >
-                <KIcon name={isTele ? 'saude' : 'pets'} size={22} color={active ? (isTele ? colors.ocean : colors.primary) : colors.textMuteInk} />
-                <Text style={{ fontFamily: fonts.bodyMedium, color: active ? (isTele ? colors.ocean : colors.primary) : colors.text, fontSize: fontSize.sm }}>{t.label}</Text>
-                <Text style={{ fontFamily: fonts.body, color: active ? colors.textSoft : colors.textMuteInk, fontSize: fontSize.xs }}>{t.sub}</Text>
-              </Pressable>
-            );
-          })}
+      <Text style={rotuloSecao}>Quando fica bom para você</Text>
+      <View accessibilityRole={'radiogroup' as any} accessibilityLabel="Dia" style={styles.dias}>
+        {dias.map((d) => {
+          const rotulo = `${DIAS_SEMANA[d.data.getDay()]} ${d.data.getDate()}`;
+          const marcado = dia?.data.getTime() === d.data.getTime();
+          return radio(d.data.getTime(), rotulo, marcado, () => setDiaKey(d.data.getTime()), (
+            <Text style={texto(marcado)}>{rotulo}</Text>
+          ), styles.dia);
+        })}
+      </View>
+      {dia && (
+        <View accessibilityRole={'radiogroup' as any} accessibilityLabel="Período" style={styles.dias}>
+          {PERIODOS.filter((p) => dia.periodos.includes(p.key)).map((p) =>
+            radio(p.key, p.rotulo, periodoEf === p.key, () => setPeriodo(p.key), (
+              <Text style={texto(periodoEf === p.key)}>{p.rotulo}</Text>
+            ), styles.dia))}
         </View>
+      )}
 
-        {/* Calendário horizontal 7 dias */}
-        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>DATA</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.calRow}>
-          {days.map((day, i) => {
-            const active  = selectedDay === i;
-            const isToday = i === 0;
-            return (
-              <Pressable
-                key={i}
-                onPress={() => { setSelectedDay(i); setSelectedSlot(null); }}
-                style={[styles.dayCell, {
-                  backgroundColor: active ? colors.primary : colors.surface,
-                  borderColor:     active ? colors.primary : isToday ? colors.primary : colors.border,
-                  borderWidth:     isToday && !active ? 1.5 : 1,
-                  borderRadius: radius.md,
-                }]}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: active }}
-              >
-                <Text style={{ fontFamily: fonts.mono, fontSize: 9, color: active ? colors.textOnPrimary : colors.textMuteInk, letterSpacing: 0.8 }}>
-                  {DIAS_SEMANA[day.getDay()]}
-                </Text>
-                <Text style={{ fontFamily: fonts.display, fontSize: 22, color: active ? colors.textOnPrimary : colors.text }}>
-                  {day.getDate()}
-                </Text>
-                <Text style={{ fontFamily: fonts.mono, fontSize: 9, color: active ? colors.textOnPrimary : colors.textMuteInk }}>
-                  {day.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        {/* Slots grid 4 colunas */}
-        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>HORÁRIO</Text>
-        <View style={styles.slotsGrid}>
-          {SLOTS.map(slot => {
-            const unavailable = INDISPONIVEIS.has(slot);
-            const active      = selectedSlot === slot;
-            return (
-              <Pressable
-                key={slot}
-                onPress={() => { if (!unavailable) setSelectedSlot(slot); }}
-                disabled={unavailable}
-                style={[styles.slotCell, {
-                  backgroundColor: active ? colors.primary : colors.surface,
-                  borderColor:     active ? colors.primary : colors.border,
-                  borderRadius: radius.full,
-                  opacity: unavailable ? 0.4 : 1,
-                }]}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: active, disabled: unavailable }}
-              >
-                <Text style={{
-                  fontFamily: fonts.mono,
-                  fontSize: fontSize.xs,
-                  color: active ? colors.textOnPrimary : colors.text,
-                  textDecorationLine: unavailable ? 'line-through' : 'none',
-                }}>
-                  {slot}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {/* Motivo */}
-        <Text style={[styles.sectionLabel, { fontFamily: fonts.mono, color: colors.textMuteInk, fontSize: fontSize.xs }]}>MOTIVO</Text>
-        <TextInput
-          value={motivo}
-          onChangeText={setMotivo}
-          multiline
-          textAlignVertical="top"
-          placeholder="Descreva o motivo da consulta..."
-          placeholderTextColor={colors.textMuteInk}
-          style={[styles.motivoInput, { fontFamily: fonts.body, color: colors.text, backgroundColor: colors.surface, borderColor: colors.borderControl, borderRadius: radius.md, fontSize: fontSize.sm }]}
-          accessibilityLabel="Motivo da consulta"
-        />
-
-        {/* Card de resumo */}
-        {selectedPet && selectedSlot && (
-          <View style={[styles.resumoCard, { backgroundColor: colors.primarySoft, borderRadius: 14, borderColor: colors.primary }]}>
-            <Text style={{ fontFamily: fonts.mono, color: colors.primary, fontSize: fontSize.xs, letterSpacing: 1.2, marginBottom: 8 }}>RESUMO</Text>
-            {[
-              { label: 'PET',     value: selectedPet.nome },
-              { label: 'DATA',    value: formatDateBR(days[selectedDay]!.toISOString()) },
-              { label: 'HORÁRIO', value: selectedSlot },
-              { label: 'TIPO',    value: tipo === 'TELEORIENTACAO' ? 'Telemedicina' : 'Presencial' },
-              { label: 'CLÍNICA', value: selectedPet.nmClinica },
-            ].map(r => (
-              <View key={r.label} style={styles.resumoRow}>
-                <Text style={{ fontFamily: fonts.mono, color: colors.primary, fontSize: 10, letterSpacing: 0.8, width: 72 }}>{r.label}</Text>
-                <Text style={{ fontFamily: fonts.bodyMedium, color: colors.text, fontSize: fontSize.sm, flex: 1 }}>{r.value}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* CTA */}
-        <KButton variant="primary" block loading={isPending} onPress={handleSubmit} style={{ marginTop: 12 }}>
-          Confirmar agendamento
-        </KButton>
-
-        <Text style={[styles.nota, { fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
-          A clínica confirmará o agendamento em até 24h.
-        </Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <KButton variant="primary" block loading={isPending} onPress={handleSubmit} style={{ marginTop: 20 }}>
+        {selectedPet ? `Pedir horário para ${selectedPet.nome}` : 'Pedir horário'}
+      </KButton>
+      <Text style={[styles.nota, { fontFamily: fonts.body, color: colors.textMuteInk, fontSize: fontSize.xs }]}>
+        O pedido vai para a agenda da clínica. Quando ela marcar o horário, ele aparece em Agenda.
+      </Text>
+    </>
   );
 }
 
@@ -266,16 +196,11 @@ const styles = StyleSheet.create({
   headerRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
   circle:      { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   scroll:      { padding: 20, paddingBottom: 40 },
-  sectionLabel:{ letterSpacing: 1.2, marginTop: 20, marginBottom: 10 },
-  petCard:     { flexDirection: 'row', alignItems: 'center', padding: 14, borderWidth: 1, gap: 12, marginBottom: 8 },
-  tipoGrid:    { flexDirection: 'row', gap: 10 },
-  tipoCell:    { flex: 1, alignItems: 'center', padding: 14, borderWidth: 1, gap: 6 },
-  calRow:      { gap: 8, paddingVertical: 4 },
-  dayCell:     { width: 56, height: 78, alignItems: 'center', justifyContent: 'center', gap: 2 },
-  slotsGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  slotCell:    { width: '22%', minHeight: 44, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
-  motivoInput: { padding: 14, borderWidth: 1, minHeight: 90, marginBottom: 8 },
-  resumoCard:  { padding: 16, borderWidth: 1, marginTop: 8 },
-  resumoRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  sectionLabel:{ marginTop: 20, marginBottom: 10 },
+  coluna:      { gap: 8 },
+  dias:        { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  opcao:       { minHeight: ALVO, minWidth: ALVO, justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1 },
+  linha:       { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dia:         { alignItems: 'center' },
   nota:        { textAlign: 'center', marginTop: 12, lineHeight: 18 },
 });

@@ -232,10 +232,9 @@ describe('varredura: texto sobre fundo tingido', () => {
   type Isencao = { sitios: Record<string, number>; fundos: Record<string, string> };
   const ESPURIOS: Record<string, Isencao> = {
     'app/(tabs)/agenda/novo.tsx|textMuteInk': {
-      sitios: {'color: colors.textMuteInk': 7, 'color: active ? colors.textSoft : colors.textMuteInk': 1, 'color: active ? colors.textOnPrimary : colors.textMuteInk': 2},
+      sitios: {'color: colors.textMuteInk': 1, 'color: marcado ? colors.textSoft : colors.textMuteInk': 1},
       fundos: {
-        'claro|primarySoft': 'tipo ativo (primarySoft) usa textSoft (sítio ternário); resumoCard (primarySoft) só tem texto primary/text; textMuteInk restante está em surface/bg',
-        'claro|oceanPale': 'idem: oceanPale só no cartão Teleorientação ativo, que usa textSoft',
+        'claro|primarySoft': 'opção marcada (primarySoft) usa textSoft no sítio ternário da raça do pet (par ancorado em USOS); os outros textMuteInk estão em bg',
       },
     },
     'app/(tabs)/pets/novo.tsx|textMuteInk': {
@@ -409,7 +408,7 @@ const USOS: UsoAncorado[] = [
   { arq: 'app/(tabs)/pets/[id]/index.tsx', ancora: /backgroundColor: colors\.primarySoft \}\]\}>\s*<KPetPortrait/, texto: 'textSoft', fundo: 'primarySoft' },
   { arq: 'app/(tabs)/pets/[id]/index.tsx', ancora: /vitalBox, \{ backgroundColor: colors\.surface2/, texto: 'textSoft', fundo: 'surface2' },
   { arq: 'components/domain/ConsultasTab.tsx', ancora: /vitalBox, \{ backgroundColor: colors\.surface2 \}/, texto: 'textSoft', fundo: 'surface2' },
-  { arq: 'app/(tabs)/agenda/novo.tsx', ancora: /active \? colors\.textSoft : colors\.textMuteInk, fontSize: fontSize\.xs \}\}>\{t\.sub\}/, texto: 'textSoft', fundo: 'primarySoft' },
+  { arq: 'app/(tabs)/agenda/novo.tsx', ancora: /marcado \? colors\.textSoft : colors\.textMuteInk, fontSize: fontSize\.xs \}\}>\{p\.raca\}/, texto: 'textSoft', fundo: 'primarySoft' },
   { arq: 'app/notificacoes.tsx', ancora: /n\.flLida \? colors\.surface : colors\.surface2/, texto: 'textSoft', fundo: 'surface2' },
   // bordas de controle (não-texto, 3:1)
   { arq: 'components/primitives/KTextField.tsx', ancora: /: theme\.colors\.borderControl;/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
@@ -418,7 +417,6 @@ const USOS: UsoAncorado[] = [
   { arq: 'app/(tabs)/perfil/index.tsx', ancora: /trackColor=\{\{ false: colors\.borderControl/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
   { arq: 'app/register.tsx', ancora: /: c\.borderControl, backgroundColor: value/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
   { arq: 'app/(tabs)/pets/novo.tsx', ancora: /borderColor: colors\.borderControl, borderRadius: radius\.md/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
-  { arq: 'app/(tabs)/agenda/novo.tsx', ancora: /borderColor: colors\.borderControl, borderRadius: radius\.md/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
 ];
 
 describe('pares de uso real (âncora no arquivo)', () => {

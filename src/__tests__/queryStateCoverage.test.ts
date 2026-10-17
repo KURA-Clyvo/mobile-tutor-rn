@@ -65,11 +65,10 @@ function exigirPassa(dir: string) {
   expect(status).toBe(0);
 }
 
-// A lista EXATA (BR-TUT-T04): só 2 entradas. `agenda/novo.tsx::usePets` sai na BR-TUT-T07; `useAgendamentoBadgeCount` é PERMANENTE
+// A lista EXATA (BR-TUT-T04): só 1 entrada (a BR-TUT-T07 tirou `agenda/novo.tsx::usePets`); `useAgendamentoBadgeCount` é PERMANENTE
 // (badge numérico: no erro o número some, não afirma "tudo certo"). Entrada nova é regressão.
 const ALLOWLIST_EXATA = [
   'app/(tabs)/_layout.tsx::useAgendamentoBadgeCount',
-  'app/(tabs)/agenda/novo.tsx::usePets',
 ];
 
 describe('gate: tela que lê dado de servidor trata o erro (check-query-state)', () => {

@@ -68,7 +68,7 @@ const PREFIXO_URGENCIA = '[URGENTE] ';
 
 function mapTipoParaJava(sgTipoConsulta: SolicitarAgendamentoRequest['sgTipoConsulta']): AgendamentoRequestJava['tipo'] {
   if (sgTipoConsulta === 'ROTINA' || sgTipoConsulta === 'URGENCIA') return 'CONSULTA';
-  return sgTipoConsulta; // RETORNO | TELEORIENTACAO — já válidos no Java, sem tradução
+  return sgTipoConsulta; // RETORNO | VACINA | TELEORIENTACAO — já válidos no Java (AgendamentoRequest.java:26-28, backend-tutor-java d1522ee, conferido 2026-10-16), sem tradução
 }
 
 function montarObservacoes(req: SolicitarAgendamentoRequest): string {

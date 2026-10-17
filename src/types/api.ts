@@ -77,7 +77,7 @@ export interface AgendamentoTutorResponse {
   dsSalaUrl?: string | null;
 }
 export interface SolicitarAgendamentoRequest {
-  idPet: number; sgTipoConsulta: 'RETORNO' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
+  idPet: number; sgTipoConsulta: 'RETORNO' | 'VACINA' | 'ROTINA' | 'URGENCIA' | 'TELEORIENTACAO';
   dsMotivo: string; dtPreferida: string; dtAlternativa?: string; idClinica?: number;
 }
 export interface SolicitarAgendamentoResponse { id: number; sgStatus: 'SOLICITADO'; dtSolicitacao: string; }
