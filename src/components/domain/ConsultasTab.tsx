@@ -88,6 +88,7 @@ function ConsultasLista({ eventos, onSelect }: { eventos: TimelineTutorEventResp
               }]}
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
+              aria-selected={active}
             >
               <Text style={[styles.filterLabel, { fontFamily: fonts.bodyMedium, fontSize: fontSize.xs, color: active ? colors.textOnPrimary : colors.textSoft }]}>
                 {f.label}

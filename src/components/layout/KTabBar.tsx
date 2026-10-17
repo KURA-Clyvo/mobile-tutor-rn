@@ -63,6 +63,7 @@ export function KTabBar({ state, descriptors, navigation, agendaBadgeCount = 0 }
             style={styles.tab}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
+            aria-selected={active}
             accessibilityLabel={label}
           >
             <View style={styles.iconWrap}>

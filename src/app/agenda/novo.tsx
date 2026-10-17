@@ -129,6 +129,7 @@ function Formulario({ pets, voltar }: { pets: Pet[]; voltar: () => void }) {
       onPress={onPress}
       accessibilityRole="radio"
       accessibilityState={{ checked: marcado }}
+      aria-checked={marcado}
       accessibilityLabel={rotulo}
       style={[styles.opcao, estilo, {
         backgroundColor: marcado ? colors.primarySoft : colors.surface,

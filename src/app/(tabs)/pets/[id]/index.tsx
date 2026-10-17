@@ -89,6 +89,7 @@ export default function PetDetailScreen() {
                 style={[styles.tabPill, active && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
+                aria-selected={active}
               >
                 <Text style={[styles.tabLabel, {
                   fontFamily: active ? fonts.bodyMedium : fonts.body,

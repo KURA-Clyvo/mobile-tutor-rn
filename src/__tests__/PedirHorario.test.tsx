@@ -104,6 +104,10 @@ describe('rádios acessíveis', () => {
     }
     const radios = u.UNSAFE_root.findAll((n: any) => n.props?.accessibilityRole === 'radio' && typeof n.type === 'string');
     expect(radios.length).toBe(3 + 4 + 5 + 1); // 3 pets, 4 motivos, 5 dias, Tarde (qui 15 às 10:00: só tarde)
+    // BR-TUT-G4 I-2: o RN-web 0.21 ignora accessibilityState; o DOM só ganha aria-checked se a prop web vier explícita
+    // (lida no composto Pressable: o host funde aria-* em accessibilityState).
+    const comAria = u.UNSAFE_root.findAll((n: any) => n.props?.accessibilityRole === 'radio' && typeof n.props['aria-checked'] === 'boolean');
+    expect(comAria.length).toBe(radios.length);
     for (const r of radios) {
       expect(r.props.accessibilityState).toHaveProperty('checked');
       expect(StyleSheet.flatten(r.props.style).minHeight).toBeGreaterThanOrEqual(44);
@@ -111,6 +115,9 @@ describe('rádios acessíveis', () => {
     fireEvent.press(u.getByLabelText('Retorno'));
     expect(u.getByLabelText('Retorno').props.accessibilityState).toMatchObject({ checked: true });
     expect(u.getByLabelText('Consulta de rotina').props.accessibilityState).toMatchObject({ checked: false });
+    const ariaChk = (l: string) => u.UNSAFE_root.findAll((n: any) => n.props?.accessibilityLabel === l && 'aria-checked' in n.props)[0]?.props['aria-checked'];
+    expect(ariaChk('Retorno')).toBe(true);
+    expect(ariaChk('Consulta de rotina')).toBe(false);
   });
 });
 

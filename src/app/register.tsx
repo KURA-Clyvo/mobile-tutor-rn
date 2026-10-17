@@ -200,6 +200,7 @@ export default function RegisterScreen() {
                 hitSlop={4}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: value }}
+                aria-checked={value}
                 accessibilityLabel="Autorizo o uso de teleorientação por chamada de vídeo (opcional)"
               >
                 <View style={[styles.checkbox, { borderColor: c.borderControl, backgroundColor: value ? c.primary : 'transparent' }]}>
