@@ -291,9 +291,9 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'components/domain/VacinasTab.tsx|textMuteInk': {
-      sitios: {'color: colors.textMuteInk': 4},
+      sitios: {'color: colors.textMuteInk': 5, 'color: bCfg.iconColor': 1},
       fundos: {
-        'claro|primarySoft': 'banner (bg tingido) tem título iconColor e subtítulo textSoft; textMuteInk só em cabeçalhos/vazio sobre bg',
+        'claro|primarySoft': 'banner (bg tingido) tem título iconColor e subtítulo textSoft; textMuteInk só em cabeçalhos/vazio sobre bg; o tom SEM_DATA usa textMuteInk como iconColor sobre o PRÓPRIO surface, nunca sobre um tingido',
         'claro|clayPale': 'idem',
         'escuro|amberPale': 'idem',
       },

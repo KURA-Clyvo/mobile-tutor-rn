@@ -18,12 +18,18 @@ function createWrapper() {
   };
 }
 
+// o React Query só re-renderiza por campo LIDO no render: lê-os aqui, como a tela (QueryState) faz
+const useLido = (id: number) => {
+  const q = usePetVacinas(id);
+  return { data: q.data, isError: q.isError, isLoading: q.isLoading, fetchStatus: q.fetchStatus, refetch: q.refetch };
+};
+
 describe('usePetVacinas', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('a lista respondeu => data é a lista, e o resumo NUNCA é pedido', async () => {
     mockGetVacinas.mockResolvedValue([{ id: 1 }]);
-    const { result } = renderHook(() => usePetVacinas(1), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useLido(1), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.data).toBeDefined());
     expect(result.current.data).toEqual([{ id: 1 }]);
     expect(result.current.isError).toBe(false);
@@ -32,14 +38,14 @@ describe('usePetVacinas', () => {
 
   it('a lista falhou => SEM data e isError', async () => {
     mockGetVacinas.mockRejectedValue(new Error('500'));
-    const { result } = renderHook(() => usePetVacinas(1), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useLido(1), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.data).toBeUndefined();
   });
 
   it('em cache e o refetch falha => data MANTIDO e isError (a tela decide: dado salvo + faixa)', async () => {
     mockGetVacinas.mockResolvedValue([{ id: 1 }]);
-    const { result } = renderHook(() => usePetVacinas(1), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useLido(1), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.data).toBeDefined());
     mockGetVacinas.mockRejectedValue(new Error('503'));
     await act(async () => { await result.current.refetch(); });
@@ -52,7 +58,7 @@ describe('usePetVacinas', () => {
     onlineManager.setOnline(false);
     try {
       mockGetVacinas.mockResolvedValue([]);
-      const { result } = renderHook(() => usePetVacinas(1), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useLido(1), { wrapper: createWrapper() });
       await waitFor(() => expect(result.current.fetchStatus).toBe('paused'));
       expect(result.current.data).toBeUndefined();
       expect(result.current.isError).toBe(false);
@@ -62,7 +68,7 @@ describe('usePetVacinas', () => {
   });
 
   it('id inválido => nada pedido (desabilitada): sem data, sem erro, sem carregando', () => {
-    const { result } = renderHook(() => usePetVacinas(0), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useLido(0), { wrapper: createWrapper() });
     expect(result.current).toMatchObject({ data: undefined, isError: false, isLoading: false, fetchStatus: 'idle' });
     expect(mockGetVacinas).not.toHaveBeenCalled();
   });

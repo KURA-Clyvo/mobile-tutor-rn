@@ -80,10 +80,7 @@ const PET = {
 };
 const NOTIF = { id: 1, dsTipo: 'VACINA_VENCENDO', dsTitulo: 'Vacina do Bóbi', dsMensagem: 'Vence em 20 dias', dtEnvio: new Date(AGORA).toISOString(), flLida: false, idPet: 1, nmPet: 'Bóbi' };
 const EVENTO = { idEventoClinico: 7, nmTipo: 'CONSULTA', dtEvento: new Date(AGORA).toISOString(), nmVeterinario: 'Dra. Ana', nrCRMV: '123', nmClinica: 'KURA', sgTipoAtendimento: 'pres', dsResumoPublico: 'Check-up de rotina' };
-const VACINAS = {
-  vacinas: [{ id: 1, nmVacina: 'V10', dtAplicacao: new Date(AGORA - 86_400_000).toISOString(), nmClinica: 'KURA', sgStatus: 'EM_DIA', dtProximaDose: new Date(AGORA + 200 * 86_400_000).toISOString() }],
-  status: { nrAplicadas: 1, nrTotal: 1, dsStatusGeral: 'EM_DIA', nmUltimaVacina: 'V10' },
-};
+const VACINAS = [{ id: 1, nmVacina: 'V10', dtAplicacao: new Date(AGORA - 86_400_000).toISOString(), nmClinica: 'KURA', sgStatus: 'EM_DIA', dtProximaDose: new Date(AGORA + 200 * 86_400_000).toISOString() }];
 
 type Caso = {
   nome: string;
@@ -135,8 +132,7 @@ const CASOS: Caso[] = [
     tela: () => <VacinasTab petId={1} />,
     usar: e => { mockVacinas = rq({ ...e }); },
     dado: VACINAS, comDado: /Vacinação em dia/, tituloErro: /Não consegui carregar as vacinas/,
-    // aqui o "vazio" é a lista vazia COM o resumo do servidor
-    vazio: /Sem registro de vacinas ainda/, dadoVazio: { ...VACINAS, vacinas: [] },
+    vazio: /Sem registro de vacinas ainda/, dadoVazio: [],
   },
 ];
 
