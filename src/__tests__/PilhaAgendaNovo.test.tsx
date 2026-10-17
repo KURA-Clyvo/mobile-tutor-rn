@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import React from 'react';
 import { Text } from 'react-native';
-import { Stack, Tabs, useRouter } from 'expo-router';
+import { Stack, Tabs, router, useRouter } from 'expo-router';
 import { renderRouter, screen, fireEvent, act } from 'expo-router/testing-library';
 
 const APP = path.join(__dirname, '..', 'app');
@@ -50,7 +50,7 @@ describe('C-1 — pedir horário fora da pilha da aba Agenda', () => {
     expect(screen.getByText('FORM')).toBeTruthy();
     fireEvent.press(screen.getByText('fechar'));
     expect(screen.getByText('SAUDE')).toBeTruthy();
-    act(() => { (require('expo-router').router).navigate('/agenda'); });
+    act(() => { router.navigate('/agenda'); });
     expect(screen.getByText('MINHA AGENDA')).toBeTruthy();
     expect(screen.queryByText('FORM')).toBeNull();
   });

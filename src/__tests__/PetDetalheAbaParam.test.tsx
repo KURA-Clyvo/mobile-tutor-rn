@@ -1,5 +1,6 @@
 // BR-TUT-G4 m-6: "VER SAÚDE" da notificação abre o perfil do pet JÁ na aba Vacinas (?tab=vacinas); sem o parâmetro, Visão geral.
 import React from 'react';
+import { Text as MockText } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import PetDetailScreen from '../app/(tabs)/pets/[id]/index';
@@ -13,7 +14,7 @@ const PET = { id: 1, nmPet: 'Thor', nmEspecie: 'Cão', nmRaca: 'Labrador', dtNas
 const mockBase = { isLoading: false, isError: false, refetch: jest.fn(), fetchStatus: 'idle', dataUpdatedAt: 1 };
 jest.mock('../hooks/usePetDetail', () => ({ usePetDetail: () => ({ ...mockBase, data: PET }) }));
 jest.mock('../hooks/usePets', () => ({ usePets: () => ({ ...mockBase, data: [{ id: 1, statusGeral: 'OK' }] }) }));
-jest.mock('../components/domain/VacinasTab', () => ({ VacinasTab: () => { const { Text } = require('react-native'); return <Text>ABA-VACINAS</Text>; } }));
+jest.mock('../components/domain/VacinasTab', () => ({ VacinasTab: () => <MockText>ABA-VACINAS</MockText> }));
 const W = ({ children }: any) => <ThemeProvider>{children}</ThemeProvider>;
 
 describe('perfil do pet — parâmetro tab', () => {

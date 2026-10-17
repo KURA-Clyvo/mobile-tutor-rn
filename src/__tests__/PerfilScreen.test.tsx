@@ -6,6 +6,7 @@
 //   1. o switch reflete a permissão real do dispositivo quando a tela abre;
 //   2. tocar o switch registra o token quando a permissão é concedida.
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/index';
 import { KDialogProvider } from '../components/primitives/KDialog';
@@ -63,7 +64,6 @@ describe('PerfilScreen — notificações push (TASK-70)', () => {
   it('BR-TUT-G4 m-5: toda linha com borda inferior tem a cor da borda (sem a linha preta de 1px)', () => {
     mockGetPermissionStatus.mockResolvedValue(false);
     const { getByTestId } = render(<PerfilScreen />, { wrapper: W });
-    const { StyleSheet } = require('react-native');
     const st = StyleSheet.flatten(getByTestId('switch-notificacoes-row').props.style);
     expect(st.borderBottomWidth).toBeGreaterThan(0);
     expect(st.borderBottomColor).toBeTruthy();
