@@ -99,7 +99,7 @@ describe('rádios acessíveis', () => {
     const u = render(<NovoAgendamentoScreen />, { wrapper: W });
     expect(u.queryByLabelText('Período')).toBeNull(); // só existe depois de escolher o dia
     fireEvent.press(u.getByLabelText('qui 15'));
-    for (const g of ['Para quem é o horário?', 'Motivo', 'Dia', 'Período']) {
+    for (const g of ['Para quem é o horário?', 'Motivo', 'Quando fica bom para você', 'Período']) {
       expect(u.getByLabelText(g).props.accessibilityRole).toBe('radiogroup');
     }
     const radios = u.UNSAFE_root.findAll((n: any) => n.props?.accessibilityRole === 'radio' && typeof n.type === 'string');
@@ -185,7 +185,7 @@ describe('dia e período oferecidos (relógio fixo)', () => {
     expect(Object.keys(req).sort()).toEqual(['dsMotivo', 'dtPreferida', 'idPet', 'sgTipoConsulta']);
   });
 
-  it('Vacina e Teleorientação viram o tipo certo', async () => {
+  it('Vacina vira VACINA (o corpo do POST de cada tipo é provado em PedirHorarioPost.test.tsx)', async () => {
     const u = render(<NovoAgendamentoScreen />, { wrapper: W });
     fireEvent.press(u.getByLabelText(/^Bidu/));
     fireEvent.press(u.getByLabelText('sex 16'));
