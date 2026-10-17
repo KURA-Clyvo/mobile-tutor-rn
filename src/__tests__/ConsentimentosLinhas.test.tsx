@@ -108,6 +108,16 @@ describe('Consentimentos — caixa "Necessário para o serviço" (I-1)', () => {
     expect(StyleSheet.flatten(u.getByTestId('toast').props.style).borderColor).toBe(perigo); // tipo 'erro', não 'sucesso'
     expect(u.queryByText('Lembretes ligados')).toBeNull();
   });
+
+  it('ligar depois de uma falha: o botão volta a funcionar (a trava é solta no finally)', async () => {
+    mockAssinar = jest.fn(() => Promise.reject(new Error('500')));
+    mockData = [];
+    const u = render(<ConsentimentosScreen />, { wrapper: W });
+    fireEvent.press(u.getByText('Ligar lembretes'));
+    await u.findByText('Não foi possível ligar os lembretes. Tente novamente.');
+    fireEvent.press(u.getByText('Ligar lembretes'));
+    await waitFor(() => expect(mockAssinar).toHaveBeenCalledTimes(2));
+  });
 });
 
 describe('Consentimentos — ordem (M-3) e termo (M-5)', () => {
