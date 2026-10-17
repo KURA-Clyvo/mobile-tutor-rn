@@ -104,7 +104,7 @@ describe('Cancelar agendamento — retorno', () => {
 
   async function cancelar() {
     const u = render(<AgendaScreen />, { wrapper: W });
-    fireEvent(await u.findByText('Bóbi'), 'longPress');
+    fireEvent.press(await u.findByLabelText(/^Cancelar agendamento de Bóbi/));
     fireEvent.press(await u.findByTestId('kdialog-acao-__confirmar__'));
     await assentar();
     return u;
@@ -131,11 +131,25 @@ describe('Cancelar agendamento — retorno', () => {
     expect(u.queryByText('Agendamento cancelado')).toBeNull();
   });
 
-  it('segundo toque longo com o cancelamento em voo não abre outro diálogo nem chama o serviço de novo', async () => {
+  it('falha e nova tentativa: o segundo toque abre o diálogo e chama o serviço de novo (a trava solta no finally)', async () => {
     const d = adiada();
     mockCancelar = jest.fn(() => d.p);
     const u = await cancelar();
-    fireEvent(u.getByText('Bóbi'), 'longPress');
+    await act(async () => { d.falha(new Error('500')); });
+    expect(u.getByText(/Não foi possível cancelar/)).toBeTruthy();
+    mockCancelar = jest.fn(() => Promise.resolve());
+    fireEvent.press(u.getByLabelText(/^Cancelar agendamento de Bóbi/));
+    fireEvent.press(await u.findByTestId('kdialog-acao-__confirmar__'));
+    await assentar();
+    expect(mockCancelar).toHaveBeenCalledTimes(1);
+    expect(mockCancelar).toHaveBeenCalledWith(7);
+  });
+
+  it('segundo toque com o cancelamento em voo não abre outro diálogo nem chama o serviço de novo', async () => {
+    const d = adiada();
+    mockCancelar = jest.fn(() => d.p);
+    const u = await cancelar();
+    fireEvent.press(u.getByLabelText(/^Cancelar agendamento de Bóbi/));
     await assentar();
     expect(u.queryByTestId('kdialog-acao-__confirmar__')).toBeNull();
     expect(mockCancelar).toHaveBeenCalledTimes(1);

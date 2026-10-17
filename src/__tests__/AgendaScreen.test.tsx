@@ -42,10 +42,9 @@ describe('AgendaScreen', () => {
 describe('AgendaScreen — cancelamento exige confirmação (TASK-F06)', () => {
   beforeEach(() => mockCancelar.mockClear());
 
-  // O gesto que abre a confirmação é o toque longo no cartão do agendamento
-  // (AgendamentoItem só liga onLongPress quando o item é cancelável).
+  // BR-TUT-T10: o gatilho é o botão visível "Cancelar agendamento" do card (o toque longo saiu).
   const longPressNoItem = (utils: ReturnType<typeof render>) =>
-    fireEvent(utils.getByText('Bóbi'), 'longPress');
+    fireEvent.press(utils.getByLabelText(/^Cancelar agendamento de Bóbi/));
 
   it('abre o diálogo e NÃO cancela enquanto o tutor não confirmar', async () => {
     const utils = render(<AgendaScreen />, { wrapper: W });

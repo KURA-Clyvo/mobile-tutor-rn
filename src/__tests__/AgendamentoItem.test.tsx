@@ -94,3 +94,36 @@ describe('AgendamentoItem — quando (BR-TUT-T07 I-5)', () => {
     expect(r.getByText(/^Vacina · KURA/)).toBeTruthy();
   });
 });
+
+// BR-TUT-T10: cancelar visível. Botão "danger" só no pedido aguardando (SOLICITADO/AGENDADO); o toque longo saiu.
+describe('AgendamentoItem — botão Cancelar agendamento (BR-TUT-T10)', () => {
+  const comStatus = (sgStatus: AgendamentoTutorResponse['sgStatus'], onCancel = jest.fn()) =>
+    ({ onCancel, ...render(<AgendamentoItem item={{ ...BASE, sgTipoConsulta: 'ROTINA', dsSalaUrl: null, sgStatus }} onCancel={onCancel} />, { wrapper: W }) });
+
+  it.each(['SOLICITADO', 'AGENDADO'] as const)('%s: mostra o botão, com role e rótulo com pet e data; toque chama onCancel', (st) => {
+    const { onCancel, getByRole, getByText } = comStatus(st);
+    expect(getByText('Cancelar agendamento')).toBeTruthy();
+    const btn = getByRole('button', { name: /^Cancelar agendamento de Bóbi em .*20\d\d/ });
+    fireEvent.press(btn);
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['CONFIRMADO', 'CANCELADO', 'CONCLUIDO'] as const)('%s: NÃO mostra o botão', (st) => {
+    const { queryByText, queryByLabelText } = comStatus(st);
+    expect(queryByText('Cancelar agendamento')).toBeNull();
+    expect(queryByLabelText(/Cancelar agendamento/)).toBeNull();
+  });
+
+  it('o cartão não é mais um "botão" vazio nem fala em toque longo', () => {
+    const { queryByA11yHint, queryAllByRole } = comStatus('SOLICITADO');
+    expect(queryByA11yHint(/longo/i)).toBeNull();
+    expect(queryAllByRole('button')).toHaveLength(1);
+  });
+
+  it('alvo do botão >= 44', () => {
+    const { getByRole } = comStatus('SOLICITADO');
+    const st = require('react-native').StyleSheet.flatten(getByRole('button').props.style);
+    expect(st.minHeight).toBeGreaterThanOrEqual(44);
+    expect(st.minWidth).toBeGreaterThanOrEqual(44);
+  });
+});

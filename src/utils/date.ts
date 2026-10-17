@@ -23,6 +23,26 @@ export function formatTimeBR(iso: string): string {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
+const MES_CURTO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const doisDig = (n: number) => String(n).padStart(2, '0');
+
+/**
+ * "Hoje · 06:23", "Ontem · 08:23", "12 out · 14:32" (com ano se não for o corrente). BR-TUT-T10.
+ * FUSO: `dtCriacao` do Java é LocalDateTime SEM fuso — `new Date()` o lê como relógio de parede do aparelho
+ * (= São Paulo para o tutor); com `Z`/offset vale o instante. "Hoje/Ontem" compara o dia de calendário local.
+ */
+export function formatQuandoBR(iso: string, now: Date = new Date()): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const hora = `${doisDig(d.getHours())}:${doisDig(d.getMinutes())}`;
+  const dia = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const dias = Math.round((dia(now) - dia(d)) / 86_400_000);
+  if (dias === 0) return `Hoje · ${hora}`;
+  if (dias === 1) return `Ontem · ${hora}`;
+  const data = `${d.getDate()} ${MES_CURTO[d.getMonth()]}${d.getFullYear() === now.getFullYear() ? '' : ` ${d.getFullYear()}`}`;
+  return `${data} · ${hora}`;
+}
+
 export function addDays(base: Date, n: number): Date {
   const d = new Date(base); d.setDate(d.getDate() + n); return d;
 }

@@ -258,9 +258,10 @@ describe('varredura: texto sobre fundo tingido', () => {
       },
     },
     'app/notificacoes.tsx|textMuteInk': {
-      sitios: {'color: naoLidas > 0 ? colors.primary : colors.textMuteInk': 1, 'color: n.flLida ? colors.textMuteInk : colors.textSoft': 2, 'color: colors.textMuteInk': 1},
+      sitios: {'color: naoLidas > 0 ? colors.primary : colors.textMuteInk': 1, 'color: n.flLida ? colors.textMuteInk : colors.textSoft': 1, 'color: colors.textMuteInk': 1},
       fundos: {
-        'claro|surface2': 'não lida (surface2) usa textSoft nos 2 sítios ternários (hora e pet); textMuteInk só na lida (surface) e no vazio (bg)',
+        'claro|surface2': 'não lida (surface2) usa textSoft no sítio ternário (data e hora); textMuteInk só na lida (surface) e no vazio (bg)',
+        'escuro|amberPale': 'amberPale (BR-TUT-T10) só no círculo do ícone de vacina (KIcon amberInk, sem texto) e no chip Vacina (amberInk, USOS); textMuteInk nunca cai nele',
       },
     },
     'app/register.tsx|textMuteInk': {
@@ -411,6 +412,12 @@ const USOS: UsoAncorado[] = [
   { arq: 'components/domain/ConsultasTab.tsx', ancora: /vitalBox, \{ backgroundColor: colors\.surface2 \}/, texto: 'textSoft', fundo: 'surface2' },
   { arq: 'app/(tabs)/agenda/novo.tsx', ancora: /marcado \? colors\.textSoft : colors\.textMuteInk, fontSize: fontSize\.xs \}\}>\{p\.raca\}/, texto: 'textSoft', fundo: 'primarySoft' },
   { arq: 'app/notificacoes.tsx', ancora: /n\.flLida \? colors\.surface : colors\.surface2/, texto: 'textSoft', fundo: 'surface2' },
+  // BR-TUT-T10: botão "Cancelar agendamento" (KButton danger) e os chips/ícones novos de notificações, nos 2 temas.
+  { arq: 'components/primitives/KButton.tsx', ancora: /danger:\s*\{ container: \{ backgroundColor: theme\.colors\.danger \},\s*label: \{ color: theme\.colors\.textOnPrimary/, texto: 'textOnPrimary', fundo: 'danger' },
+  { arq: 'app/notificacoes.tsx', ancora: /backgroundColor: colors\.amberPale \} : \{ borderWidth: 1/, texto: 'amberInk', fundo: 'amberPale' },
+  { arq: 'app/notificacoes.tsx', ancora: /vacina \? colors\.amberInk : colors\.textSoft/, texto: 'textSoft', fundo: 'surface' },
+  { arq: 'app/notificacoes.tsx', ancora: /VER SAÚDE/, texto: 'primary', fundo: 'surface2' },
+  { arq: 'app/notificacoes.tsx', ancora: /VER SAÚDE/, texto: 'primary', fundo: 'surface' },
   // bordas de controle (não-texto, 3:1)
   { arq: 'components/primitives/KTextField.tsx', ancora: /: theme\.colors\.borderControl;/, texto: 'borderControl', fundo: 'surface', limiar: BORDA },
   { arq: 'components/primitives/KButton.tsx', ancora: /secondary:.*borderColor: theme\.colors\.borderControl/, texto: 'borderControl', fundo: 'bg', limiar: BORDA },
