@@ -85,6 +85,64 @@ describe('a11y-alvos — iscas (o detector enxerga cada defeito)', () => {
   });
 });
 
+describe('a11y-alvos — fecha o barato (G2 I-1): role de controle, role undefined, rótulo vazio', () => {
+  const T = `style={{ minHeight: 44, minWidth: 44 }}`;
+  it('role fora do conjunto de controles reprova ("text" num tocável); controles passam', () => {
+    expect(regras(comp(`<Pressable accessibilityRole="text" ${T} />`))).toContain('role-invalido');
+    expect(regras(comp(`<Pressable accessibilityRole={'header'} ${T} />`))).toContain('role-invalido');
+    for (const ok of ['button', 'link', 'switch', 'checkbox', 'radio', 'tab']) expect(regras(comp(`<Pressable accessibilityRole="${ok}" ${T} />`))).toEqual([]);
+  });
+  it('role undefined/null explícito (direto ou num ramo do ternário) reprova; ternário com dois roles passa', () => {
+    expect(regras(comp(`<Pressable accessibilityRole={undefined} ${T} />`))).toContain('sem-role');
+    expect(regras(comp(`<Pressable accessibilityRole={c ? 'button' : undefined} ${T} />`))).toContain('sem-role');
+    expect(regras(comp(`<Pressable accessibilityRole={c ? 'button' : 'link'} ${T} />`))).toEqual([]);
+  });
+  it('accessibilityLabel vazio reprova; com texto passa', () => {
+    expect(regras(comp(`<Pressable accessibilityRole="button" accessibilityLabel="" ${T} />`))).toContain('rotulo-vazio');
+    expect(regras(comp(`<Pressable accessibilityRole="button" accessibilityLabel={''} ${T} />`))).toContain('rotulo-vazio');
+    expect(regras(comp(`<Pressable accessibilityRole="button" accessibilityLabel="Fechar" ${T} />`))).toEqual([]);
+  });
+});
+
+// ISCAS DE LIMITE (precedente: T04, `queryStateCoverage.test.ts`). Cada linha é um controle DEFEITUOSO que o gate APROVA.
+// O `toEqual([])` abaixo trava a CEGUEIRA DECLARADA no cabeçalho de `escanearAlvos.ts` (G2 I-1, medida em R2). Se um dia o
+// gate passar a enxergar uma delas, este teste falha DE PROPÓSITO: mova a linha para as iscas que reprovam e atualize o cabeçalho.
+describe('a11y-alvos — iscas de LIMITE: o gate NÃO vê estas formas (cegueira declarada, não aprovação)', () => {
+  const ok = `style={{ minHeight: 44, minWidth: 44 }}`;
+  const R = `accessibilityRole="button"`;
+  const casos: Array<[string, string, string]> = [
+    ['piso + props.style (vence no render)', `<Pressable ${R} style={[{ minHeight: 44, minWidth: 44 }, props.style]} />`, ''],
+    ['piso + estilo importado', `<Pressable ${R} style={[{ minHeight: 44, minWidth: 44 }, estilosExternos.pequeno]} />`, `import { estilosExternos } from './outro';`],
+    ['piso + constante numérica', `<Pressable ${R} style={[{ minHeight: 44, minWidth: 44 }, { minHeight: PEQUENO }]} />`, `const PEQUENO = 20;`],
+    ['piso + StyleSheet.flatten', `<Pressable ${R} style={[{ minHeight: 44, minWidth: 44 }, StyleSheet.flatten({ minHeight: 20 })]} />`, ''],
+    ['return pequeno dentro de if na função de pressed', `<Pressable ${R} style={({ pressed }) => { if (pressed) { return { minHeight: 20 }; } return { minHeight: 44, minWidth: 44 }; }} />`, ''],
+    ['touchTarget.min com aritmética (- 14)', `<Pressable ${R} style={{ minHeight: touchTarget.min - 14, minWidth: touchTarget.min - 14 }} />`, `import { touchTarget } from '../theme/tokens';`],
+    ['touchTarget.min com aritmética (/ 2)', `<Pressable ${R} style={{ minHeight: touchTarget.min / 2, minWidth: touchTarget.min / 2 }} />`, `import { touchTarget } from '../theme/tokens';`],
+    ['KButton com minHeight por aritmética de token', `<KButton style={{ minHeight: touchTarget.min - 14 }}>x</KButton>`, `import { touchTarget } from '../theme/tokens';`],
+    ['flex: 0 contado como "preenche a largura"', `<Pressable ${R} style={{ minHeight: 44, flex: 0 }} />`, ''],
+    ['Pressable por alias de import', `<P ${R} style={{ width: 30, height: 30 }} />`, `import { Pressable as P } from 'react-native';`],
+    ['Pressable por alias de declaração', `<P style={{ width: 30, height: 30 }} />`, `const P = Pressable;`],
+    ['Pressable por namespace', `<RN.Pressable style={{ width: 30, height: 30 }} />`, `import * as RN from 'react-native';`],
+    ['createAnimatedComponent(Pressable)', `<AnimatedPressable style={{ width: 30, height: 30 }} />`, `const AnimatedPressable = Animated.createAnimatedComponent(Pressable);`],
+    ['componente custom no ponto de uso', `<MeuBotao style={{ minHeight: 20, height: 20 }} onPress={f} />`, ''],
+    ['KSwitchRow com style pequeno no ponto de uso', `<KSwitchRow style={{ minHeight: 20, height: 20 }} value={v} onValueChange={f} accessibilityLabel="x" testID="t">x</KSwitchRow>`, ''],
+    ['KCard com style pequeno no ponto de uso', `<KCard onPress={f} style={{ minHeight: 20, height: 20 }}>x</KCard>`, ''],
+    ['onPress em Animated.View', `<Animated.View onPress={f} />`, ''],
+    ['onPress em KIcon', `<KIcon name="x" onPress={f} />`, ''],
+    ['onLongPress em View', `<View onLongPress={f} />`, ''],
+    ['onPressIn em View', `<View onPressIn={f} />`, ''],
+    ['role por variável', `<Pressable accessibilityRole={papel} ${ok} />`, ''],
+    ['accessible={false} num botão REAL de 20×20', `<Pressable accessible={false} onPress={salvar} style={{ width: 20, height: 20 }} />`, ''],
+    ['maxFontSizeMultiplier por variável', `<Text maxFontSizeMultiplier={escala}>x</Text>`, ''],
+  ];
+  it.each(casos)('%s ⇒ gate APROVA (0 achados)', (_nome, jsx, extra) => {
+    expect(regras(comp(jsx, extra))).toEqual([]);
+  });
+  it('CONTROLE: o mesmo harness enxerga um defeito literal (a lista acima não é cegueira do próprio teste)', () => {
+    expect(regras(comp(`<Pressable ${R} style={{ width: 40, height: 40 }} />`))).toContain('alvo-pequeno');
+  });
+});
+
 describe('a11y-alvos — a árvore real de src/', () => {
   const todos = arquivos(SRC);
   it('há arquivos para varrer (a varredura não está vazia)', () => {

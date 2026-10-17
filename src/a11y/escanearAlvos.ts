@@ -9,14 +9,34 @@
 // `hitSlop` NÃO conta: no web ele não aumenta a caixa do DOM (achado da G2 da T05 da clínica) e o gate mede o que o DOM mede.
 // Escape explícito: `accessible={false}` (fundo/scrim decorativo, fora da árvore de acessibilidade).
 //
-// PONTOS CEGOS declarados (o que este gate NÃO vê — a sonda de DOM `scripts/shots/br-tut-t09-sonda.mjs` cobre o renderizado):
-//  - tamanho vindo de variável/parâmetro/prop (`style={estilo}`, `StyleSheet.flatten`) ou de outro arquivo: sem evidência
-//    REPROVA (falha segura), mas um número escondido atrás de chamada de função não é lido;
-//  - "declarado" não é "renderizado": o `minHeight` garante o piso, não o teto, e não prova que o pai não corta o filho;
-//  - `styles.x` resolve por NOME do objeto-de-estilo + chave dentro do mesmo arquivo; dois objetos de mesmo nome em escopos
+// Também REPROVA (G2 da T09, I-1): role literal fora do conjunto de roles de controle (ex.: "text" num tocável), role
+// `undefined`/`null` explícito (`accessibilityRole={undefined}`, ternário com `undefined`) e `accessibilityLabel` vazio.
+//
+// PONTOS CEGOS declarados — o que este gate NÃO vê. Cada um tem uma ISCA DE LIMITE em `a11y-alvos-gate.test.tsx`
+// (o gate APROVA a isca; o teste trava essa aprovação, para a cegueira ficar declarada e um conserto futuro aparecer).
+// Medido pela G2 (`br-tut-t09-revisao.md` R2); 0 instância real hoje em `src/` (inventário por AST):
+//  - 🔴 A "falha segura" de tamanho vale SÓ quando o style é 100% opaco. Basta UM objeto `{ minHeight: 44, minWidth: 44 }`
+//    no array e qualquer parte POSTERIOR não resolvida é ignorada em silêncio (e é ela que vence no render):
+//    `[{minHeight:44,minWidth:44}, props.style]`, `..., estilosExternos.x`, `..., { minHeight: PEQUENO }` (constante),
+//    `..., StyleSheet.flatten({...})`, `return { minHeight: 20 }` dentro de `if` na função de `pressed`;
+//  - `/touchTarget\.min/` aceita QUALQUER expressão com o token (`touchTarget.min - 14`, `touchTarget.min / 2`);
+//  - `flex: 0` conta como "preenche a largura" (qualquer `flex`);
+//  - `Pressable` por alias (`import { Pressable as P }`, `const P = Pressable`), namespace (`<RN.Pressable>`) ou
+//    `Animated.createAnimatedComponent(Pressable)` não é tocável para o gate;
+//  - componente custom (`<MeuBotao style onPress>`, `<KCard onPress style>`, `<KSwitchRow style>`) só é conferido por dentro
+//    (o `Pressable` dele); no ponto de uso só o `<KButton>` tem dimensão literal < 44 barrada. O piso dos primitivos é
+//    garantido por teste (`A11yFixWave.test.tsx`, `pisoDeAlvo`), não por este gate;
+//  - `onPress`/`onLongPress`/`onPressIn`/`onPressOut` fora de `View/Text/Image/ImageBackground/ScrollView`
+//    (`Animated.View`, `KIcon`...) e `onLongPress`/`onPressIn` em qualquer tag não são vistos;
+//  - role/rótulo por variável ou ternário sem `undefined`/`null` (`accessibilityRole={papel}`) não são lidos;
+//  - `accessible={false}` isenta tamanho, role e rótulo de um botão REAL (só os 2 scrims o usam hoje; o `tabIndex` deles é
+//    travado em teste, não aqui);
+//  - spread de props (`{...props}`) que traga role/style não é lido (sem role no JSX explícito reprova: falha segura);
+//  - `Text maxFontSizeMultiplier={expr}` por variável não é lido (só literal < 2 reprova);
+//  - "declarado" não é "renderizado": o `minHeight` garante o piso, não o teto, nem que o pai não corta o filho (a sonda de
+//    DOM `scripts/shots/br-tut-t09-sonda.mjs` cobre o renderizado);
+//  - `styles.x` resolve por NOME do objeto-de-estilo + chave no mesmo arquivo; dois objetos de mesmo nome em escopos
 //    diferentes colidem (vale o último);
-//  - componente custom (`<KCard onPress>`, `<PetListCard>`) só é conferido por dentro (o `Pressable` dele);
-//  - `<KButton>`: o tamanho vem do primitivo (conferido em `KButton.test.tsx`); no ponto de uso só se barra dimensão < 44;
 //  - `Switch` só pode existir em `KSwitchRow.tsx`; nada é dito sobre `TextInput` (a sonda de DOM mede os inputs).
 import * as ts from 'typescript';
 
@@ -25,6 +45,8 @@ export type Achado = { arquivo: string; linha: number; regra: string; detalhe: s
 
 const TOCAVEIS = new Set(['Pressable', 'TouchableOpacity', 'TouchableHighlight', 'TouchableWithoutFeedback', 'TouchableNativeFeedback']);
 const NAO_TOCAVEIS_COM_ONPRESS = new Set(['View', 'Text', 'Image', 'ImageBackground', 'ScrollView']);
+// Roles que fazem sentido num tocável. `text`/`header`/`image`/`alert`... num `Pressable` com `onPress` anuncia o controle errado.
+const ROLES_DE_CONTROLE = new Set(['button', 'link', 'switch', 'checkbox', 'radio', 'tab', 'menuitem', 'imagebutton', 'togglebutton', 'combobox', 'adjustable']);
 const COM_PRIMITIVO_DE_TAMANHO = new Set(['KButton']);
 const DIM_ALTURA = new Set(['height', 'minHeight']);
 const DIM_LARGURA = new Set(['width', 'minWidth']);
@@ -42,6 +64,15 @@ function textoInit(a: ts.JsxAttribute): string {
   if (!i) return 'true';
   if (ts.isJsxExpression(i)) return i.expression ? i.expression.getText() : '';
   return i.getText().replace(/^["']|["']$/g, '');
+}
+
+/** Valor se o atributo é string literal (`"x"`, `{'x'}`, `` {`x`} `` sem interpolação); `null` se for expressão. */
+function literalString(a: ts.JsxAttribute): string | null {
+  const i = a.initializer;
+  if (!i) return null;
+  if (ts.isStringLiteral(i)) return i.text;
+  if (ts.isJsxExpression(i) && i.expression && (ts.isStringLiteral(i.expression) || ts.isNoSubstitutionTemplateLiteral(i.expression))) return i.expression.text;
+  return null;
 }
 
 function nomeProp(p: ts.PropertyAssignment): string {
@@ -151,8 +182,16 @@ export function escanear(codigo: string, arquivo: string): Achado[] {
       const decorativo = !!acc && textoInit(acc) === 'false';
       if (TOCAVEIS.has(tag) && !decorativo) {
         const r = atributo(n, 'accessibilityRole') ?? atributo(n, 'role');
-        const v = r ? textoInit(r).replace(/^['"]|['"]$/g, '') : '';
-        if (!r || v === '' || v === 'none' || v === 'undefined') add(n, 'sem-role', `<${tag}> sem accessibilityRole (ou 'none')`);
+        if (!r) add(n, 'sem-role', `<${tag}> sem accessibilityRole`);
+        else {
+          const lit = literalString(r);
+          if (lit !== null) {
+            if (lit === '' || lit === 'none') add(n, 'sem-role', `<${tag}> sem accessibilityRole (ou 'none')`);
+            else if (!ROLES_DE_CONTROLE.has(lit)) add(n, 'role-invalido', `<${tag}> role "${lit}" não é de controle (${[...ROLES_DE_CONTROLE].join('|')})`);
+          } else if (/\b(undefined|null)\b/.test(textoInit(r))) add(n, 'sem-role', `<${tag}> accessibilityRole ${textoInit(r)} pode ficar sem role`);
+        }
+        const rot = atributo(n, 'accessibilityLabel');
+        if (rot && literalString(rot) === '') add(n, 'rotulo-vazio', `<${tag}> accessibilityLabel vazio (o leitor de tela diz só "botão")`);
         conferirEstilo(n, tag, true);
       } else if (COM_PRIMITIVO_DE_TAMANHO.has(tag)) {
         conferirEstilo(n, tag, false);
