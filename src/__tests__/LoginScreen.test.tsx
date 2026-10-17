@@ -36,9 +36,9 @@ const W = ({ children }: any) => (
 );
 
 describe('LoginScreen', () => {
-  // BR-TUT-T03/T08 (T3): o rodapé "LGPD · AES-256" afirmava uma cifra que o app não verifica. Montado em duas partes
+  // BR-TUT-T03/T08 (T3): o rodapé de cifra com LGPD afirmava uma cifra que o app não verifica. Montado em duas partes
   // para o próprio teste não conter a string que ele procura.
-  it('o rodapé não afirma cifra (sem "AES-256")', () => {
+  it('o rodapé não afirma cifra (sem selo de cifra)', () => {
     const { queryByText } = render(<LoginScreen />, { wrapper: W });
     expect(queryByText(new RegExp('AES' + '-256'))).toBeNull();
     expect(queryByText(/Clyvo Vet/)).toBeTruthy();
