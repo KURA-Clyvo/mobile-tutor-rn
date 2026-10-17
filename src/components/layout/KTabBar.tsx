@@ -14,6 +14,7 @@ const TAB_META: Record<string, { label: string; icon: IconName }> = {
   pets:   { label: 'Pets',   icon: 'pets'   },
   agenda: { label: 'Agenda', icon: 'agenda' },
   saude:  { label: 'Saúde',  icon: 'saude'  },
+  loja:   { label: 'Loja',   icon: 'loja'   },
   perfil: { label: 'Perfil', icon: 'perfil' },
 };
 
