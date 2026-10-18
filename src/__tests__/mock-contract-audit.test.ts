@@ -32,6 +32,8 @@ import { getNotificacoes, registerDeviceToken } from '../services/notifications.
 import { listAgendamentos, solicitarAgendamento, cancelarAgendamento } from '../services/agendamentos.service';
 import { listConsentimentos, assinar, revogar } from '../services/consentimentos.service';
 import { login } from '../services/auth.service';
+import { listarCatalogo } from '../services/loja.service';
+import { apiClient } from '../services/api/client';
 
 describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', () => {
   const originalUseMocks = process.env.EXPO_PUBLIC_USE_MOCKS;
@@ -209,6 +211,34 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
       const r = await revogar('LEMBRETES', 'idem-2');
       expect(r.ativo).toBe(false);
       expect(r.tipo).toBe('LEMBRETES');
+    });
+  });
+
+  // S4-LOJA-05: GET /api/v1/loja/catalogo. O service devolve o envelope CRU (`aviso` + `content[]` em centavos); o mock tem de
+  // falar o mesmo shape, senão a tela lança no plano B. Trocar a rota do mock quebra o primeiro `it`.
+  describe('loja.service', () => {
+    it('listarCatalogo executa sem lançar e devolve o envelope cru (aviso, content[], preço em centavos inteiros)', async () => {
+      const res = await listarCatalogo({ size: 50 });
+      expect(typeof res.aviso).toBe('string');
+      expect(res.aviso.length).toBeGreaterThan(0);
+      expect(Array.isArray(res.content)).toBe(true);
+      expect(res.content.length).toBeGreaterThan(0);
+      for (const item of res.content) {
+        expect(typeof item.slug).toBe('string');
+        expect(['ALIMENTACAO', 'HIGIENE', 'ACESSORIOS', 'BRINQUEDOS']).toContain(item.categoria);
+        expect(Number.isInteger(item.preco)).toBe(true);
+        expect(item.moeda).toBe('BRL');
+        expect(typeof item.exemplo).toBe('boolean');
+      }
+      expect(typeof res.hasNext).toBe('boolean');
+    });
+
+    it('a rota é por MÉTODO: só o GET devolve o catálogo; POST na mesma URL é recusado pelo adapter', async () => {
+      await expect(apiClient.post('/api/v1/loja/catalogo', {})).rejects.toThrow(/só GET/);
+    });
+
+    it('a rota é ancorada com `$`: um sufixo na URL não é sequestrado pela rota do catálogo', async () => {
+      await expect(apiClient.get('/api/v1/loja/catalogo/outra-coisa')).rejects.toThrow(/No mock/);
     });
   });
 

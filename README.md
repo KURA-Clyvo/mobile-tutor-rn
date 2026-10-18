@@ -29,8 +29,19 @@ App mobile para tutores de pets — FIAP Challenge 2026 · Clyvo Vet.
 - `npm run type-check` — tsc --noEmit (0 erros)
 
 ## Navegação
-Bottom Tab Bar (4 abas: Pets · Agenda · Saúde · Perfil).
+Bottom Tab Bar (5 abas: Pets · Agenda · Saúde · Loja · Perfil).
 Sem drawer — drawer é exclusivo do app clínica (Parte A).
+
+## Loja (pré-lançamento)
+A aba **Loja** (entre Saúde e Perfil) é uma vitrine do catálogo de **produtos de exemplo** do KURA. Ela não vende nada: não há carrinho, pedido nem pagamento, e a ação de cada card é "Em breve", desabilitada. Texto literal do aviso, sempre visível no topo da tela (vem da API em `GET /api/v1/loja/catalogo`; antes da resposta o app usa a constante ancorada em `src/types/loja.ts`):
+
+Pré-lançamento: pagamento e entrega serão ativados quando os parceiros logísticos concluírem a integração. Nenhuma cobrança é feita.
+
+- Todo produto marcado pela API como demonstração (`exemplo: true`) traz o selo **Exemplo**; o preço de todo card aparece como **Preço de referência** (o catálogo é dado de demonstração, sem marca nem foto real).
+- Fonte: `loja.service.ts::listarCatalogo` (shape cru da API, preço em centavos); modo mock em `src/mocks/loja.mock.ts`.
+- Filtro por categoria no próprio app (Tudo, Alimentação, Higiene, Acessórios, Brinquedos); a ordem dos produtos é a da API.
+- O check do smoke de contrato para essa rota é `tutor/loja/catalogo (GET)` (`DevOps-Cloud` `main`, LOJA-04); o registry marca `coberto`.
+- Limite conhecido: o app pede `size=50` (teto da API) e filtra no cliente; acima de 50 itens o catálogo é truncado. Paginação vem com o `F2`.
 
 ## Limitações v1
 1. Slots de agenda mockados — pendente endpoint GET /tutor/agenda/disponivel (Felipe #1)

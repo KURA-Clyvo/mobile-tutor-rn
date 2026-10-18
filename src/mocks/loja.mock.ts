@@ -1,0 +1,25 @@
+import type { CatalogoLojaRaw, ItemCatalogoRaw } from '../types/loja';
+import { AVISO_LOJA_PRE_LANCAMENTO } from '../types/loja';
+
+// Mock no shape CRU da API (CatalogoResponse). Espelha o seed de exemplo do Java, SEM marca e SEM medicamento (D-LOJA-5).
+// ÂNCORA (regra 11): backend-tutor-java 98fb53e, src/main/resources/mongo/catalogo_loja.seed.json (10 itens, `ordem` 10..100,
+// todos `exemplo: true`), conferida em 2026-10-17. Reproduz: git -C D:/FIAP/KURA/backend-tutor-java show 98fb53e:src/main/resources/mongo/catalogo_loja.seed.json
+// O `aviso` do mock é a constante do app (a mesma que a LojaAviso.java do Java guarda).
+const ITENS: ItemCatalogoRaw[] = [
+  { slug: 'alimento-seco-adulto-caes-1kg', nome: 'Alimento seco para cães adultos 1 kg', descricao: 'Alimento completo para cães adultos de porte médio.', categoria: 'ALIMENTACAO', preco: 4990, moeda: 'BRL', exemplo: true, dados: { tipoAlimento: 'SECO', especieAlvo: 'CAO', faixaEtaria: 'ADULTO', pesoLiquidoGramas: 1000 } },
+  { slug: 'alimento-umido-gatos-adultos-85g', nome: 'Alimento úmido para gatos adultos 85 g', descricao: 'Sachê de alimento úmido para gatos adultos.', categoria: 'ALIMENTACAO', preco: 690, moeda: 'BRL', exemplo: true, dados: { tipoAlimento: 'UMIDO', especieAlvo: 'GATO', faixaEtaria: 'ADULTO', pesoLiquidoGramas: 85 } },
+  { slug: 'petisco-macio-filhotes-100g', nome: 'Petisco macio para filhotes 100 g', descricao: 'Petisco de textura macia para filhotes.', categoria: 'ALIMENTACAO', preco: 1590, moeda: 'BRL', exemplo: true, dados: { tipoAlimento: 'PETISCO', especieAlvo: 'AMBOS', faixaEtaria: 'FILHOTE', pesoLiquidoGramas: 100 } },
+  { slug: 'shampoo-neutro-500ml', nome: 'Shampoo neutro 500 ml', descricao: 'Shampoo neutro para banho em casa.', categoria: 'HIGIENE', preco: 2990, moeda: 'BRL', exemplo: true, dados: { tipoHigiene: 'SHAMPOO', especieAlvo: 'AMBOS', volumeMl: 500 } },
+  { slug: 'escova-cerdas-macias', nome: 'Escova de cerdas macias', descricao: 'Escova para pelos curtos e médios.', categoria: 'HIGIENE', preco: 2490, moeda: 'BRL', exemplo: true, dados: { tipoHigiene: 'ESCOVA', especieAlvo: 'AMBOS', quantidadeUnidades: 1 } },
+  { slug: 'tapete-higienico-30-unidades', nome: 'Tapete higiênico 30 unidades', descricao: 'Pacote de tapetes absorventes descartáveis.', categoria: 'HIGIENE', preco: 5490, moeda: 'BRL', exemplo: true, dados: { tipoHigiene: 'TAPETE_HIGIENICO', especieAlvo: 'CAO', quantidadeUnidades: 30 } },
+  { slug: 'coleira-ajustavel-m', nome: 'Coleira ajustável tamanho M', descricao: 'Coleira de nylon com fecho de segurança.', categoria: 'ACESSORIOS', preco: 3490, moeda: 'BRL', exemplo: true, dados: { tipoAcessorio: 'COLEIRA', tamanho: 'M', material: 'nylon' } },
+  { slug: 'comedouro-inox-p', nome: 'Comedouro de inox tamanho P', descricao: 'Comedouro de inox com base antiderrapante.', categoria: 'ACESSORIOS', preco: 3990, moeda: 'BRL', exemplo: true, dados: { tipoAcessorio: 'COMEDOURO', tamanho: 'P', material: 'inox' } },
+  { slug: 'bolinha-de-borracha-m', nome: 'Bolinha de borracha tamanho M', descricao: 'Bolinha de borracha resistente para brincar.', categoria: 'BRINQUEDOS', preco: 1490, moeda: 'BRL', exemplo: true, dados: { tipoBrinquedo: 'BOLA', tamanho: 'M', material: 'borracha' } },
+  { slug: 'mordedor-corda-g', nome: 'Mordedor de corda tamanho G', descricao: 'Mordedor de corda trançada.', categoria: 'BRINQUEDOS', preco: 1990, moeda: 'BRL', exemplo: true, dados: { tipoBrinquedo: 'MORDEDOR', tamanho: 'G', material: 'algodão' } },
+];
+
+export async function catalogo(config: { params?: { categoria?: string } }): Promise<CatalogoLojaRaw> {
+  const categoria = config.params?.categoria;
+  const content = categoria ? ITENS.filter(i => i.categoria === categoria) : ITENS;
+  return { aviso: AVISO_LOJA_PRE_LANCAMENTO, content, page: 0, size: 20, hasNext: false };
+}
