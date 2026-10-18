@@ -3,12 +3,11 @@
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { listarCatalogo } from '../services/loja.service';
+import { useCatalogo } from '../hooks/useCatalogo';
 
 const mockGet = jest.fn();
 jest.mock('../services/api/client', () => ({ apiClient: { get: (...a: unknown[]) => mockGet(...a) } }));
-
-import { listarCatalogo } from '../services/loja.service';
-import { useCatalogo } from '../hooks/useCatalogo';
 
 const ENVELOPE = { aviso: 'x', content: [], page: 0, size: 50, hasNext: false };
 
