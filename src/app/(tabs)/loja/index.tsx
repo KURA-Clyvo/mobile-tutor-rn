@@ -35,8 +35,8 @@ export default function LojaScreen() {
       >
         <View style={{ gap: spacing[1] }}>
           <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 32, lineHeight: 38 }}>
-            {'Loja de '}
-            <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>exemplo.</Text>
+            {'Loja '}
+            <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>KURA.</Text>
           </Text>
           <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm }}>Produtos de exemplo do KURA</Text>
         </View>
