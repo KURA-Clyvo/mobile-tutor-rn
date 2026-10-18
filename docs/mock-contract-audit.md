@@ -64,7 +64,7 @@ método).
 |---|---|---|---|---|---|
 | `auth.service.ts::login` | `/auth/login$` | pass-through | ✓ | OK | nenhuma (já correto, TASK-64 confirmou) |
 | `auth.service.ts::register` | `/auth/register-invite$` | transformador | ✓ | OK (TASK-64 já fechou) | nenhuma nesta task |
-| `loja.service.ts::listarCatalogo` | `/loja/catalogo$` (por método: só GET) | pass-through (envelope cru) | ✓ | n/a (rota nova, S4-LOJA-05) | mock no shape cru da API (`aviso` + `content[]`, preço em centavos), ancorado em `backend-tutor-java` `98fb53e`; teste `loja.service` neste audit |
+| `loja.service.ts::listarCatalogo` | `/loja/catalogo$` (por método: só GET) | pass-through (envelope cru) | ✓ | n/a (rota nova, S4-LOJA-05) | mock no shape cru da API (`aviso` + `content[]`, preço em centavos), ancorado em `backend-tutor-java` `98fb53e`; teste `loja.service` neste audit. **NX-04:** cada item do mock traz `imagem{url,urlThumb,alt}` (caminhos relativos, ancora `5f98cf8`); em modo mock a base da API pode não responder e o card cai no placeholder (`onError`) — as fotos NÃO são embutidas no app |
 | `pets.service.ts::listPets` | `/tutor/pets$` | pass-through | ✓ | OK | nenhuma |
 | `pets.service.ts::getPetById` | `/tutor/pets/\d+$` | **transformador** | ✓ | `id: undefined`; peso/temperatura/FC/condições descartados (mock devolvia `PetTutorDetailResponse` app-facing, service espera `PetDetalheRaw`) | **corrigido** — `byId()` devolve `PetDetalheRaw` |
 | `timeline.service.ts::getTimeline` | `/tutor/pets/\d+/timeline$` | **transformador** | ✓ | `TypeError: Cannot read properties of undefined (reading 'map')` — mock devolvia array nu, service espera `PageRaw<T>.content` | **corrigido** — `timeline()` devolve `PageRaw<TimelineEventoRaw>` |
