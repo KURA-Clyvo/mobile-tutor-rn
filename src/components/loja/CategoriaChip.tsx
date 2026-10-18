@@ -3,7 +3,8 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { useTheme } from '@theme/index';
 import { touchTarget } from '@theme/tokens';
 
-// Chip SELECIONÁVEL de categoria (o KChip do app não tem onPress nem estado). Alvo >= 44, `accessibilityState.selected`.
+// Chip SELECIONÁVEL de categoria (o KChip do app não tem onPress nem estado), opção de um radiogroup de seleção única.
+// `radio` + `checked` (+ `aria-checked`, que o RN-web exige) é o par que o Chrome expõe na web; `button` + `selected` não. Alvo >= 44.
 // Selecionado: fundo `primary`, texto `textOnPrimary`. Não selecionado: `surface` + borda `borderControl` + texto `textSoft`.
 export function CategoriaChip({ rotulo, selecionado, onPress, testID }: { rotulo: string; selecionado: boolean; onPress: () => void; testID?: string }) {
   const { colors, fonts, fontSize, radius, spacing } = useTheme();
@@ -11,10 +12,10 @@ export function CategoriaChip({ rotulo, selecionado, onPress, testID }: { rotulo
     <Pressable
       testID={testID}
       onPress={onPress}
-      accessibilityRole="button"
+      accessibilityRole="radio"
       accessibilityLabel={rotulo}
-      accessibilityState={{ selected: selecionado }}
-      aria-selected={selecionado}
+      accessibilityState={{ checked: selecionado }}
+      aria-checked={selecionado}
       style={[
         styles.chip,
         {

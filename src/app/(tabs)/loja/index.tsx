@@ -34,14 +34,24 @@ export default function LojaScreen() {
         refreshControl={<RefreshControl refreshing={false} onRefresh={() => void catalogo.refetch()} tintColor={colors.primary} />}
       >
         <View style={{ gap: spacing[1] }}>
-          <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: fontSize.xl, lineHeight: 32 }}>Loja</Text>
+          <Text style={{ fontFamily: fonts.display, color: colors.text, fontSize: 32, lineHeight: 38 }}>
+            {'Loja de '}
+            <Text style={{ fontFamily: fonts.displayItalic, color: colors.primary }}>exemplo.</Text>
+          </Text>
           <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm }}>Produtos de exemplo do KURA</Text>
         </View>
 
         <AvisoLoja texto={aviso} />
 
         {!erroSemDado && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing[2] }} testID="loja-chips">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: spacing[2] }}
+            testID="loja-chips"
+            accessibilityRole={'radiogroup' as any}
+            accessibilityLabel="Categorias"
+          >
             <CategoriaChip testID="loja-chip-tudo" rotulo="Tudo" selecionado={filtro === null} onPress={() => setFiltro(null)} />
             {CATEGORIAS_LOJA.map(c => (
               <CategoriaChip

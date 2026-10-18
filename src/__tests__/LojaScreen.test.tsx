@@ -193,19 +193,29 @@ describe('Loja — preço, ação e selo', () => {
 });
 
 describe('Loja — filtro por categoria', () => {
-  it('"Tudo" começa selecionado e os chips têm accessibilityState.selected', () => {
+  it('"Tudo" começa selecionado e os chips têm accessibilityState.checked', () => {
     mockCatalogo = rq({ data: DADO });
     const r = render(<LojaScreen />, { wrapper: W });
-    expect(r.getByTestId('loja-chip-tudo').props.accessibilityState.selected).toBe(true);
-    expect(r.getByTestId('loja-chip-HIGIENE').props.accessibilityState.selected).toBe(false);
+    expect(r.getByTestId('loja-chip-tudo').props.accessibilityState.checked).toBe(true);
+    expect(r.getByTestId('loja-chip-HIGIENE').props.accessibilityState.checked).toBe(false);
+  });
+
+  it('os chips formam um grupo de seleção única: radiogroup "Categorias", cada chip é radio (o aria-checked da web é do AriaWebGate e da prova no Chrome)', () => {
+    mockCatalogo = rq({ data: DADO });
+    const r = render(<LojaScreen />, { wrapper: W });
+    const grupo = r.getByTestId('loja-chips');
+    expect(grupo.props.accessibilityRole).toBe('radiogroup');
+    expect(grupo.props.accessibilityLabel).toBe('Categorias');
+    expect(r.getByTestId('loja-chip-tudo').props.accessibilityRole).toBe('radio');
+    expect(r.getByTestId('loja-chip-HIGIENE').props.accessibilityRole).toBe('radio');
   });
 
   it('tocar em "Higiene" mostra só os itens dela, na ordem da API, e o aviso continua lá', () => {
     mockCatalogo = rq({ data: DADO });
     const r = render(<LojaScreen />, { wrapper: W });
     fireEvent.press(r.getByTestId('loja-chip-HIGIENE'));
-    expect(r.getByTestId('loja-chip-HIGIENE').props.accessibilityState.selected).toBe(true);
-    expect(r.getByTestId('loja-chip-tudo').props.accessibilityState.selected).toBe(false);
+    expect(r.getByTestId('loja-chip-HIGIENE').props.accessibilityState.checked).toBe(true);
+    expect(r.getByTestId('loja-chip-tudo').props.accessibilityState.checked).toBe(false);
     const esperados = DADO.content.filter((i: any) => i.categoria === 'HIGIENE').map((i: any) => i.slug);
     const grade = r.getByTestId('loja-grade');
     const mostrados = within(grade).queryAllByTestId(/^loja-card-/).map(n => String(n.props.testID).replace('loja-card-', ''));
@@ -222,7 +232,7 @@ describe('Loja — filtro por categoria', () => {
     expect(r.getByText('Nenhum produto de exemplo em Brinquedos.')).toBeTruthy();
     fireEvent.press(r.getByText('Ver todos os produtos'));
     expect(r.getByTestId('loja-grade')).toBeTruthy();
-    expect(r.getByTestId('loja-chip-tudo').props.accessibilityState.selected).toBe(true);
+    expect(r.getByTestId('loja-chip-tudo').props.accessibilityState.checked).toBe(true);
   });
 });
 
