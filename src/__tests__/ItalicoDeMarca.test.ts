@@ -20,10 +20,10 @@ describe('itálico de marca', () => {
     const soltos = lista(SRC).filter((f) => /fontStyle:\s*['"]italic['"]/.test(fs.readFileSync(f, 'utf8'))).map((f) => path.relative(SRC, f));
     expect(soltos).toEqual([]);
   });
-  it('os 9 títulos com destaque usam o token', () => {
+  it('os 10 títulos com destaque usam o token', () => {
     const usam = lista(SRC).filter((f) => /fonts\.displayItalic/.test(fs.readFileSync(f, 'utf8'))).map((f) => path.relative(SRC, f).split(path.sep).join('/'));
     expect(usam.sort()).toEqual([
-      'app/(tabs)/agenda/index.tsx', 'app/(tabs)/perfil/consentimentos.tsx', 'app/(tabs)/pets/index.tsx', 'app/(tabs)/pets/novo.tsx',
+      'app/(tabs)/agenda/index.tsx', 'app/(tabs)/loja/index.tsx', 'app/(tabs)/perfil/consentimentos.tsx', 'app/(tabs)/pets/index.tsx', 'app/(tabs)/pets/novo.tsx',
       'app/(tabs)/saude/index.tsx', 'app/login.tsx', 'app/register.tsx', 'components/domain/ConsultasTab.tsx', 'components/domain/VacinasTab.tsx',
     ]);
   });
