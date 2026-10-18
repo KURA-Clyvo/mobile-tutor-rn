@@ -14,6 +14,7 @@ export function CategoriaChip({ rotulo, selecionado, onPress, testID }: { rotulo
       accessibilityRole="button"
       accessibilityLabel={rotulo}
       accessibilityState={{ selected: selecionado }}
+      aria-selected={selecionado}
       style={[
         styles.chip,
         {
