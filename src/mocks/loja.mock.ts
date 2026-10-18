@@ -2,8 +2,8 @@ import type { CatalogoLojaRaw, ItemCatalogoRaw } from '../types/loja';
 import { AVISO_LOJA_PRE_LANCAMENTO } from '../types/loja';
 
 // Mock no shape CRU da API (CatalogoResponse). Espelha o seed de exemplo do Java, SEM marca e SEM medicamento (D-LOJA-5).
-// ÂNCORA (regra 11): backend-tutor-java 98fb53e, src/main/resources/mongo/catalogo_loja.seed.json (10 itens, `ordem` 10..100,
-// todos `exemplo: true`), conferida em 2026-10-17. Reproduz: git -C D:/FIAP/KURA/backend-tutor-java show 98fb53e:src/main/resources/mongo/catalogo_loja.seed.json
+// ÂNCORA (regra 11): backend-tutor-java 5f98cf8 (branch feat/nx-04-imagem-produto; vira o hash do merge), src/main/resources/mongo/catalogo_loja.seed.json (10 itens, `ordem` 10..100, campo `imagem` por item,
+// todos `exemplo: true`), conferida em 2026-10-18 (base sem `imagem`: 98fb53e, 2026-10-17). Reproduz: git -C D:/FIAP/KURA/backend-tutor-java show 5f98cf8:src/main/resources/mongo/catalogo_loja.seed.json
 // O `aviso` do mock é a constante do app (a mesma que a LojaAviso.java do Java guarda).
 const ITENS: ItemCatalogoRaw[] = [
   { slug: 'alimento-seco-adulto-caes-1kg', nome: 'Alimento seco para cães adultos 1 kg', descricao: 'Alimento completo para cães adultos de porte médio.', categoria: 'ALIMENTACAO', preco: 4990, moeda: 'BRL', exemplo: true, imagem: { url: '/api/loja/imagens/alimento-seco-adulto-caes-1kg.webp', urlThumb: '/api/loja/imagens/alimento-seco-adulto-caes-1kg_256.webp', alt: 'Foto ilustrativa: ração seca para cães' }, dados: { tipoAlimento: 'SECO', especieAlvo: 'CAO', faixaEtaria: 'ADULTO', pesoLiquidoGramas: 1000 } },

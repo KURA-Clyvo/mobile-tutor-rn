@@ -27,7 +27,7 @@ describe('ProdutoCard — foto do produto (NX-04)', () => {
     const r = render(<ProdutoCard item={COM_FOTO} />, { wrapper: W });
     const foto = r.getByTestId('loja-foto-shampoo-neutro-500ml');
     expect(foto.props.accessibilityLabel).toBe(ALT);
-    expect(foto.props.source[0].uri).toBe('http://localhost:8081/api/loja/imagens/shampoo-neutro-500ml_256.webp');
+    expect(foto.props.source[0].uri).toBe('http://localhost:8081/api/loja/imagens/shampoo-neutro-500ml.webp');
     expect(r.queryByTestId('loja-arte-HIGIENE', { includeHiddenElements: true })).toBeNull();
   });
 

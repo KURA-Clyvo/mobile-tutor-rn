@@ -21,7 +21,7 @@ export function ProdutoCard({ item }: { item: ItemCatalogoRaw }) {
   // => o placeholder SVG da categoria, o mesmo padrão do KPetPortrait (`erroFoto`). Foto em cima, texto embaixo: a foto nunca
   // fica sob o texto, então o contraste do nome/preço não muda.
   const [erroFoto, setErroFoto] = useState(false);
-  const caminhoFoto = item.imagem?.urlThumb;
+  const caminhoFoto = item.imagem?.url;
   useEffect(() => { setErroFoto(false); }, [caminhoFoto]);
   return (
     <View
@@ -31,7 +31,7 @@ export function ProdutoCard({ item }: { item: ItemCatalogoRaw }) {
       {item.imagem && !erroFoto ? (
         <Image
           testID={`loja-foto-${item.slug}`}
-          source={{ uri: urlImagemLoja(item.imagem.urlThumb) }}
+          source={{ uri: urlImagemLoja(item.imagem.url) }}
           style={[styles.foto, { borderRadius: radius.md }]}
           contentFit="cover"
           transition={200}
