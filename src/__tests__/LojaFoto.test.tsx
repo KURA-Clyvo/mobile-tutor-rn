@@ -23,7 +23,7 @@ beforeEach(() => { process.env.EXPO_PUBLIC_API_BASE_URL = 'http://localhost:8081
 afterAll(() => { process.env.EXPO_PUBLIC_API_BASE_URL = ORIGINAL_BASE; });
 
 describe('ProdutoCard — foto do produto (NX-04)', () => {
-  it('com imagem: renderiza a foto (thumb com a base da API) com o alt como accessibilityLabel, e não o placeholder', () => {
+  it('com imagem: renderiza a foto (imagem de 1080 com a base da API) com o alt como accessibilityLabel, e não o placeholder', () => {
     const r = render(<ProdutoCard item={COM_FOTO} />, { wrapper: W });
     const foto = r.getByTestId('loja-foto-shampoo-neutro-500ml');
     expect(foto.props.accessibilityLabel).toBe(ALT);
