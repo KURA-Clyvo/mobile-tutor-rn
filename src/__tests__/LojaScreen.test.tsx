@@ -8,6 +8,7 @@ import { ThemeProvider } from '../theme/index';
 import LojaScreen from '../app/(tabs)/loja/index';
 import { AVISO_LOJA_PRE_LANCAMENTO } from '../types/loja';
 import { catalogo as catalogoMock } from '../mocks/loja.mock';
+import { KChip } from '../components/primitives/KChip';
 
 const AVISO_LITERAL =
   'Pré-lançamento: pagamento e entrega serão ativados quando os parceiros logísticos concluírem a integração. Nenhuma cobrança é feita.';
@@ -124,6 +125,37 @@ describe('Loja — os 4 estados, com o aviso visível nos 4', () => {
   });
 });
 
+// ÂNCORA (regra 11): nomes dos 10 itens do seed real — backend-tutor-java@98fb53e, src/main/resources/mongo/catalogo_loja.seed.json
+// (campo "nome" das 10 linhas), conferido em 2026-10-17. Reproduz:
+//   git -C D:/FIAP/KURA/backend-tutor-java show 98fb53e:src/main/resources/mongo/catalogo_loja.seed.json | grep '"nome"'
+// Escritos AQUI, literais, de propósito (o mock do app poderia mudar junto com o componente).
+const NOMES_DO_SEED = [
+  'Alimento seco para cães adultos 1 kg',
+  'Alimento úmido para gatos adultos 85 g',
+  'Petisco macio para filhotes 100 g',
+  'Shampoo neutro 500 ml',
+  'Escova de cerdas macias',
+  'Tapete higiênico 30 unidades',
+  'Coleira ajustável tamanho M',
+  'Comedouro de inox tamanho P',
+  'Bolinha de borracha tamanho M',
+  'Mordedor de corda tamanho G',
+];
+
+describe('Loja — nome do produto sem corte (G2 I-1)', () => {
+  it('os 10 nomes do seed real aparecem por inteiro e nenhum Text de nome limita as linhas', () => {
+    const itens = NOMES_DO_SEED.map((nome, i) => ({ ...DADO.content[0], slug: `seed-${i}`, nome }));
+    mockCatalogo = rq({ data: { ...DADO, content: itens } });
+    const r = render(<LojaScreen />, { wrapper: W });
+    for (const [i, nome] of NOMES_DO_SEED.entries()) {
+      const no = within(r.getByTestId(`loja-card-seed-${i}`)).getByText(nome);
+      expect(no.props.children).toBe(nome);
+      // sem `numberOfLines` (ou 0 = sem limite): a quantidade ("1 kg", "85 g", "M") não pode ser cortada
+      expect(no.props.numberOfLines === undefined || no.props.numberOfLines === 0).toBe(true);
+    }
+  });
+});
+
 describe('Loja — preço, ação e selo', () => {
   it('preço em centavos vira BRL: 4990 => "R$ 49,90", 690 => "R$ 6,90"', () => {
     mockCatalogo = rq({ data: DADO });
@@ -145,6 +177,18 @@ describe('Loja — preço, ação e selo', () => {
     mockCatalogo = rq({ data: { ...DADO, content: [item] } });
     const r = render(<LojaScreen />, { wrapper: W });
     expect(within(r.getByTestId('loja-card-real')).queryByText('Exemplo')).toBeNull();
+  });
+
+  it('o selo "Exemplo" é um KChip (tone mute), um por produto de demonstração — não texto solto (G2 m-g)', () => {
+    mockCatalogo = rq({ data: DADO });
+    const r = render(<LojaScreen />, { wrapper: W });
+    const chips = r.UNSAFE_getAllByType(KChip).filter(c => c.props.children === 'Exemplo');
+    expect(chips).toHaveLength(DADO.content.length);
+    for (const c of chips) expect(c.props.tone).toBe('mute');
+    for (const item of DADO.content) {
+      const card = r.getByTestId(`loja-card-${item.slug}`);
+      expect(within(card).UNSAFE_getAllByType(KChip).some((c: any) => c.props.children === 'Exemplo')).toBe(true);
+    }
   });
 });
 

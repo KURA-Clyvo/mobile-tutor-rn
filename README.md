@@ -37,10 +37,11 @@ A aba **Loja** (entre Saúde e Perfil) é uma vitrine do catálogo de **produtos
 
 Pré-lançamento: pagamento e entrega serão ativados quando os parceiros logísticos concluírem a integração. Nenhuma cobrança é feita.
 
-- Todo card traz o selo **Exemplo** e o preço como **Preço de referência** (o catálogo é dado de demonstração, sem marca nem foto real).
+- Todo produto marcado pela API como demonstração (`exemplo: true`) traz o selo **Exemplo**; o preço de todo card aparece como **Preço de referência** (o catálogo é dado de demonstração, sem marca nem foto real).
 - Fonte: `loja.service.ts::listarCatalogo` (shape cru da API, preço em centavos); modo mock em `src/mocks/loja.mock.ts`.
 - Filtro por categoria no próprio app (Tudo, Alimentação, Higiene, Acessórios, Brinquedos); a ordem dos produtos é a da API.
-- O check do smoke de contrato para essa rota nasce na LOJA-04 (`DevOps-Cloud`); até lá o registry marca `naoCoberto`.
+- O check do smoke de contrato para essa rota é `tutor/loja/catalogo (GET)` (`DevOps-Cloud` `main`, LOJA-04); o registry marca `coberto`.
+- Limite conhecido: o app pede `size=50` (teto da API) e filtra no cliente; acima de 50 itens o catálogo é truncado. Paginação vem com o `F2`.
 
 ## Limitações v1
 1. Slots de agenda mockados — pendente endpoint GET /tutor/agenda/disponivel (Felipe #1)

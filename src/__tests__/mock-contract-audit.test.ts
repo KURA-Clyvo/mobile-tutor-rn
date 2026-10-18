@@ -228,7 +228,7 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
         expect(['ALIMENTACAO', 'HIGIENE', 'ACESSORIOS', 'BRINQUEDOS']).toContain(item.categoria);
         expect(Number.isInteger(item.preco)).toBe(true);
         expect(item.moeda).toBe('BRL');
-        expect(item.exemplo).toBe(true);
+        expect(typeof item.exemplo).toBe('boolean');
       }
       expect(typeof res.hasNext).toBe('boolean');
     });

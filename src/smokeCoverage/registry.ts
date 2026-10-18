@@ -40,11 +40,8 @@ export const SMOKE_COVERAGE_REGISTRY: Record<string, CoverageEntry> = {
   },
 
   // loja.service.ts
-  // S4-LOJA-05: o check do smoke para este GET só nasce na LOJA-04 (DevOps-Cloud, branch feat/loja-02-mongo; não está em main).
-  // A LOJA-06 troca por `coberto` com o nome literal do check, depois que a LOJA-04 mesclar.
-  'loja.service.ts::listarCatalogo': {
-    naoCoberto: 'check do smoke para GET /api/v1/loja/catalogo nasce na LOJA-04 (DevOps-Cloud); vira coberto na LOJA-06',
-  },
+  // S4-LOJA-05: o check existe em DevOps-Cloud `main` @ 5bc6299 (LOJA-04, mesclada em 2026-10-17); G2 da LOJA-05 mediu 17 cobertos / 0 não.
+  'loja.service.ts::listarCatalogo': { coberto: 'tutor/loja/catalogo (GET)' },
 
   // notifications.service.ts
   'notifications.service.ts::getNotificacoes': { coberto: 'tutor/notificacoes (GET)' },

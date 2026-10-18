@@ -23,7 +23,9 @@ export function ProdutoCard({ item }: { item: ItemCatalogoRaw }) {
     >
       <CategoriaArte categoria={item.categoria} />
       {item.exemplo ? <KChip tone="mute">{TEXTO_SELO_EXEMPLO}</KChip> : null}
-      <Text numberOfLines={2} style={{ fontFamily: fonts.bodyMedium, fontSize: fontSize.base, color: colors.text, minHeight: 40 }}>
+      {/* SEM numberOfLines: o nome carrega a quantidade ("1 kg", "85 g", "M") a que o preço de referência se refere (CDC art. 31);
+          cortar o nome apaga essa informação (G2 da LOJA-05, I-1: 3 dos 10 nomes do seed real eram cortados). */}
+      <Text style={{ fontFamily: fonts.bodyMedium, fontSize: fontSize.base, color: colors.text, minHeight: 40 }}>
         {item.nome}
       </Text>
       <View>
