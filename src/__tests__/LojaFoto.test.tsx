@@ -28,20 +28,20 @@ describe('ProdutoCard — foto do produto (NX-04)', () => {
     const foto = r.getByTestId('loja-foto-shampoo-neutro-500ml');
     expect(foto.props.accessibilityLabel).toBe(ALT);
     expect(foto.props.source[0].uri).toBe('http://localhost:8081/api/loja/imagens/shampoo-neutro-500ml_256.webp');
-    expect(r.queryByTestId('loja-arte-HIGIENE')).toBeNull();
+    expect(r.queryByTestId('loja-arte-HIGIENE', { includeHiddenElements: true })).toBeNull();
   });
 
   it('erro de carga da foto => cai no placeholder da categoria', () => {
     const r = render(<ProdutoCard item={COM_FOTO} />, { wrapper: W });
     fireEvent(r.getByTestId('loja-foto-shampoo-neutro-500ml'), 'error', { nativeEvent: { error: '404' } } as never);
     expect(r.queryByTestId('loja-foto-shampoo-neutro-500ml')).toBeNull();
-    expect(r.getByTestId('loja-arte-HIGIENE')).toBeTruthy();
+    expect(r.getByTestId('loja-arte-HIGIENE', { includeHiddenElements: true })).toBeTruthy();
   });
 
   it('sem imagem => placeholder, nenhuma foto', () => {
     const r = render(<ProdutoCard item={SEM_FOTO} />, { wrapper: W });
     expect(r.queryByTestId('loja-foto-sem-foto-teste')).toBeNull();
-    expect(r.getByTestId('loja-arte-HIGIENE')).toBeTruthy();
+    expect(r.getByTestId('loja-arte-HIGIENE', { includeHiddenElements: true })).toBeTruthy();
   });
 
   it('a foto tem a mesma altura do placeholder (o card não pula se a foto falhar)', () => {
@@ -66,6 +66,6 @@ describe('urlImagemLoja', () => {
     expect(urlImagemLoja('api/loja/imagens/a.webp', 'http://h')).toBe('http://h/api/loja/imagens/a.webp');
   });
   it('sem base devolve o caminho cru (a carga falha e o card usa o placeholder)', () => {
-    expect(urlImagemLoja('/api/loja/imagens/a.webp', undefined)).toBe('/api/loja/imagens/a.webp');
+    expect(urlImagemLoja('/api/loja/imagens/a.webp', '')).toBe('/api/loja/imagens/a.webp');
   });
 });

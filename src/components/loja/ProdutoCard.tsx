@@ -32,7 +32,7 @@ export function ProdutoCard({ item }: { item: ItemCatalogoRaw }) {
         <Image
           testID={`loja-foto-${item.slug}`}
           source={{ uri: urlImagemLoja(item.imagem.urlThumb) }}
-          style={[styles.foto, { borderRadius: radius.md, backgroundColor: colors.primarySoft }]}
+          style={[styles.foto, { borderRadius: radius.md }]}
           contentFit="cover"
           transition={200}
           cachePolicy="disk"
