@@ -229,6 +229,11 @@ describe('Contrato de modo mock (EXPO_PUBLIC_USE_MOCKS=true) — G4b, TASK-65', 
         expect(Number.isInteger(item.preco)).toBe(true);
         expect(item.moeda).toBe('BRL');
         expect(typeof item.exemplo).toBe('boolean');
+        // NX-04: `imagem` opcional; quando existe tem o shape cru do Java (caminhos relativos + alt não vazio).
+        expect(item.imagem).toBeDefined();
+        expect(item.imagem!.url).toBe(`/api/loja/imagens/${item.slug}.webp`);
+        expect(item.imagem!.urlThumb).toBe(`/api/loja/imagens/${item.slug}_256.webp`);
+        expect(item.imagem!.alt.length).toBeGreaterThanOrEqual(5);
       }
       expect(typeof res.hasNext).toBe('boolean');
     });

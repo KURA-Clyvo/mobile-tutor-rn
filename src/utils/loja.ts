@@ -8,3 +8,11 @@ export function formatarPrecoCentavos(centavos: number): string {
   const milhar = String(reais).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return `R$ ${milhar},${cents}`;
 }
+
+// NX-04 — a API devolve o caminho da foto RELATIVO (`/api/loja/imagens/...`); o `<Image>` precisa de URL absoluta. A base é a
+// mesma do apiClient (no túnel já carrega o prefixo `/tutor`). Sem base (mock sem backend), devolve o caminho cru: a carga
+// falha e o card cai no placeholder (`onError`).
+export function urlImagemLoja(caminho: string, base: string | undefined = process.env.EXPO_PUBLIC_API_BASE_URL): string {
+  const raiz = (base ?? '').replace(/\/+$/, '');
+  return `${raiz}${caminho.startsWith('/') ? '' : '/'}${caminho}`;
+}

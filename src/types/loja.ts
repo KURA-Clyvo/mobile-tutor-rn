@@ -6,6 +6,11 @@
 //   - bff/api/dto/ItemCatalogoResponse.java:12-20 item { slug, nome, descricao?, categoria, preco (CENTAVOS), moeda, exemplo, dados }
 //   - bff/api/LojaCatalogoController.java:23,35-51 GET /v1/loja/catalogo (context-path /api), JWT, params categoria/page/size
 // Reproduz: git -C D:/FIAP/KURA/backend-tutor-java show 98fb53e:src/main/java/br/com/clyvo/kura/tutor/loja/bff/api/dto/ItemCatalogoResponse.java | sed -n '12,20p'
+//
+// NX-04 — ÂNCORA (regra 11) do campo `imagem`: backend-tutor-java, commit 5f98cf8 (branch feat/nx-04-imagem-produto; vira o hash
+// do merge em main depois do G2), src/main/java/br/com/clyvo/kura/tutor/loja/bff/api/dto/ItemCatalogoResponse.java (campo `imagem`
+// do record, `record Imagem(url, urlThumb, alt)` e PREFIXO_IMAGENS), conferida em 2026-10-18.
+// Reproduz: git -C D:/FIAP/KURA/backend-tutor-java show 5f98cf8:src/main/java/br/com/clyvo/kura/tutor/loja/bff/api/dto/ItemCatalogoResponse.java | grep -n "imagem\|Imagem\|PREFIXO_IMAGENS"
 
 export type CategoriaLoja = 'ALIMENTACAO' | 'HIGIENE' | 'ACESSORIOS' | 'BRINQUEDOS';
 
@@ -21,6 +26,16 @@ export interface ItemCatalogoRaw {
   /** true = item de demonstração: a tela mostra o selo "Exemplo" (D-LOJA-10). */
   exemplo: boolean;
   dados: Record<string, unknown>;
+  /** Omitida pela API quando o item não tem foto (`NON_NULL`): o card usa o placeholder da categoria. */
+  imagem?: ImagemItemRaw;
+}
+
+/** Caminhos RELATIVOS à base da API (montados no Java; o app só junta a base): `/api/loja/imagens/<chave>[_256].webp`. */
+export interface ImagemItemRaw {
+  url: string;
+  urlThumb: string;
+  /** Texto alternativo: vira o `accessibilityLabel` da foto. */
+  alt: string;
 }
 
 export interface CatalogoLojaRaw {
