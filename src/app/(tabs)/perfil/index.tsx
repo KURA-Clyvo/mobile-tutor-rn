@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, useToggleTheme } from '@theme/index';
-import { KuraMark } from '@components/brand/KuraMark';
 import { KIcon }   from '@components/primitives/KIcon';
 import { KButton } from '@components/primitives/KButton';
 import { KCard }   from '@components/primitives/KCard';
@@ -29,7 +28,6 @@ export default function PerfilScreen() {
   const tutor        = useAuthStore(s => s.tutor);
   const clearSession = useAuthStore(s => s.clearSession);
   const { alerta, confirmar } = useDialog();
-  const [aboutVisible, setAboutVisible] = useState(false);
   // TASK-70: fonte da verdade é a permissão real do SO, consultada sem popup
   // (getPermissionStatus) quando a tela abre — não um `false` fixo nem uma
   // preferência local independente do que o dispositivo de fato concedeu.
@@ -182,7 +180,7 @@ export default function PerfilScreen() {
             <KIcon name="chevR" size={14} color={colors.primary} />
           </Pressable>
           <Pressable
-            onPress={() => setAboutVisible(true)}
+            onPress={() => router.push('/(tabs)/perfil/sobre' as any)}
             style={[styles.row, { borderBottomColor: colors.border }]}
             accessibilityRole="button"
           >
@@ -210,17 +208,6 @@ export default function PerfilScreen() {
         </Text>
       </ScrollView>
 
-      {/* About modal */}
-      <Modal visible={aboutVisible} transparent animationType="slide" onRequestClose={() => setAboutVisible(false)}>
-        <Pressable accessible={false} testID="sobre-scrim" {...({ tabIndex: -1 } as object)} style={[styles.modalBg, { backgroundColor: colors.scrim }]} onPress={() => setAboutVisible(false)}>
-          <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={{ marginBottom: 12 }}><KuraMark size={36} variante="sobreNeutro" /></View>
-            <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm, marginBottom: 8 }}>Versão 1.0.0 — Tutor App</Text>
-            <Text style={{ fontFamily: fonts.body, color: colors.textSoft, fontSize: fontSize.sm }}>KURA Vet · Clyvo · FIAP Challenge 2026</Text>
-            <KButton variant="ghost" block onPress={() => setAboutVisible(false)} style={{ marginTop: 20 }}>Fechar</KButton>
-          </View>
-        </Pressable>
-      </Modal>
     </>
   );
 }
@@ -237,6 +224,4 @@ const styles = StyleSheet.create({
   rowConteudo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   logoutBtn:   { marginTop: 32 },
   footer:      { textAlign: 'center', letterSpacing: 1.5, marginTop: 24 },
-  modalBg:     { flex: 1, justifyContent: 'flex-end' },
-  modalCard:   { margin: 16, borderRadius: 20, padding: 24, borderWidth: 1 },
 });

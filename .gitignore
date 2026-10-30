@@ -23,3 +23,7 @@ expo-env.d.ts
 # @end expo-cli
 # prebuild nativo gerado por `expo prebuild` (BR-TUT-T02)
 android/
+
+# caches e cópia local dos docs de planejamento (S4-MOB-02: o EAS exige working tree limpa)
+.jest-cache/
+backlog/

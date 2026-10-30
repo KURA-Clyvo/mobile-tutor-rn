@@ -15,7 +15,8 @@ import PerfilScreen from '../app/(tabs)/perfil/index';
 import { useAuthStore } from '../store/authStore';
 
 const mockReplace = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), replace: mockReplace }) }));
+const mockPush = jest.fn();
+jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, replace: mockReplace }) }));
 
 const mockGetPermissionStatus = jest.fn();
 const mockRequestPermission   = jest.fn();
@@ -174,25 +175,14 @@ describe('PerfilScreen — logout exige confirmação (TASK-F06)', () => {
   });
 
 
-// BR-TUT-T02: o diálogo "Sobre o app" mostra o símbolo KuraMark, não o texto "Kura.".
-describe('PerfilScreen — marca (BR-TUT-T02)', () => {
-  it('"Sobre o app" mostra o símbolo KURA e não o texto "Kura."', async () => {
+// S4-MOB-02: "Sobre o app" deixou de ser modal; agora abre a tela própria (perfil/sobre), com o hash do build.
+describe('PerfilScreen — Sobre o app (S4-MOB-02)', () => {
+  it('"Sobre o app" navega para a tela perfil/sobre', () => {
     mockGetPermissionStatus.mockResolvedValue(false);
     useAuthStore.setState({ token: 'jwt-valido', expiresAt: new Date(Date.now() + 3600_000).toISOString(), tutor: TUTOR });
-    const { getByText, getByRole, queryByText } = render(<PerfilScreen />, { wrapper: W });
+    const { getByText } = render(<PerfilScreen />, { wrapper: W });
     fireEvent.press(getByText('Sobre o app'));
-    await waitFor(() => expect(getByRole('image', { name: 'KURA' })).toBeTruthy());
-    expect(queryByText('Kura.')).toBeNull();
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/perfil/sobre');
   });
 });
-});
-
-describe('PerfilScreen — scrim do "Sobre o app" (G2 M-1)', () => {
-  it('o scrim sai da ordem de foco: tabIndex -1 (RN-web ignora accessible={false})', () => {
-    useAuthStore.setState({ token: 'jwt-valido', expiresAt: new Date(Date.now() + 3600_000).toISOString(), tutor: TUTOR });
-    mockGetPermissionStatus.mockResolvedValue(false);
-    const { getByText, getByTestId } = render(<PerfilScreen />, { wrapper: W });
-    fireEvent.press(getByText('Sobre o app'));
-    expect(getByTestId('sobre-scrim').props.tabIndex).toBe(-1);
-  });
 });
