@@ -17,6 +17,7 @@ import { useAuthStore } from '../store/authStore';
 import { parseInviteLink } from '../utils/invite';
 import { setupHandlers } from '../services/notifications.service';
 import { usePushTokenSync } from '../hooks/useNotifications';
+import { useAvisosAgendamento } from '../hooks/useAvisosAgendamento';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -63,6 +64,8 @@ function RootLayoutInner() {
   // TASK-70: registra o push token no servidor quando há sessão de tutor
   // autenticada e a permissão do dispositivo já está concedida.
   usePushTokenSync();
+  // S4-MOB-03: avisa quando a clínica muda o status de um agendamento.
+  useAvisosAgendamento();
 
   void isAuthenticated;
 
