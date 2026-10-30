@@ -85,7 +85,22 @@ export async function registerDeviceToken(token: string): Promise<boolean> {
   }
 }
 
+// S4-MOB-03: notificação LOCAL disparada por evento real (ver useAvisosAgendamento). Este continua sendo
+// o único arquivo que importa `expo-notifications` (ordem de import acima). `trigger: null` = exibe já.
+export async function exibirNotificacaoLocal(titulo: string, corpo: string, data: Record<string, unknown>): Promise<void> {
+  await Notifications.scheduleNotificationAsync({ content: { title: titulo, body: corpo, data }, trigger: null });
+}
+
 export function setupHandlers(qc: QueryClient, router: Router): () => void {
+  // S4-MOB-03: no Android 8+ a importância vem do canal; HIGH faz o aviso aparecer como banner (heads-up).
+  // No Android 13+ o pedido de permissão só aparece depois de existir um canal.
+  if (Platform.OS === 'android') {
+    void Notifications.setNotificationChannelAsync('default', {
+      name: 'Agendamentos e lembretes',
+      importance: Notifications.AndroidImportance.HIGH,
+    });
+  }
+
   Notifications.setNotificationHandler({
     handleNotification: async () => ({ shouldShowAlert: true, shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: true }),
   });
