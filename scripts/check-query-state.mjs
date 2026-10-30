@@ -75,6 +75,8 @@ import { fileURLToPath } from 'node:url';
 export const ALLOWLIST = {
   'app/(tabs)/_layout.tsx::useAgendamentoBadgeCount':
     'PERMANENTE (ruling do maestro, 16/10): badge numérico da aba Agenda; no erro o número some em vez de afirmar "tudo certo", então ignorar o erro é o comportamento correto e esta entrada não sai com nenhuma task',
+  'app/_layout.tsx::useAvisosAgendamento':
+    'PERMANENTE (S4-MOB-03, 29/10): observador sem UI que só dispara notificação local; no erro nenhum aviso sai e o próximo polling tenta de novo, e o erro da lista para o tutor continua tratado pela tela da Agenda (QueryState)',
 };
 
 const RAZAO_MIN = 30;

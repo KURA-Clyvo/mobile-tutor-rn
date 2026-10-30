@@ -67,8 +67,10 @@ function exigirPassa(dir: string) {
 
 // A lista EXATA (BR-TUT-T04): só 1 entrada (a BR-TUT-T07 tirou `agenda/novo.tsx::usePets`); `useAgendamentoBadgeCount` é PERMANENTE
 // (badge numérico: no erro o número some, não afirma "tudo certo"). Entrada nova é regressão.
+// S4-MOB-03 (29/10): + `useAvisosAgendamento`, observador sem UI que só dispara notificação local (razão no script).
 const ALLOWLIST_EXATA = [
   'app/(tabs)/_layout.tsx::useAgendamentoBadgeCount',
+  'app/_layout.tsx::useAvisosAgendamento',
 ];
 
 describe('gate: tela que lê dado de servidor trata o erro (check-query-state)', () => {
